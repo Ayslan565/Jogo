@@ -26,7 +26,7 @@ def gerar_plantas_ao_redor_do_jogador(jogador, gramas, arvores, est):
                 base_x = (jogador_bloco_x + dx) * bloco_tamanho
                 base_y = (jogador_bloco_y + dy) * bloco_tamanho
 
-                for _ in range(random.randint(5, 10)):
+                for _ in range(random.randint(5, 5)):
                     tipo_planta = random.choice(['grama', 'arvore'])
                     x = base_x + random.randint(0, bloco_tamanho)
                     y = base_y + random.randint(0, bloco_tamanho)

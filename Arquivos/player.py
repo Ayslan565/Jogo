@@ -18,17 +18,20 @@ class Player(pygame.sprite.Sprite):
 
         # Sprites de animação de movimento
         self.sprites = [
-            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Asrahel1.png"), (50, 50)),
-            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Asrahel2.png"), (50, 50)),
-            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Asrahel3.png"), (50, 50)),
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E1.png"), (60, 60)),         
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E2.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E3.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E4.png"), (60, 60)),         
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E5.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E6.png"), (60, 60)),
+
         ]
 
         # Sprites de animação de idle
         self.sprites_idle = [
-            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Idle/Asrahel_idle1.png"), (50, 50)),
-            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Idle/Asrahel_idle2.png"), (50, 50)),
-            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Idle/Asrahel_idle5.png"), (50, 50)),
-        ]
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E1.png"), (60, 60)),         
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E2.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E3.png"), (60, 60)),        ]
 
         self.atual = 0
         self.frame_idle = 0
