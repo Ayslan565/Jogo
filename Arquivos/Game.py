@@ -2,57 +2,39 @@ import pygame
 import random
 from player import Player
 from Estacoes import Estacoes
-from Inimigos import Fantasma
+from GerenciadorDeInimigos import GerenciadorDeInimigos
+from fantasma import Fantasma
+from boneco_de_neve import BonecoDeNeve
 from arvores import Arvore
 from grama import Grama
 from vida import Vida
-
-# Armazena regiões já geradas (dividido em "blocos")
-blocos_gerados = set()
-
-def gerar_plantas_ao_redor_do_jogador(jogador, gramas, arvores, est):
-    distancia_geracao = 1920  # distância do centro do jogador
-    bloco_tamanho = 1080  # tamanho do bloco usado para evitar gerar novamente
-
-    jogador_bloco_x = jogador.rect.x // bloco_tamanho
-    jogador_bloco_y = jogador.rect.y // bloco_tamanho
-
-    # Explora ao redor do jogador (9 blocos)
-    for dx in range(-1, 2):
-        for dy in range(-1, 2):
-            bloco_coord = (jogador_bloco_x + dx, jogador_bloco_y + dy)
-            if bloco_coord not in blocos_gerados:
-                blocos_gerados.add(bloco_coord)
-                base_x = (jogador_bloco_x + dx) * bloco_tamanho
-                base_y = (jogador_bloco_y + dy) * bloco_tamanho
-
-                for _ in range(random.randint(5, 5)):
-                    tipo_planta = random.choice(['grama', 'arvore'])
-                    x = base_x + random.randint(0, bloco_tamanho)
-                    y = base_y + random.randint(0, bloco_tamanho)
-
-                    if tipo_planta == 'grama':
-                        gramas.append(Grama(x, y, 50, 50))
-                    else:
-                        arvores.append(Arvore(x, y, 180, 180, est.i))
+from gerador_plantas import gerar_plantas_ao_redor_do_jogador
 
 def main():
     pygame.init()
-    janela = pygame.display.set_mode()
+    janela = pygame.display.set_mode((1920, 1080))
     pygame.display.set_caption("Lenda de Asrahel")
-
-    Asrahel = Player()
-    fantasminha = Fantasma(velocidade=1.5)
-    est = Estacoes()
-    vida = Vida(vida_maxima=100, vida_atual=100)
-
-    gramas = []
-    arvores = []
-
     clock = pygame.time.Clock()
 
-    while True:
+    # Inicializa o jogo
+    Asrahel = Player()
+    est = Estacoes()
+    vida = Vida(vida_maxima=100, vida_atual=100)
+    gramas = []
+    arvores = []
+    blocos_gerados = set()
+    gerenciador_inimigos = GerenciadorDeInimigos()
+    jogador_morreu = False
+
+    tempo_spawn = 0
+    taxa_spawn = 1
+    tempo_geracao_inimigos = 5000
+    quantidade_inimigos = 1
+
+    while not jogador_morreu:
         dt = clock.tick(60)
+
+        # Eventos
         for e in pygame.event.get():
             if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
                 pygame.quit()
@@ -61,41 +43,45 @@ def main():
         teclas = pygame.key.get_pressed()
         Asrahel.mover(teclas, arvores)
         Asrahel.update()
-        fantasminha.update(Asrahel.rect)
 
-        gerar_plantas_ao_redor_do_jogador(Asrahel, gramas, arvores, est)
+        gerar_plantas_ao_redor_do_jogador(Asrahel, gramas, arvores, est, blocos_gerados)
 
-        # Atualiza estação e árvores
+        # Atualiza estação e sprites das árvores se mudar
         tempo_anterior = est.i
         est.atualizar()
         if est.i != tempo_anterior:
             for arv in arvores:
                 arv.atualizar_sprite(est.i)
 
-        if fantasminha.verificar_colisao(Asrahel):
-            vida.receber_dano(10)
+        # Spawn de inimigos baseado no tempo
+        tempo_spawn += dt
+        if tempo_spawn >= tempo_geracao_inimigos:
+            tempo_spawn = 0
+            quantidade_inimigos *= 2  # crescimento exponencial
+
+            if est.i == "inverno":
+                for _ in range(quantidade_inimigos):
+                    tipo_inimigo = random.choice([Fantasma, BonecoDeNeve])
+                    inimigo = tipo_inimigo()
+                    gerenciador_inimigos.adicionar_inimigo(inimigo)
+
+        gerenciador_inimigos.update_inimigos(Asrahel.rect)
+        gerenciador_inimigos.desenhar_inimigos(janela, 0, 0)
+
+        # Verifica colisões com inimigos
+        for inimigo in gerenciador_inimigos.inimigos:
+            if inimigo.verificar_colisao(Asrahel):
+                vida.receber_dano(10)
 
         if vida.vida_atual <= 0:
-            fonte = pygame.font.SysFont(None, 75)
-            texto = fonte.render("Você morreu! Pressione R para reiniciar ou ESC para sair.", True, (255, 0, 0))
-            janela.fill((0, 0, 0))
-            janela.blit(texto, (janela.get_width() // 2 - texto.get_width() // 2,
-                                janela.get_height() // 2))
-            pygame.display.update()
-            esperando_input = True
-            while esperando_input:
-                for e in pygame.event.get():
-                    if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
-                        pygame.quit()
-                        return
-                    if e.type == pygame.KEYDOWN and e.key == pygame.K_r:
-                        main()
-                        return
+            jogador_morreu = True
+            break
 
-        # Câmera centralizada
+        # Câmera
         camera_x = Asrahel.rect.centerx - janela.get_width() // 2
         camera_y = Asrahel.rect.centery - janela.get_height() // 2
 
+        # Desenho da cena
         est.desenhar(janela)
 
         for gr in gramas:
@@ -114,10 +100,30 @@ def main():
         for a in arvores_frente:
             a.desenhar(janela, camera_x, camera_y)
 
-        fantasminha.desenhar(janela, camera_x, camera_y)
         vida.desenhar(janela, 20, 20)
 
         pygame.display.update()
+
+    # Tela de morte
+    fonte = pygame.font.Font(pygame.font.get_default_font(), 45)
+    texto = fonte.render("Você morreu! Pressione R para reiniciar ou ESC para sair.", True, (255, 0, 0))
+
+    while True:
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
+                pygame.quit()
+                return
+            if e.type == pygame.KEYDOWN and e.key == pygame.K_r:
+                main()  # Reinicia o jogo
+
+        janela.fill((0, 0, 0))
+        texto_pos_x = janela.get_width() // 2 - texto.get_width() // 2
+        texto_pos_y = janela.get_height() // 2 - texto.get_height() // 2
+        janela.blit(texto, (texto_pos_x, texto_pos_y))
+        pygame.display.update()
+        clock.tick(60)
+
+    pygame.quit()
 
 if __name__ == "__main__":
     main()

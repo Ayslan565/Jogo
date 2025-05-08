@@ -3,7 +3,6 @@ import random
 from vida import Vida
 from arvores import Arvore
 from grama import Grama
-from armas import Arma
 import math
 
 class Player(pygame.sprite.Sprite):
@@ -18,20 +17,21 @@ class Player(pygame.sprite.Sprite):
 
         # Sprites de animação de movimento
         self.sprites = [
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E1.png"), (60, 60)),         
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E2.png"), (60, 60)),
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E3.png"), (60, 60)),
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E4.png"), (60, 60)),         
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E5.png"), (60, 60)),
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E6.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E1.png"), (60, 60)),         
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E2.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E3.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E4.png"), (60, 60)),         
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E5.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E6.png"), (60, 60)),
 
         ]
 
         # Sprites de animação de idle
         self.sprites_idle = [
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E1.png"), (60, 60)),         
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E2.png"), (60, 60)),
-            pygame.transform.scale(pygame.image.load("Sprites\Asrahel\Esquerda\Ashael_E3.png"), (60, 60)),        ]
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E1.png"), (60, 60)),         
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E2.png"), (60, 60)),
+            pygame.transform.scale(pygame.image.load("Sprites/Asrahel/Esquerda/Ashael_E3.png"), (60, 60)),
+        ]
 
         self.atual = 0
         self.frame_idle = 0
@@ -45,14 +45,6 @@ class Player(pygame.sprite.Sprite):
         # Controle de tempo de animação
         self.tempo_animacao = 120  # milissegundos entre frames
         self.ultimo_update = pygame.time.get_ticks()
-
-        # Armas
-        self.armas_ativas = [
-            Arma("Espada", "Sprites/Armas/espada.png", 10),
-            Arma("Arco", "Sprites/Armas/arco.png", 8),
-            Arma("Besta", "Sprites/Armas/besta.png", 12)
-        ]
-        self.arma_atual = self.armas_ativas[0]
 
     def receber_dano(self, dano):
         self.vida.receber_dano(dano)

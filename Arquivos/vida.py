@@ -42,7 +42,7 @@ class Vida:
         elif self.vida_atual > 0:
             sprite = self.sprites[3]  # Vida 1/4
         else:
-            sprite = self.sprites[4]  # Vida vazia
+            sprite = self.sprites[3]  # Vida vazia
 
         # Desenha o sprite correspondente
         tela.blit(sprite, (x, y))  # Desenha o sprite da vida
