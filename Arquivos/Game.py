@@ -1,165 +1,207 @@
 import pygame
 import random
+import time
 from player import Player
 from Estacoes import Estacoes
 from GerenciadorDeInimigos import GerenciadorDeInimigos
-from Fantasma import fantasma
-from BonecoDeNeve import BonecoDeNeve
 from arvores import Arvore
 from grama import Grama
 from vida import Vida
-from Menu import Menu
+from Menu import Menu # Se você estiver usando uma classe Menu
 from gerador_plantas import gerar_plantas_ao_redor_do_jogador
+from timer1 import Timer
 
+
+# Inicialização do jogo e variáveis
 def inicializar_jogo():
+    """Inicializa as variáveis e objetos do jogo."""
     tempo_inicio = pygame.time.get_ticks()
-    Asrahel = Player()
-    est = Estacoes()
+    jogador = Player()
+    estacoes = Estacoes()
     vida = Vida(vida_maxima=100, vida_atual=100)
     gramas = []
     arvores = []
     blocos_gerados = set()
-    gerenciador_inimigos = GerenciadorDeInimigos()
-    jogador_morreu = False
+    # Inicializa o gerenciador de inimigos, talvez com parâmetros ajustados
+    gerenciador_inimigos = GerenciadorDeInimigos(intervalo_spawn=5.0, spawns_iniciais=3)
 
-    tempo_spawn = 0
-    taxa_spawn = 1
-    tempo_geracao_inimigos = 5000
-    quantidade_inimigos = 1
+    # Retorna todos os objetos e estados iniciais
+    return jogador, estacoes, vida, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio
 
-    return Asrahel, est, vida, gramas, arvores, blocos_gerados, gerenciador_inimigos, jogador_morreu, tempo_spawn, taxa_spawn, tempo_geracao_inimigos, quantidade_inimigos, tempo_inicio
-
-def spawn_inimigos(estacao, tempo_spawn, tempo_geracao_inimigos, quantidade_inimigos, gerenciador_inimigos):
-    if tempo_spawn >= tempo_geracao_inimigos:
-        tempo_spawn = 0
-        quantidade_inimigos *= 2  # crescimento exponencial
-
-        if estacao == "inverno":
-            for _ in range(quantidade_inimigos):
-                tipo_inimigo = random.choice([fantasma, BonecoDeNeve])
-                inimigo = tipo_inimigo()
-                gerenciador_inimigos.adicionar_inimigo(inimigo)
-    return tempo_spawn, quantidade_inimigos
-
-def verificar_colisoes_com_inimigos(gerenciador_inimigos, Asrahel, vida):
-    for inimigo in gerenciador_inimigos.inimigos:
-        if inimigo.verificar_colisao(Asrahel):
+# Verifica colisões entre jogador e inimigos
+def verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador, vida):
+    """
+    Verifica colisões entre o jogador e todos os inimigos e aplica dano.
+    Usa colliderect() para detecção de colisão.
+    """
+    for inimigo in list(gerenciador_inimigos.inimigos):
+        if inimigo.rect.colliderect(jogador.rect):
             vida.receber_dano(10)
+            # Opcional: Adicionar lógica para empurrar o inimigo ou jogador após a colisão.
+            # Isso pode ser feito aqui ou no método atacar do inimigo.
 
-def atualizar_cena(est, gramas, arvores, Asrahel, janela, camera_x, camera_y, vida, tempo_decorrido):
-    est.desenhar(janela)
-    est.desenhar_mensagem_estacao(janela)
 
+# Desenha toda a cena (terreno, jogador, timer, vida)
+# Agora recebe o objeto timer como argumento
+def atualizar_cena(est, gramas, arvores, jogador, janela, camera_x, camera_y, vida, tempo_decorrido, timer_obj):
+    """
+    Desenha todos os elementos da cena, incluindo terreno, plantas, jogador, vida e timer.
+    Agora utiliza um objeto Timer para desenhar o timer.
+
+    Args:
+        est (Estacoes): Objeto da estação atual.
+        gramas (list): Lista de objetos Grama.
+        arvores (list): Lista de objetos Arvore.
+        jogador (Player): Objeto do jogador.
+        janela (pygame.Surface): A superfície onde desenhar.
+        camera_x (int): O offset x da câmera.
+        camera_y (int): O offset y da câmera.
+        vida (Vida): Objeto de vida do jogador.
+        tempo_decorrido (int): Tempo decorrido em segundos.
+        timer_obj (Timer): Objeto Timer para desenhar.
+    """
+    est.desenhar(janela) # Desenha o plano de fundo da estação
+
+    # Desenha gramas com offset da câmera
     for gr in gramas:
         gr.desenhar(janela, camera_x, camera_y)
 
-    arvores_tras = [a for a in arvores if a.rect.bottom < Asrahel.rect.bottom]
-    arvores_frente = [a for a in arvores if a.rect.bottom >= Asrahel.rect.bottom]
+    # Separa árvores para desenhar atrás e na frente do jogador para ordem de desenho correta
+    arvores_tras = [a for a in arvores if a.rect.bottom < jogador.rect.bottom]
+    arvores_frente = [a for a in arvores if a.rect.bottom >= jogador.rect.bottom]
 
+    # Desenha árvores atrás do jogador
     for a in arvores_tras:
         a.desenhar(janela, camera_x, camera_y)
 
-    janela.blit(Asrahel.image,
-                (janela.get_width() // 2 - Asrahel.rect.width // 2,
-                 janela.get_height() // 2 - Asrahel.rect.height // 2))
+    # Desenha o jogador centralizado na tela
+    janela.blit(jogador.image, (
+        janela.get_width() // 2 - jogador.rect.width // 2,
+        janela.get_height() // 2 - jogador.rect.height // 2
+    ))
 
+    # Desenha árvores na frente do jogador
     for a in arvores_frente:
         a.desenhar(janela, camera_x, camera_y)
 
-    est.desenhar_mensagem_estacao(janela)
-    vida.desenhar(janela, 20, 20)
-    
-    # Desenha o timer
-    fonte_timer = pygame.font.Font(pygame.font.get_default_font(), 36)
-    texto_timer = fonte_timer.render(f" {tempo_decorrido}", True, (255, 255, 255))
-    timer_pos_x = janela.get_width() // 2 - texto_timer.get_width() // 2
-    timer_pos_y = 30  # um pouco abaixo do topo
+    est.desenhar_mensagem_estacao(janela) # Desenha a mensagem da estação atual
+    vida.desenhar(janela, 20, 20) # Desenha a barra de vida
 
-    borda_arredondada = pygame.Surface((texto_timer.get_width() + 10, texto_timer.get_height() + 10), pygame.SRCALPHA)
-    borda_arredondada.set_alpha(128)  # 50% de transparência
-    borda_arredondada.fill((0, 0, 0, 0))
-    pygame.draw.rect(borda_arredondada, (0, 0, 0), (0, 0, texto_timer.get_width() + 10, texto_timer.get_height() + 10), border_radius=10)
-    pygame.draw.rect(borda_arredondada, (255, 255, 255), (0, 0, texto_timer.get_width() + 10, texto_timer.get_height() + 10), 2, border_radius=10)
-    janela.blit(borda_arredondada, (timer_pos_x - 5, timer_pos_y - 5))
+    # Desenha o timer usando o objeto Timer
+    timer_obj.desenhar(janela, tempo_decorrido)
 
-    janela.blit(texto_timer, (timer_pos_x, timer_pos_y))
 
+# Tela de morte e opções de reinício ou saída
 def tela_de_morte(janela):
-    fonte = pygame.font.Font(pygame.font.get_default_font(), 45)
+    """Exibe a tela de morte e aguarda a entrada do usuário para reiniciar ou sair."""
+    fonte = pygame.font.Font(None, 45)
     texto = fonte.render("Você morreu! Pressione R para reiniciar ou ESC para sair.", True, (255, 0, 0))
 
     while True:
-        for e in pygame.event.get():
-            if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
                 pygame.quit()
                 return
-            if e.type == pygame.KEYDOWN and e.key == pygame.K_r:
-                main()  # Reinicia o jogo
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_r:
+                main() # Reinicia o jogo chamando main() novamente
+                return # Sai da tela de morte para evitar loop infinito
 
-        janela.fill((0, 0, 0))
-        texto_pos_x = janela.get_width() // 2 - texto.get_width() // 2
-        texto_pos_y = janela.get_height() // 2 - texto.get_height() // 2
-        janela.blit(texto, (texto_pos_x, texto_pos_y))
-        pygame.display.update()
-        pygame.time.Clock().tick(60)
+        janela.fill((0, 0, 0)) # Preenche a tela com preto
+        pos_x = janela.get_width() // 2 - texto.get_width() // 2
+        pos_y = janela.get_height() // 2 - texto.get_height() // 2
+        janela.blit(texto, (pos_x, pos_y)) # Desenha o texto de morte
+        pygame.display.update() # Atualiza a tela
+        pygame.time.Clock().tick(60) # Limita o FPS
 
+# Função principal
 def main():
-    pygame.init()
-    janela = pygame.display.set_mode((1920, 1080))
-    pygame.display.set_caption("Lenda de Asrahel")
-    clock = pygame.time.Clock()
+    """Função principal que executa o loop do jogo."""
+    pygame.init() # Inicializa o Pygame
+    largura_tela, altura_tela = 1920, 1080
+    janela = pygame.display.set_mode((largura_tela, altura_tela)) # Cria a janela do jogo
+    pygame.display.set_caption("Lenda de Asrahel") # Define o título da janela
+    clock = pygame.time.Clock() # Cria um objeto Clock para controlar o FPS
 
-    Asrahel, est, vida, gramas, arvores, blocos_gerados, gerenciador_inimigos, jogador_morreu, tempo_spawn, taxa_spawn, tempo_geracao_inimigos, quantidade_inimigos, tempo_inicio = inicializar_jogo()
+    # Inicializa todos os componentes do jogo
+    jogador, est, vida, gramas, arvores, blocos_gerados, gerenciador_inimigos, jogador_morreu, tempo_inicio = inicializar_jogo()
 
-    tempo_decorrido = 0  # Inicializando a variável tempo_decorrido fora do loop
+    # Cria uma instância do Timer.
+    # Calcula a posição X para centralizar o fundo do timer.
+    # A posição Y pode ser um valor fixo no topo.
+    timer_pos_y = 30 # Posição Y fixa no topo
+    # Para centralizar o timer, precisamos saber a largura do texto. Como a largura
+    # do texto varia (MM:SS), é melhor calcular a posição X de desenho dentro
+    # do método desenhar da classe Timer, mas podemos dar uma posição inicial aqui.
+    # Uma estimativa simples para centralizar a área do timer:
+    fonte_estimativa = pygame.font.Font(None, 36)
+    largura_estimada_texto = fonte_estimativa.size("00:00")[0] # Largura estimada para "00:00"
+    largura_estimada_fundo = largura_estimada_texto + 10 # Largura estimada do fundo
+    timer_pos_x = janela.get_width() // 2 - largura_estimada_fundo // 2
 
+    timer_obj = Timer(timer_pos_x, timer_pos_y)
+
+
+    # Loop principal do jogo
     while not jogador_morreu:
-        dt = clock.tick(60)
+        dt = clock.tick(60) # Controla o FPS e obtém o tempo desde o último frame
 
-        # Eventos
-        for e in pygame.event.get():
-            if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
-                pygame.quit()
-                return
+        # Lida com eventos do Pygame
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
+                pygame.quit() # Sai do Pygame
+                return # Sai da função main
 
+        # Obtém o estado das teclas pressionadas e move o jogador
         teclas = pygame.key.get_pressed()
-        Asrahel.mover(teclas, arvores)
-        Asrahel.update()
+        jogador.mover(teclas, arvores)
+        jogador.update() # Atualiza o estado do jogador (animação, etc.)
 
-        gerar_plantas_ao_redor_do_jogador(Asrahel, gramas, arvores, est, blocos_gerados)
+        # Gera plantas ao redor do jogador conforme ele se move
+        gerar_plantas_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados)
 
-        # Atualiza estação e sprites das árvores se mudar
-        tempo_anterior = est.i
-        est.atualizar()
-        if est.i != tempo_anterior:
+        # Detecta mudança de estação e atualiza árvores e spawna inimigos imediatamente
+        est_ant = est.i
+        est.atualizar() # Atualiza a estação
+        if est.i != est_ant:
+            # Atualiza os sprites das árvores para a nova estação
             for arv in arvores:
                 arv.atualizar_sprite(est.i)
+            # Spawna inimigos imediatamente ao mudar de estação
+            gerenciador_inimigos.spawn_inimigos(est.i, jogador)
 
-        tempo_spawn, quantidade_inimigos = spawn_inimigos(est.i, tempo_spawn, tempo_geracao_inimigos, quantidade_inimigos, gerenciador_inimigos)
+        # Tenta spawnar inimigos periodicamente
+        gerenciador_inimigos.tentar_spawnar(est.i, jogador)
 
-        gerenciador_inimigos.update_inimigos(Asrahel.rect)
-        gerenciador_inimigos.desenhar_inimigos(janela, 0, 0)
-        # Verifica colisões com inimigos
-        verificar_colisoes_com_inimigos(gerenciador_inimigos, Asrahel, vida)
 
-        if vida.vida_atual <= 0:
-            jogador_morreu = True
-            break
+        # Atualiza inimigos (movimento e ataque)
+        gerenciador_inimigos.update_inimigos(jogador)
 
-        # Câmera
-        camera_x = Asrahel.rect.centerx - janela.get_width() // 2
-        camera_y = Asrahel.rect.centery - janela.get_height() // 2
+        # Câmera centralizada no jogador
+        camera_x = jogador.rect.centerx - largura_tela // 2
+        camera_y = jogador.rect.centery - altura_tela // 2
 
-        # Atualiza o tempo de jogo
-        tempo_decorrido = (pygame.time.get_ticks() - tempo_inicio) // 1000  # Tempo em segundos
+        janela.fill((0, 0, 0)) # Preenche o fundo da janela
 
-        # Desenho da cena
-        atualizar_cena(est, gramas, arvores, Asrahel, janela, camera_x, camera_y, vida, tempo_decorrido)
+        # Desenha a cena com offset da câmera
+        # Passa o objeto timer para a função atualizar_cena
+        tempo_decorrido_segundos = (pygame.time.get_ticks() - tempo_inicio) // 1000
+        atualizar_cena(est, gramas, arvores, jogador, janela, camera_x, camera_y, vida, tempo_decorrido_segundos, timer_obj)
 
-        pygame.display.update()
+        # Desenha inimigos após a cena, com offset da câmera
+        gerenciador_inimigos.desenhar_inimigos(janela, camera_x, camera_y)
 
-    # Tela de morte
+        # Verifica colisões entre jogador e inimigos e aplica dano
+        verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador, vida)
+
+        # Verifica se o jogador morreu APÓS verificar colisões e aplicar dano
+        if not vida.esta_vivo():
+            jogador_morreu = True # Define a flag para sair do loop principal
+
+        pygame.display.update() # Atualiza a tela para mostrar as mudanças
+
+    # Se o loop principal terminou (jogador morreu), chama a tela de morte
     tela_de_morte(janela)
 
+# Executa a função main se o script for o ponto de entrada principal
 if __name__ == "__main__":
     main()

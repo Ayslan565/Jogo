@@ -67,7 +67,7 @@ class Espada(Arma):
         self.nome = "Espada"
 
         # Carrega e redimensiona a imagem
-        caminho_imagem = "Sprites/Armas/Espada.png"
+        caminho_imagem = "Sprites\Armas\Machado - Comum.png"
         imagem_pil = Image.open(caminho_imagem).resize((200, 200))
         self.imagem = ImageTk.PhotoImage(imagem_pil)
 
