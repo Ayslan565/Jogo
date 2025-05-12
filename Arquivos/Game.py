@@ -16,8 +16,11 @@ from gerador_plantas import gerar_plantas_ao_redor_do_jogador
 from timer1 import Timer
 
 
+# >>> LISTA DE ARQUIVOS DE MÚSICA PARA O JOGO PRINCIPAL <<<
+
 MUSICAS_JOGO = [
-    "Musica\Gameplay\Faixa 1.mp3", # Exemplo de caminho para a primeira música do jogo
+    "Musica\Gameplay\Faixa 1.mp3",
+
 ]
 
 # Inicialização do jogo e variáveis
@@ -169,16 +172,24 @@ def main():
         print(f"Pygame: Erro ao inicializar o mixer de audio: {e}")
         # O jogo pode continuar sem áudio se o mixer falhar
 
+    # >>> Obtém as dimensões do monitor atual <<<
+    info = pygame.display.Info()
+    largura_tela = info.current_w
+    altura_tela = info.current_h
+    print(f"Resolução do monitor detectada: {largura_tela}x{altura_tela}")
 
-    largura_tela, altura_tela = 1920, 1080
-    janela = pygame.display.set_mode((largura_tela, altura_tela)) # Cria a janela do jogo
+
+    # Cria a janela do jogo em tela cheia
+    # Adiciona o flag pygame.FULLSCREEN para tela cheia
+    janela = pygame.display.set_mode((largura_tela, altura_tela), pygame.FULLSCREEN)
     pygame.display.set_caption("Lenda de Asrahel") # Define o título da janela
     clock = pygame.time.Clock() # Cria um objeto Clock para controlar o FPS
 
-    # >>> LOOP DO MENU <<<
-    menu = Menu(largura_tela, altura_tela) # Cria uma instância do menu
+    # Cria uma instância do menu, passando as novas dimensões da tela
+    menu = Menu(largura_tela, altura_tela)
     acao_menu = None # Variável para armazenar a ação selecionada no menu
 
+    # >>> LOOP DO MENU <<<
     while acao_menu is None:
         mouse_pos = pygame.mouse.get_pos() # Obtém a posição do mouse para o efeito hover
         menu.desenhar(janela, mouse_pos) # Desenha o menu
@@ -205,6 +216,7 @@ def main():
         print("Menu 'Jogar' selecionado. Inicializando jogo...") # Print para depuração
 
         # Inicializa todos os componentes do jogo
+        # Não é necessário passar as dimensões aqui, pois os objetos usam as dimensões da janela
         jogador, est, vida, gramas, arvores, blocos_gerados, gerenciador_inimigos, jogador_morreu, tempo_inicio = inicializar_jogo()
 
         # Cria uma instância do Timer.
@@ -218,6 +230,7 @@ def main():
         fonte_estimativa = pygame.font.Font(None, 36)
         largura_estimada_texto = fonte_estimativa.size("00:00")[0] # Largura estimada para "00:00"
         largura_estimada_fundo = largura_estimada_texto + 10 # Largura estimada do fundo
+        # Usa a largura da tela dinâmica para centralizar
         timer_pos_x = janela.get_width() // 2 - largura_estimada_fundo // 2
 
         timer_obj = Timer(timer_pos_x, timer_pos_y)
@@ -270,8 +283,8 @@ def main():
             gerenciador_inimigos.update_inimigos(jogador)
 
             # Câmera centralizada no jogador
-            camera_x = jogador.rect.centerx - largura_tela // 2
-            camera_y = jogador.rect.centery - altura_tela // 2 # Corrigido: altura_tela
+            camera_x = jogador.rect.centerx - janela.get_width() // 2
+            camera_y = jogador.rect.centery - janela.get_height() // 2
 
             janela.fill((0, 0, 0)) # Preenche o fundo da janela
 
