@@ -186,7 +186,8 @@ try:
     faixas = [
         "Musica/Loja/Faixa_1.mp3",
         "Musica/Loja/Echoes_of_the_Forest.mp3",
-        "Musica/Loja/Shadows of a Fallen Heart.mp3"
+        "Musica/Loja/Shadows of a Fallen Heart.mp3",
+        "Musica/Loja/faixa_4.mp3",
     ]
     pygame.mixer.music.load(random.choice(faixas))
     pygame.mixer.music.set_volume(0.2)
@@ -209,11 +210,11 @@ try:
     imagem_Espada_2 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Espada Media.png").convert_alpha(), (100, 100))
     imagem_Espada_3 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Espada Hard.png").convert_alpha(), (100, 100))
     imagem_Espada_4 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Espada Amaldiçoada pelos Demonios.png").convert_alpha(), (100, 100))
-    imagem_Espada_5 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Espada Dos Deuses Caidos.png").convert_alpha(), (100, 100))
+    imagem_Espada_5 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Adaga Basica.png").convert_alpha(), (100, 100))
 
     # Machados
-    imagem_Machado_1 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Machado - Comum.png").convert_alpha(), (100, 100))
-    imagem_Machado_2 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Machado-Epico.png").convert_alpha(), (100, 100))
+    imagem_Machado_1 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Adaga Basica.png").convert_alpha(), (100, 100))
+    imagem_Machado_2 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Adaga Basica.png").convert_alpha(), (100, 100))
 
     # Cajados (reutilizando imagem temporariamente - ajuste os caminhos reais)
     imagem_Cajado_1 = pygame.transform.scale(pygame.image.load("Sprites/Armas/Espadas/Espada Dos Deuses Caidos.png").convert_alpha(), (100, 100)) # Exemplo de caminho para cajado
