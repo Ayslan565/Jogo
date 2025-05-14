@@ -1,7 +1,7 @@
 import pygame
 import random
 import math
-from inimigos import Inimigo # Certifique-se de que Inimigo está acessível
+from Inimigos import Inimigo # Certifique-se de que Inimigo está acessível
 import time # Importa time se for usado para cooldowns ou outras lógicas de tempo
 
 """

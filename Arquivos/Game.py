@@ -19,7 +19,7 @@ from timer1 import Timer
 # >>> LISTA DE ARQUIVOS DE MÚSICA PARA O JOGO PRINCIPAL <<<
 
 MUSICAS_JOGO = [
-    "Musica\Gameplay\Faixa 1.mp3",
+    "Musica\Gameplay\Faixa 1.mp3","Musica\Gameplay\Faixa 2.mp3","Musica\Gameplay\Faixa 3.mp3",
 
 ]
 

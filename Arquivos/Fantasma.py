@@ -2,7 +2,7 @@ import time
 import pygame
 import random
 import math
-from inimigos import Inimigo # Certifique-se de que Inimigo está acessível
+from Inimigos import Inimigo # Certifique-se de que Inimigo está acessível
 
 # Certifique-se de que BonecoDeNeve está acessível, embora não seja usado diretamente nesta classe
 # from BonecoDeNeve import BonecoDeNeve

@@ -11,18 +11,20 @@ class GerenciadorDeInimigos:
     """
     Gerencia a criação, atualização e desenho dos inimigos no jogo.
     """
-    def __init__(self, intervalo_spawn: float = 3.0, spawns_iniciais: int = 5):
+    def __init__(self, intervalo_spawn: float = 3.0, spawns_iniciais: int = 5, limite_inimigos: int = 150):
         """
         Inicializa o gerenciador de inimigos.
 
         Args:
             intervalo_spawn (float): Tempo em segundos entre os spawns periódicos.
             spawns_iniciais (int): Número de inimigos a spawnar imediatamente em certas condições.
+            limite_inimigos (int): O número máximo de inimigos permitidos na tela.
         """
         self.inimigos = [] # Lista para armazenar os objetos inimigos ativos
         self.ultimo_spawn = time.time() # Tempo do último spawn para controle do intervalo
         self.intervalo_spawn = intervalo_spawn # Intervalo entre spawns periódicos
         self.spawns_iniciais = spawns_iniciais # Quantidade de spawns iniciais
+        self.limite_inimigos = limite_inimigos # Novo: Limite máximo de inimigos
 
     def spawn_inimigos(self, estacao, jogador):
         """
@@ -50,7 +52,13 @@ class GerenciadorDeInimigos:
 
             # Spawna inimigos apenas se houver tipos disponíveis
             if tipos_disponiveis:
-                 for _ in range(self.spawns_iniciais):
+                for _ in range(self.spawns_iniciais):
+                    # --- NOVO: Verifica se o limite de inimigos foi atingido ---
+                    if len(self.inimigos) >= self.limite_inimigos:
+                        # print("Limite de inimigos atingido. Não spawnando mais.") # Opcional: para depuração
+                        break # Sai do loop se o limite for atingido
+                    # -----------------------------------------------------
+
                     # Escolhe um tipo de inimigo aleatoriamente entre os disponíveis
                     tipo = random.choice(tipos_disponiveis)
                     # Calcula uma posição de spawn aleatória ao redor do jogador
@@ -61,7 +69,7 @@ class GerenciadorDeInimigos:
                     # Adiciona o novo inimigo à lista de inimigos ativos
                     self.inimigos.append(inimigo)
             else:
-                 print("Aviso: Nenhum tipo de inimigo disponível para spawn no inverno.")
+                print("Aviso: Nenhum tipo de inimigo disponível para spawn no inverno.")
 
 
     def tentar_spawnar(self, estacao, jogador):
@@ -73,9 +81,11 @@ class GerenciadorDeInimigos:
             jogador (Player): O objeto jogador.
         """
         agora = time.time()
-        # Verifica se o intervalo de spawn passou desde o último spawn
-        if agora - self.ultimo_spawn >= self.intervalo_spawn:
-            self.spawn_inimigos(estacao, jogador) # Chama a função de spawn
+        # Verifica se o intervalo de spawn passou desde o último spawn E se não atingiu o limite
+        # --- NOVO: Adiciona a verificação do limite aqui também para evitar chamar spawn_inimigos desnecessariamente ---
+        if agora - self.ultimo_spawn >= self.intervalo_spawn and len(self.inimigos) < self.limite_inimigos:
+        # ------------------------------------------------------------------------------------------------------------
+            self.spawn_inimigos(estacao, jogador) # Chama a função de spawn (que já tem a verificação interna)
             self.ultimo_spawn = agora # Atualiza o tempo do último spawn
 
     def update_inimigos(self, jogador):
@@ -90,10 +100,10 @@ class GerenciadorDeInimigos:
             inimigo.update(jogador.rect) # Atualiza o inimigo (movimento, animação, etc.)
             # Verifica se o inimigo tem um método 'atacar' e o chama
             if hasattr(inimigo, 'atacar'):
-                inimigo.atacar(jogador)
+                 inimigo.atacar(jogador)
             # Verifica se o inimigo tem HP e se ele chegou a zero ou menos
             if hasattr(inimigo, 'hp') and inimigo.hp <= 0:
-                self.inimigos.remove(inimigo) # Remove o inimigo da lista se ele morreu
+                 self.inimigos.remove(inimigo) # Remove o inimigo da lista se ele morreu
 
     def desenhar_inimigos(self, janela, camera_x: int, camera_y: int):
         """
