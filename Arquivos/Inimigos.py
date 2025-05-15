@@ -1,5 +1,7 @@
+# Inimigos.py
 import pygame
 import math # Importa math para a função hypot
+import time # Importa time para usar time.time() ou pygame.time.get_ticks()
 
 class Inimigo(pygame.sprite.Sprite):
     """
@@ -7,10 +9,7 @@ class Inimigo(pygame.sprite.Sprite):
     Herda de pygame.sprite.Sprite para facilitar o manuseio de grupos de sprites.
     Recebe uma Surface do Pygame já carregada.
     """
-    # Removemos a lógica de carregamento de arquivo daqui.
-    # As classes derivadas (Fantasma, BonecoDeNeve) devem carregar seus sprites
-    # e passar a Surface carregada para esta classe base.
-    def __init__(self, x, y, image_surface):
+    def __init__(self, x, y, image_surface, velocidade=1):
         """
         Inicializa um novo objeto Inimigo com uma Surface de imagem.
 
@@ -18,47 +17,60 @@ class Inimigo(pygame.sprite.Sprite):
             x (int): A posição inicial x do inimigo.
             y (int): A posição inicial y do inimigo.
             image_surface (pygame.Surface): A Surface do Pygame já carregada para o sprite.
+            velocidade (float): A velocidade de movimento do inimigo.
         """
         super().__init__() # Inicializa a classe base Sprite
 
-        # Usamos a Surface passada diretamente
-        self.image = image_surface
-
-        # Ajusta o tamanho conforme necessário (pode ser feito nas classes derivadas também)
-        # Se você já redimensionou nas classes derivadas, pode remover ou ajustar esta linha.
-        self.image = pygame.transform.scale(self.image, (64, 64))
-
+        self.image = image_surface # Usa a Surface passada diretamente
         self.rect = self.image.get_rect(topleft=(x, y)) # Obtém o retângulo do sprite e define a posição inicial
-        self.velocidade = 2 # Define a velocidade de movimento do inimigo
+        self.velocidade = velocidade # Define a velocidade de movimento base do inimigo
+
+        # Atributos de combate comuns (podem ser sobrescritos nas classes derivadas)
+        self.hp = 100 # Pontos de vida padrão
+        self.is_attacking = False # Flag para indicar si o inimigo está atacando
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Retângulo para a hitbox de ataque (inicialmente vazio)
+        self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
+        self.contact_damage = 5 # Dano por contato padrão
+        self.contact_cooldown = 1000 # Cooldown de dano de contato padrão (em milissegundos)
+        self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
 
     def mover_em_direcao(self, alvo_x, alvo_y):
         """
         Move o inimigo na direção de um ponto alvo.
+        Este método deve ser chamado pelas classes derivadas em seus métodos update.
 
         Args:
             alvo_x (int): A coordenada x do ponto alvo.
             alvo_y (int): A coordenada y do ponto alvo.
         """
-        dx = alvo_x - self.rect.centerx # Diferença no eixo x
-        dy = alvo_y - self.rect.centery # Diferença no eixo y
-        distancia = math.hypot(dx, dy) # Calcula a distância usando a hipotenusa (ou pygame.math.Vector2(dx, dy).length())
+        # Só move si estiver vivo e tiver velocidade
+        # Adiciona verificação para evitar movimento si a distância for muito pequena (evita tremer)
+        if self.esta_vivo() and self.velocidade > 0:
+            dx = alvo_x - self.rect.centerx # Diferença no eixo x
+            dy = alvo_y - self.rect.centery # Diferença no eixo y
+            distancia = math.hypot(dx, dy) # Calcula a distância usando a hipotenusa
 
-        if distancia > 0:
-            # Normaliza o vetor direção para obter apenas a direção
-            dx /= distancia
-            dy /= distancia
-            # Move o inimigo na direção do alvo pela velocidade definida
-            self.rect.x += dx * self.velocidade
-            self.rect.y += dy * self.velocidade
+            # Define uma pequena margem para evitar tremer quando muito perto
+            if distancia > self.velocidade / 2: # Move apenas si a distância for maior que metade da velocidade
+                # Normaliza o vetor direção para obter apenas a direção
+                dx_norm = dx / distancia
+                dy_norm = dy / distancia
+                # Move o inimigo na direção do alvo pela velocidade definida
+                self.rect.x += dx_norm * self.velocidade
+                self.rect.y += dy_norm * self.velocidade
+            else:
+                 # Si a distância for menor ou igual à metade da velocidade, move diretamente para o alvo
+                 self.rect.centerx = alvo_x
+                 self.rect.centery = alvo_y
 
-    def atualizar(self, jogador_rect):
+
+    def update(self, player):
         """
-        Atualiza o estado do inimigo (neste caso, move em direção ao jogador).
-
-        Args:
-            jogador_rect (pygame.Rect): O retângulo do jogador para seguir.
+        Método placeholder para atualização do inimigo.
+        As classes derivadas devem sobrescrever este método para implementar
+        movimento, ataque, animação, etc. Deve receber o objeto player.
         """
-        self.mover_em_direcao(jogador_rect.centerx, jogador_rect.centery)
+        pass # Implementação real deve estar nas classes derivadas
 
     def desenhar(self, janela, camera_x, camera_y):
         """
@@ -71,3 +83,16 @@ class Inimigo(pygame.sprite.Sprite):
         """
         # Desenha a imagem do inimigo na posição corrigida pela câmera
         janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+
+    def esta_vivo(self):
+        """Retorna True se o inimigo estiver vivo."""
+        return self.hp > 0 # Assume que o inimigo está vivo se HP > 0
+
+    def receber_dano(self, dano):
+        """
+        Método placeholder para receber dano.
+        As classes derivadas devem sobrescrever este método.
+        """
+        # print(f"DEBUG(Inimigo Base): Método receber_dano chamado na classe base. Dano: {dano}") # Debug
+        pass # Implementação real deve estar nas classes derivadas
+

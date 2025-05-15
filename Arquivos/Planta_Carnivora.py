@@ -1,108 +1,51 @@
-# BonecoDeNeve.py
-import time
-import random
 import pygame
-import math # Importe math se for usado para cooldowns ou outras lógicas de tempo
-try:
-    from Inimigos import Inimigo
-except ImportError:
-    print("DEBUG(BonecoDeNeve): Aviso: Módulo 'Inimigos.py' não encontrado. Usando classe base Inimigo placeholder.")
-    class Inimigo(pygame.sprite.Sprite):
-        def __init__(self, x, y, image, velocidade=1):
-            super().__init__()
-            self.image = image
-            self.rect = self.image.get_rect(topleft=(x, y))
-            self.hp = 100 # Vida padrão
-            self.velocidade = velocidade # Velocidade padrão
-            self.is_attacking = False # Flag de ataque padrão
-            self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Hitbox de ataque padrão (vazia)
-            self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
-            self.contact_damage = 5 # Dano de contato padrão
-            self.contact_cooldown = 1000 # Cooldown de contato padrão (em milissegundos)
-            self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato
+import random
+import math # Importa math para a função hypot
+import time # Importa time para usar time.time() ou pygame.time.get_ticks()
 
-        def receber_dano(self, dano):
-            self.hp -= dano
-            if self.hp <= 0:
-                self.kill() # Remove o sprite do grupo
+# Importa a classe base Inimigo do ficheiro Inimigos.py
+# Certifique-se de que o ficheiro Inimigos.py está na mesma pasta ou num caminho acessível
+from Inimigos import Inimigo
 
-        def update(self, player):
-            # Lógica de atualização padrão (pode ser sobrescrita)
-            pass
-
-        def desenhar(self, surface, camera_x, camera_y):
-            # Desenha o inimigo com o offset da câmera
-            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-            # Opcional: Desenhar barra de vida do inimigo aqui
-
-        def esta_vivo(self):
-             return self.hp > 0
-
-        def mover_em_direcao(self, alvo_x, alvo_y):
-            """
-            Move o inimigo na direção de um ponto alvo.
-            Este é um método base que pode ser sobrescrito por subclasses.
-
-            Args:
-                alvo_x (int): A coordenada x do ponto alvo.
-                alvo_y (int): A coordenada y do ponto alvo.
-            """
-            # Só move si estiver vivo e tiver velocidade
-            if self.esta_vivo() and self.velocidade > 0:
-                dx = alvo_x - self.rect.centerx
-                dy = alvo_y - self.rect.centery
-                distancia = math.hypot(dx, dy)
-
-                if distancia > 0:
-                    dx_norm = dx / distancia
-                    dy_norm = dy / distancia
-                    self.rect.x += dx_norm * self.velocidade
-                    self.rect.y += dy_norm * self.velocidade
-
-        # Adicione outros métodos base comuns a todos os inimigos aqui
-# --- Fim do Placeholder para Inimigo ---
-
-
-"""
-Classe para o inimigo Boneco de Neve.
-Herda da classe base Inimigo.
-"""
-class BonecoDeNeve(Inimigo):
+class Planta_Carnivora(Inimigo):
+    """
+    Representa um inimigo Planta Carnívora.
+    Persegue o jogador quando este está vivo e dentro do alcance (se aplicável).
+    """
     # Variável de classe para armazenar os sprites carregados uma única vez
     sprites_carregados = None
 
-    def __init__(self, x, y, velocidade=1.0): # Velocidade padrão do Boneco de Neve
+    def __init__(self, x, y, velocidade=1.0): # Velocidade padrão do Planta Carnivora
         """
-        Inicializa um novo objeto BonecoDeNeve.
+        Inicializa um novo objeto Planta_Carnivora.
 
         Args:
-            x (int): A posição inicial x do boneco de neve.
-            y (int): A posição inicial y do boneco de neve.
-            velocidade (float): A velocidade de movimento do boneco de neve.
+            x (int): A posição inicial x da planta.
+            y (int): A posição inicial y da planta.
+            velocidade (float): A velocidade de movimento da planta.
         """
-        # print(f"DEBUG(BonecoDeNeve): Inicializando Boneco de Neve em ({x}, {y}) com velocidade {velocidade}.") # Debug inicialização
+        # print(f"DEBUG(Planta_Carnivora): Inicializando Planta Carnivora em ({x}, {y}) com velocidade {velocidade}.") # Debug inicialização
 
-        # Carrega os sprites apenas uma vez para todas as instâncias de BonecoDeNeve
-        if BonecoDeNeve.sprites_carregados is None:
+        # Carrega os sprites apenas uma vez para todas as instâncias de Planta_Carnivora
+        if Planta_Carnivora.sprites_carregados is None:
             caminhos = [
-                # >>> AJUSTE ESTES CAMINHOS PARA OS SEUS ARQUIVOS DE SPRITE DO BONECO DE NEVE <<<
-                "Sprites\\Inimigos\\Boneco de Neve\\Boneco De Neve 1.png",
-                "Sprites\\Inimigos\\Boneco de Neve\\Boneco de Neve 2.png",
-                "Sprites\\Inimigos\\Boneco de Neve\\Boneco de Neve 3.png",
+                # >>> AJUSTE ESTES CAMINHOS PARA OS SEUS ARQUIVOS DE SPRITE DO Planta Carnivora <<<
+                "Sprites/Inimigos/Planta Carnivora/Planta carnivora 1.png",
+                "Sprites/Inimigos/Planta Carnivora/Planta Carnivora 2.png",
                 # Adicione mais caminhos de sprite de animação aqui
             ]
-            BonecoDeNeve.sprites_carregados = []
-            tamanho_sprite_desejado = (64, 64) # >>> AJUSTE O TAMANHO DESEJADO PARA O SPRITE DO BONECO DE NEVE <<<
+            Planta_Carnivora.sprites_carregados = []
+            tamanho_sprite_desejado = (64, 64) # >>> AJUSTE O TAMANHO DESEJADO PARA O SPRITE DO Planta Carnivora <<<
 
             for path in caminhos:
                 try:
                     sprite = pygame.image.load(path).convert_alpha()
                     # Redimensiona sprites para o tamanho desejado
                     sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
-                    BonecoDeNeve.sprites_carregados.append(sprite)
+                    Planta_Carnivora.sprites_carregados.append(sprite)
                 except pygame.error as e:
-                    print(f"DEBUG(BonecoDeNeve): Erro ao carregar o sprite do Boneco de Neve: {path}")
-                    print(f"DEBUG(BonecoDeNeve): Detalhes do erro: {e}")
+                    print(f"DEBUG(Planta_Carnivora): Erro ao carregar o sprite do Planta Carnivora: {path}")
+                    print(f"DEBUG(Planta_Carnivora): Detalhes do erro: {e}")
                     # Se um sprite falhar, adicione um placeholder com o tamanho correto
                     placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Cyan placeholder
@@ -111,33 +54,33 @@ class BonecoDeNeve(Inimigo):
                     placeholder.blit(texto_erro, (5, 15))
                     texto_erro2 = fonte.render("Erro", True, (0, 0, 0))
                     placeholder.blit(texto_erro2, (10, 35))
-                    BonecoDeNeve.sprites_carregados.append(placeholder)
+                    Planta_Carnivora.sprites_carregados.append(placeholder)
 
             # Certifique-se de que há pelo menos um sprite carregado
-            if not BonecoDeNeve.sprites_carregados:
-                print("DEBUG(BonecoDeNeve): Aviso: Nenhum sprite do Boneco de Neve carregado. Usando placeholder padrão.")
+            if not Planta_Carnivora.sprites_carregados:
+                print("DEBUG(Planta_Carnivora): Aviso: Nenhum sprite do Planta Carnivora carregado. Usando placeholder padrão.")
                 tamanho_sprite_desejado = (64, 64) # Tamanho do placeholder si nenhum sprite carregar
                 placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
-                BonecoDeNeve.sprites_carregados.append(placeholder)
+                Planta_Carnivora.sprites_carregados.append(placeholder)
 
 
         # Inicializa a classe base Inimigo PASSANDO A PRIMEIRA SURFACE CARREGADA E A VELOCIDADE.
-        # Certifique-se de que BonecoDeNeve.sprites_carregados não está vazio antes de acessar o índice [0]
-        initial_image = BonecoDeNeve.sprites_carregados[0] if BonecoDeNeve.sprites_carregados else pygame.Surface((64, 64), pygame.SRCALPHA) # Usa placeholder se a lista estiver vazia
+        # Certifique-se de que Planta_Carnivora.sprites_carregados não está vazio antes de acessar o índice [0]
+        initial_image = Planta_Carnivora.sprites_carregados[0] if Planta_Carnivora.sprites_carregados else pygame.Surface((64, 64), pygame.SRCALPHA) # Usa placeholder se a lista estiver vazia
         super().__init__(x, y, initial_image, velocidade) # >>> Passa a velocidade para a classe base <<<
 
 
-        self.hp = 100 # Pontos de vida do boneco de neve
+        self.hp = 100 # Pontos de vida do Planta Carnivora
         # self.velocidade é definido na classe base agora
-        self.sprites = BonecoDeNeve.sprites_carregados # Referência à lista de sprites carregados
+        self.sprites = Planta_Carnivora.sprites_carregados # Referência à lista de sprites carregados
         self.sprite_index = 0 # Índice do sprite atual para animação
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks() # Tempo do último update da animação
         self.intervalo_animacao = 200 # milissegundos entre frames de animação (ajuste para a velocidade da animação)
 
 
-        # >>> Atributos de Combate do Boneco de Neve <<<
-        self.is_attacking = False # Flag para indicar si o boneco de neve está atacando
+        # >>> Atributos de Combate do Planta Carnivora <<<
+        self.is_attacking = False # Flag para indicar si o Planta Carnivora está atacando
         self.attack_duration = 0.5 # Duração da animação de ataque (ajuste conforme a animação)
         self.attack_timer = 0 # Tempo em que o ataque começou (usando time.time())
         self.attack_damage = 15 # Quantidade de dano causado pelo ataque (dano de ataque específico)
@@ -149,23 +92,20 @@ class BonecoDeNeve(Inimigo):
         self.last_attack_time = time.time() # Tempo em que o último ataque ocorreu (usando time.time())
         # self.hit_player_this_attack = False # Já na classe base
 
-        # Atributo para rastrear a direção do boneco de neve (para posicionar a hitbox de ataque)
+        # Atributo para rastrear a direção do Planta Carnivora (para posicionar a hitbox de ataque)
         # Inicializa com uma direção padrão, será atualizado no mover_em_direcao
         self.direction = "down"
 
         # Flag para rastrear si foi atingido pelo ataque do jogador neste ciclo de ataque do jogador (já na base)
         # self.hit_by_player_this_attack = False
 
-        # >>> NOVO: Atributos para Dano por Contato <<<
+        # >>> Atributos para Dano por Contato <<<
         self.contact_damage = 10 # Dano de contato (ajuste)
         self.contact_cooldown = 1000 # Cooldown de dano de contato em milissegundos (ajuste)
         self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
 
 
-    # Adicionado o método esta_vivo() para compatibilidade com o sistema de combate (já na base)
-    # def esta_vivo(self):
-    #     """Retorna True si o inimigo estiver vivo, False caso contrário."""
-    #     return self.hp > 0 # Retorna o valor do atributo
+    # O método esta_vivo() é herdado da classe base Inimigo.
 
     def receber_dano(self, dano):
         """
@@ -175,13 +115,13 @@ class BonecoDeNeve(Inimigo):
             dano (int): A quantidade de dano a ser recebida.
         """
         # Verifica si o inimigo está vivo antes de receber dano
-        if self.esta_vivo(): # Chama o método esta_vivo()
+        if self.esta_vivo(): # Chama o método esta_vivo() herdado
             self.hp -= dano
-            # print(f"DEBUG(BonecoDeNeve): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug
+            # print(f"DEBUG(Planta_Carnivora): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug
             if self.hp <= 0:
                 self.hp = 0
                 # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
-                # Opcional: self.kill() pode ser chamado aqui se estiver usando grupos de sprites.
+                # Opcional: self.kill() pode ser chamado aqui si estiver usando grupos de sprites.
 
 
     def atualizar_animacao(self):
@@ -194,7 +134,7 @@ class BonecoDeNeve(Inimigo):
             self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
             # Define a imagem atual com base no índice
             self.image = self.sprites[int(self.sprite_index)]
-            # Opcional: Redimensionar a imagem atualizada se necessário (mas já redimensionamos no carregamento)
+            # Opcional: Redimensionar a imagem atualizada si necessário (mas já redimensionamos no carregamento)
             # self.image = pygame.transform.scale(self.image, (64, 64))
         elif not self.esta_vivo() and self.sprites:
              # Si morreu, pode definir um sprite de morte ou manter o último frame
@@ -209,63 +149,67 @@ class BonecoDeNeve(Inimigo):
 
 
     # O método mover_em_direcao() é herdado da classe base Inimigo agora.
-    # Se precisar de lógica de movimento específica para o Boneco de Neve, sobrescreva-o aqui.
+    # Se precisar de lógica de movimento específica para o Planta Carnivora, sobrescreva-o aqui.
+    # Exemplo de sobrescrita (si necessário):
+    # def mover_em_direcao(self, alvo_x, alvo_y):
+    #     # Lógica de movimento específica da Planta Carnivora
+    #     super().mover_em_direcao(alvo_x, alvo_y) # Chama o método da classe base
 
 
     def atacar(self, player):
         """
-        Implementa a lógica de ataque do boneco de neve.
-        Neste exemplo, um ataque simples de contato ou projétil (se aplicável).
+        Implementa a lógica de ataque do Planta Carnivora.
+        Neste exemplo, um ataque simples de contato ou projétil (si aplicável).
 
         Args:
             player (Player): O objeto jogador para verificar o alcance de ataque.
         """
         # Adiciona verificação para garantir que o objeto player tem o atributo rect
         if not hasattr(player, 'rect'):
-            # print("DEBUG(BonecoDeNeve): Objeto player passado para BonecoDeNeve.atacar não tem atributo 'rect'.") # Debug
+            # print("DEBUG(Planta_Carnivora): Objeto player passado para Planta_Carnivora.atacar não tem atributo 'rect'.") # Debug
             return # Sai do método para evitar o erro
 
         current_time = time.time()
         # Verifica se o cooldown passou e se o jogador está dentro do alcance de ataque
-        # E se o boneco de neve está vivo
+        # E se o Planta Carnivora está vivo
         if self.esta_vivo() and (current_time - self.last_attack_time >= self.attack_cooldown):
             # Calcula a distância até o jogador
             # >>> CORREÇÃO AQUI: Usa player.rect.centerx e player.rect.centery <<<
             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                              self.rect.centery - player.rect.centery)
+                                             self.rect.centery - player.rect.centery)
 
             if distancia_ao_jogador <= self.attack_range:
                 # Inicia o ataque
                 self.is_attacking = True
                 self.attack_timer = current_time # Registra o tempo de início do ataque
                 self.last_attack_time = current_time # Reseta o cooldown
-                self.hit_player_this_attack = False # Reseta a flag de acerto para este novo ataque
-                # print("DEBUG(BonecoDeNeve): Boneco de Neve iniciou ataque!") # Debug
+                self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque
+                # print("DEBUG(Planta_Carnivora): Planta Carnivora iniciou ataque!") # Debug
 
-                # Define a hitbox de ataque (exemplo: um retângulo ao redor do boneco de neve para ataque de contato)
-                # Você precisará ajustar isso com base na animação ou tipo de ataque do seu boneco de neve
-                attack_hitbox_width = self.rect.width # Largura da hitbox igual à do boneco de neve
-                attack_hitbox_height = self.rect.height # Altura da hitbox igual à do boneco de neve
+                # Define a hitbox de ataque (exemplo: um retângulo ao redor do Planta Carnivora para ataque de contato)
+                # Você precisará ajustar isso com base na animação ou tipo de ataque do seu Planta Carnivora
+                attack_hitbox_width = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[0] # Pega a largura da hitbox ou um valor padrão
+                attack_hitbox_height = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[1] # Pega a altura da hitbox ou um valor padrão
 
-                # Posiciona a hitbox de ataque (exemplo: centralizada no boneco de neve)
+                # Posiciona a hitbox de ataque (exemplo: centralizada no Planta Carnivora)
                 self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
-                self.attack_hitbox.center = self.rect.center # Centraliza a hitbox no boneco de neve
+                self.attack_hitbox.center = self.rect.center # Centraliza a hitbox no Planta Carnivora
 
 
     # >>> CORREÇÃO: O método update agora recebe o objeto Player completo <<<
     def update(self, player):
         """
-        Atualiza o estado do boneco de neve (movimento, animação e ataque).
+        Atualiza o estado do Planta Carnivora (movimento, animação e ataque).
         Inclui a lógica de aplicação de dano por contato.
 
         Args:
             player (Player): O objeto jogador para seguir, verificar o alcance de ataque e aplicar dano.
         """
-        # print("DEBUG(BonecoDeNeve): Update do BonecoDeNeve chamado.") # Debug geral
+        print("DEBUG(Planta_Carnivora): Update do Planta_Carnivora chamado.") # Debug geral
         # >>> Adiciona verificação para garantir que o objeto player tem os atributos necessários <<<
-        # Verifica se o player tem pelo menos rect e vida (para verificar se está vivo e receber dano)
+        # Verifica se o player tem pelo menos rect e vida (para verificar si está vivo e receber dano)
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
-            # print("DEBUG(BonecoDeNeve): Objeto player passado para BonecoDeNeve.update não tem todos os atributos necessários.") # Debug
+            print("DEBUG(Planta_Carnivora): Objeto player passado para Planta_Carnivora.update não tem todos os atributos necessários.") # Debug
             return # Sai do método para evitar o erro
 
         # Só atualiza si estiver vivo
@@ -274,7 +218,7 @@ class BonecoDeNeve(Inimigo):
             current_ticks = pygame.time.get_ticks() # Usando get_ticks() para consistência com contact_cooldown
 
             # >>> Lógica de Dano por Contato <<<
-            # Verifica si o boneco de neve está vivo, si colide com o rect do jogador,
+            # Verifica si o Planta Carnivora está vivo, si colide com o rect do jogador,
             # e si o cooldown de contato passou.
             # Adiciona verificação para garantir que player.vida existe e é válido
             if self.esta_vivo() and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
@@ -284,7 +228,7 @@ class BonecoDeNeve(Inimigo):
                 # Aplica dano por contato ao jogador
                 # Verifica si o jogador tem o método receber_dano
                 if hasattr(player, 'receber_dano'):
-                    # print(f"DEBUG(BonecoDeNeve): Colisão de contato! Boneco de Neve tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug
+                    print(f"DEBUG(Planta_Carnivora): Colisão de contato! Planta Carnivora tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug
                     player.receber_dano(self.contact_damage)
                     self.last_contact_time = current_ticks # Atualiza o tempo do último contato (em milissegundos)
                     # Opcional: Adicionar um som ou efeito visual para dano por contato
@@ -296,36 +240,47 @@ class BonecoDeNeve(Inimigo):
                  if time.time() - self.attack_timer >= self.attack_duration: # Usa time.time() para consistência com attack_timer
                      self.is_attacking = False
                      self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Reseta a hitbox quando o ataque termina
-                     self.hit_by_player_this_attack = False # Reseta a flag de acerto ao final do ataque específico
-                     # print("DEBUG(BonecoDeNeve): Ataque específico do Boneco de Neve terminou.") # Debug
+                     self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque específico
+                     # print("DEBUG(Planta_Carnivora): Ataque específico do Planta Carnivora terminou.") # Debug
                  else:
-                     # >>> Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE) <<<
-                     # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
-                     # si tem hitbox de ataque e si colide com o rect do jogador.
-                     if not self.hit_by_player_this_attack and \
-                        hasattr(self, 'attack_hitbox') and \
-                        hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                        self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
+                      # >>> Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE) <<<
+                      # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
+                      # si tem hitbox de ataque e si colide com o rect do jogador.
+                      if not self.hit_by_player_this_attack and \
+                         hasattr(self, 'attack_hitbox') and \
+                         hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                         self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
 
-                         # Verifica si o jogador tem o método receber_dano e está vivo
-                         if hasattr(player, 'receber_dano'):
+                          # Verifica si o jogador tem o método receber_dano e está vivo
+                          if hasattr(player, 'receber_dano'):
                               # Aplica dano do ataque específico ao jogador
                               dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
-                              # print(f"DEBUG(BonecoDeNeve): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
+                              # print(f"DEBUG(Planta_Carnivora): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
                               player.receber_dano(dano_inimigo)
                               self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
                               # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
 
 
             # >>> Lógica de Perseguição (Movimento) <<<
-            # O boneco de neve persegue o jogador si estiver vivo e o jogador estiver vivo.
+            # O Planta Carnivora persegue o jogador si estiver vivo e o jogador estiver vivo.
             # Adiciona verificação para garantir que player tem rect antes de passar para mover_em_direcao
-            if self.esta_vivo() and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
-                 # Move o boneco de neve na direção do centro do retângulo do jogador
+            player_tem_rect = hasattr(player, 'rect')
+            player_esta_vivo = hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo()
+            planta_esta_viva = self.esta_vivo()
+            planta_tem_velocidade = self.velocidade > 0
+
+            print(f"DEBUG(Planta_Carnivora): Player tem rect: {player_tem_rect}") # Debug: Verifica rect do player
+            print(f"DEBUG(Planta_Carnivora): Player está vivo: {player_esta_vivo}") # Debug: Verifica vida do player
+            print(f"DEBUG(Planta_Carnivora): Planta está viva: {planta_esta_viva}") # Debug: Verifica vida da planta
+            print(f"DEBUG(Planta_Carnivora): Planta tem velocidade > 0: {planta_tem_velocidade}") # Debug: Verifica velocidade
+
+            if planta_esta_viva and player_tem_rect and player_esta_vivo and planta_tem_velocidade:
+                 print("DEBUG(Planta_Carnivora): Condições de movimento atendidas. Chamando mover_em_direcao.") # Debug: Condições atendidas
+                 # Move o Planta Carnivora na direção do centro do retângulo do jogador
                  # >>> CORREÇÃO AQUI: Acessa centerx e centery do rect do player <<<
                  self.mover_em_direcao(player.rect.centerx, player.rect.centery)
             else:
-                 # print("DEBUG(BonecoDeNeve): Objeto player não tem atributos necessários para perseguição ou boneco de neve/jogador não está vivo.") # Debug
+                 print("DEBUG(Planta_Carnivora): Condições de movimento NÃO atendidas. Não movendo.") # Debug: Condições não atendidas
                  pass # Não move si o player não tiver rect ou não estiver vivo
 
 
@@ -333,15 +288,15 @@ class BonecoDeNeve(Inimigo):
             # A função atacar também tem uma verificação interna agora
             self.atacar(player)
 
-            # >>> Posicionamento da Hitbox de Ataque Específico (Atualiza mesmo se não estiver atacando ativamente) <<<
-            # A hitbox de ataque é posicionada em relação ao centro do boneco de neve.
+            # >>> Posicionamento da Hitbox de Ataque Específico (Atualiza mesmo si não estiver atacando ativamente) <<<
+            # A hitbox de ataque é posicionada em relação ao centro do Planta Carnivora.
             # Ajuste as coordenadas conforme a sua animação e alcance desejado.
             # A hitbox é posicionada independentemente de estar atacando ou não,
             # mas só é usada para aplicar dano quando is_attacking é True.
             attack_hitbox_width = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[0] # Pega a largura da hitbox ou um valor padrão
             attack_hitbox_height = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[1] # Pega a altura da hitbox ou um valor padrão
             self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
-            self.attack_hitbox.center = self.rect.center # Centraliza a hitbox no boneco de neve
+            self.attack_hitbox.center = self.rect.center # Centraliza a hitbox no Planta Carnivora
 
 
             # Atualiza a animação
