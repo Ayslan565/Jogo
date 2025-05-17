@@ -6,7 +6,58 @@ import time # Importa time para usar time.time() ou pygame.time.get_ticks()
 
 # Importa a classe base Inimigo do ficheiro Inimigos.py
 # Certifique-se de que o ficheiro Inimigos.py está na mesma pasta ou num caminho acessível
-from Inimigos import Inimigo
+try:
+    from Inimigos import Inimigo
+except ImportError:
+    print("DEBUG(Fenix): Aviso: Módulo 'Inimigos.py' não encontrado. Usando classe base Inimigo placeholder.")
+    class Inimigo(pygame.sprite.Sprite):
+        def __init__(self, x, y, image, velocidade=1):
+            super().__init__()
+            self.image = image
+            self.rect = self.image.get_rect(topleft=(x, y))
+            self.hp = 100 # Vida padrão
+            self.velocidade = velocidade # Velocidade padrão
+            self.is_attacking = False # Flag de ataque padrão
+            self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Hitbox de ataque padrão (vazia)
+            self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
+            self.contact_damage = 5 # Dano de contato padrão
+            self.contact_cooldown = 1000 # Cooldown de contato padrão (em milissegundos)
+            self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato
+            self.max_hp = self.hp # Armazena HP máximo para barra de vida
+
+
+        def receber_dano(self, dano):
+            self.hp -= dano
+            if self.hp <= 0:
+                self.hp = 0 # Garante que a vida não fica negativa
+                # print(f"DEBUG(Inimigo Base): Inimigo morreu.") # Debug
+                # A remoção do inimigo da lista/grupo deve ser feita no GerenciadorDeInimigos
+                # self.kill() # Pode ser chamado aqui se estiver usando grupos de sprites
+
+        def update(self, player):
+            pass
+
+        def desenhar(self, surface, camera_x, camera_y):
+            # Desenha o inimigo com o offset da câmera
+            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+            # Lógica de desenho da barra de vida removida
+
+        def esta_vivo(self):
+             return self.hp > 0
+
+        def mover_em_direcao(self, alvo_x, alvo_y):
+            if self.esta_vivo() and self.velocidade > 0:
+                dx = alvo_x - self.rect.centerx
+                dy = alvo_y - self.rect.centery
+                distancia = math.hypot(dx, dy)
+
+                if distancia > 0:
+                    dx_norm = dx / distancia
+                    dy_norm = dy / distancia
+                    self.rect.x += dx_norm * self.velocidade
+                    self.rect.y += dy_norm * self.velocidade
+
+        # Método desenhar_barra_vida removido do placeholder
 
 """
 Classe para o inimigo Fênix.
@@ -52,11 +103,6 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
                     # Se um sprite falhar, adicione um placeholder com o tamanho correto
                     placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Orange placeholder
-                    fonte = pygame.font.Font(None, 20)
-                    texto_erro = fonte.render("Sprite", True, (0, 0, 0))
-                    placeholder.blit(texto_erro, (5, 15))
-                    texto_erro2 = fonte.render("Erro", True, (0, 0, 0))
-                    placeholder.blit(texto_erro2, (10, 35))
                     Fenix.sprites_carregados.append(placeholder)
 
             # Certifique-se de que há pelo menos um sprite carregado
@@ -75,6 +121,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
 
         self.hp = 70 # Pontos de vida da Fênix (ajuste conforme necessário)
+        self.max_hp = self.hp # Define HP máximo para barra de vida
         # self.velocidade é definido na classe base agora
         self.sprites = Fenix.sprites_carregados # Referência à lista de sprites carregados
         self.sprite_index = 0 # Índice do sprite atual para animação
@@ -93,13 +140,12 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
         self.attack_range = 100 # Alcance para iniciar o ataque (maior para Fênix)
         self.attack_cooldown = 2 # Tempo de espera entre ataques em segundos (mais rápido)
         self.last_attack_time = time.time() # Tempo em que o último ataque ocorreu (usando time.time())
-        # self.hit_player_this_attack = False # Já na classe base
+        # self.hit_by_player_this_attack é herdado da classe base
+
 
         # Atributo para rastrear a direção da Fênix (para posicionar a hitbox de ataque)
         self.direction = "down" # Pode ser útil para ataques direcionais
 
-        # Flag para rastrear si foi atingido pelo ataque do jogador neste ciclo de ataque do jogador (já na base)
-        # self.hit_by_player_this_attack = False
 
         # >>> Atributos para Dano por Contato <<<
         self.contact_damage = 5 # Dano de contato (ajuste)
@@ -119,10 +165,10 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
         # Verifica si o inimigo está vivo antes de receber dano
         if self.esta_vivo(): # Chama o método esta_vivo() herdado
             self.hp -= dano
-            print(f"DEBUG(Fenix): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug
+            print(f"DEBUG(Fenix): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug: Mostra dano recebido e HP restante
             if self.hp <= 0:
                 self.hp = 0
-                print(f"DEBUG(Fenix): Fênix morreu.") # Debug morte
+                print(f"DEBUG(Fenix): Fênix morreu.") # Debug: Mostra que morreu
                 # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
                 # Opcional: self.kill() pode ser chamado aqui si estiver usando grupos de sprites.
 
@@ -198,7 +244,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
                 self.attack_hitbox.center = self.rect.center # Centraliza a hitbox na Fênix
 
 
-    # >>> O método update recebe o objeto Player completo <<<
+    # O método update é herdado e sobrescrito aqui para incluir a lógica específica da Fênix
     def update(self, player):
         """
         Atualiza o estado da Fênix (movimento, animação e ataque).
@@ -209,7 +255,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
         """
         # print("DEBUG(Fenix): Update da Fênix chamado.") # Debug geral
         # >>> Adiciona verificação para garantir que o objeto player tem os atributos necessários <<<
-        # Verifica se o player tem pelo menos rect e vida (para verificar si está vivo e receber dano)
+        # Verifica si o player tem pelo menos rect e vida (para verificar si está vivo e receber dano)
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
             # print("DEBUG(Fenix): Objeto player passado para Fenix.update não tem todos os atributos necessários.") # Debug
             return # Sai do método para evitar o erro
@@ -270,17 +316,17 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
             # Adiciona verificação para garantir que player tem rect antes de passar para mover_em_direcao
             player_tem_rect = hasattr(player, 'rect')
             player_esta_vivo = hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo()
-            fenix_esta_vivo = self.esta_vivo()
+            fenix_esta_viva = self.esta_vivo()
             fenix_tem_velocidade = self.velocidade > 0
 
 
             # print(f"DEBUG(Fenix): Player tem rect: {player_tem_rect}") # Debug: Verifica rect do player
             # print(f"DEBUG(Fenix): Player está vivo: {player_esta_vivo}") # Debug: Verifica vida do player
-            # print(f"DEBUG(Fenix): Fênix está viva: {fenix_esta_vivo}") # Debug: Verifica vida da fênix
+            # print(f"DEBUG(Fenix): Fênix está viva: {fenix_esta_viva}") # Debug: Verifica vida da fênix
             # print(f"DEBUG(Fenix): Fênix tem velocidade > 0: {fenix_tem_velocidade}") # Debug: Verifica velocidade
 
 
-            if fenix_esta_vivo and player_tem_rect and player_esta_vivo and fenix_tem_velocidade:
+            if fenix_esta_viva and player_tem_rect and player_esta_vivo and fenix_tem_velocidade:
                  # print("DEBUG(Fenix): Condições de movimento atendidas. Chamando mover_em_direcao.") # Debug: Condições atendidas
                  # Move a Fênix na direção do centro do retângulo do jogador
                  self.mover_em_direcao(player.rect.centerx, player.rect.centery)
@@ -313,5 +359,11 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
     # O método desenhar() é herdado da classe base Inimigo e deve funcionar
     # se a classe base tiver um método desenhar que aceita surface, camera_x, camera_y.
+    # Sobrescrevendo desenhar para remover a barra de vida
+    def desenhar(self, surface, camera_x, camera_y):
+        """Desenha a Fênix."""
+        # Desenha o sprite da Fênix com o offset da câmera
+        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        # Lógica de desenho da barra de vida removida
 
-    # O método receber_dano() é herdado da classe base Inimigo.
+    # O método receber_dano() é herdado da classe base Inimigo e sobrescrito aqui.

@@ -25,6 +25,8 @@ class Loja:
         self.scroll_y = 0         # Offset de rolagem vertical
         self.largura = largura # Adicionado largura
         self.altura = altura   # Adicionado altura
+        self.blink_counter = 0 # Contador para o efeito de piscar
+        self.blink_speed = 50  # Velocidade do piscar (mudar estado a cada X frames)
 
 
     def desenhar(self, tela, area_desenho_rect):
@@ -51,9 +53,12 @@ class Loja:
 
             # Desenha o fundo do item
             pygame.draw.rect(tela, (70, 70, 70), item_rect)
-            # Desenha a borda vermelha se o item estiver selecionado
+
+            # Desenha a borda vermelha piscando se o item estiver selecionado
             if i == self.selecionado:
-                pygame.draw.rect(tela, (236, 00 , 00), item_rect, 3)
+                # Verifica o estado do contador de piscar para desenhar ou não a borda
+                if self.blink_counter < self.blink_speed // 2: # Desenha na primeira metade do ciclo
+                    pygame.draw.rect(tela, (236, 00 , 00), item_rect, 3)
 
             # Desenha o nome e preço do item (posicionados mais à esquerda agora)
             nome = self.fonte.render(item["nome"], True, (255, 255, 255))
@@ -262,7 +267,7 @@ itens_cajados = [
 itens = itens_machados # Começa com os machados
 loja = Loja(itens, fonte, largura, altura) # A loja gerencia a lista de itens atual
 
-dinheiro = 200 # Dinheiro inicial do jogador
+dinheiro = 2000 # Dinheiro inicial do jogador
 
 abas = ["Machados", "Espadas", "Cajados"]
 aba_atual = 0
@@ -283,7 +288,7 @@ altura_area_loja = altura - y_inicio_area_loja - 80
 
 area_loja_rect = pygame.Rect(50, y_inicio_area_loja, largura - 100, altura_area_loja)
 
-# --- Configuração para o ciclo de cores da borda ---
+# --- Configuração para o ciclo de cores da borda dourada ---
 GOLD_PALETTE = [
     (255, 223, 0),  # Brilho máximo
     (255, 215, 0),  # Gold
@@ -421,11 +426,14 @@ while rodando:
     else:
         mensagem = "" # Limpa a mensagem quando o tempo acabar
 
-    # --- Atualiza o ciclo de cores da borda ---
+    # --- Atualiza o ciclo de cores da borda dourada ---
     frame_count += 1
     if frame_count % color_cycle_speed == 0:
         color_index = (color_index + 1) % len(GOLD_PALETTE)
         frame_count = 0 # Reinicia o contador de frames
+
+    # --- Atualiza o contador de piscar da borda vermelha ---
+    loja.blink_counter = (loja.blink_counter + 1) % loja.blink_speed
 
 
     # --- Desenho ---
@@ -445,8 +453,8 @@ while rodando:
         item_selecionado = loja.itens[loja.selecionado]
         if item_selecionado["imagem"]:
             # Define o tamanho do fundo cinza
-            fundo_item_largura = 120
-            fundo_item_altura = 120
+            fundo_item_largura = 150
+            fundo_item_altura = 150
 
             # Calcula a posição para o fundo cinza no canto esquerdo central (ajustado)
             fundo_item_x = 270  # Margem da esquerda (ajustada)
@@ -484,6 +492,7 @@ while rodando:
 
     # Desenha o conteúdo da loja (itens) dentro da área definida
     desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect)
+
 
     # Desenha a quantidade de dinheiro
     desenhar_dinheiro(tela, dinheiro, fonte, altura)
