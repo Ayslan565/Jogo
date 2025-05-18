@@ -1,3 +1,4 @@
+# Planta_Carnivora.py
 import pygame
 import random
 import math # Importa math para a função hypot
@@ -56,8 +57,11 @@ except ImportError:
                 dy_norm = dy / dist
                 self.rect.x += dx_norm * self.velocidade
                 self.rect.y += dy_norm * self.velocidade
-
-        # Método desenhar_barra_vida removido do placeholder
+                # Retorna a direção horizontal para que a subclasse possa usar
+                return dx_norm # Retorna a componente X normalizada
+            return 0 # Retorna 0 si não houver movimento
+        # Adicione outros métodos base comuns a todos os inimigos aqui
+# --- Fim do Placeholder para Inimigo ---
 
 
 class Planta_Carnivora(Inimigo):
@@ -86,7 +90,7 @@ class Planta_Carnivora(Inimigo):
             caminhos = [
                 # >>> AJUSTE ESTES CAMINHOS PARA OS SEUS ARQUIVOS DE SPRITE DO Planta Carnivora <<<
                 "Sprites/Inimigos/Planta Carnivora/Planta carnivora 1.png",
-                "Sprites/Inimigos/Planta Carnivora/Planta Carnivora 2.png",
+                "Sprites/Inimigos/Planta Carnivora/Planta_Carnivora2.png", # Corrigido a barra invertida
                 # Adicione mais caminhos de sprite de animação aqui
             ]
             Planta_Carnivora.sprites_originais = [] # Inicializa a lista de sprites originais
@@ -186,7 +190,7 @@ class Planta_Carnivora(Inimigo):
     def atualizar_animacao(self):
         """Atualiza o índice do sprite para a animação e aplica o flip horizontal."""
         agora = pygame.time.get_ticks()
-        # Verifica si self.sprites não está vazio antes de calcular o módulo
+        # Verifica si self.sprites (sprites originais) não está vazio antes de calcular o módulo
         if self.sprites and self.esta_vivo() and agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao: # Só anima si estiver vivo
             self.tempo_ultimo_update_animacao = agora
             # Incrementa o índice do sprite lentamente para a animação
@@ -221,11 +225,12 @@ class Planta_Carnivora(Inimigo):
         dy = alvo_y - self.rect.centery
         dist = math.hypot(dx, dy)
 
-        # Atualiza a direção horizontal com base em dx
-        if dx > 0:
-            self.facing_right = True
-        elif dx < 0:
-            self.facing_right = False
+        # Atualiza a direção horizontal com base em dx apenas se houver movimento horizontal significativo
+        if abs(dx) > 0.1: # Adiciona uma pequena tolerância para evitar flipar por micro-movimentos
+            if dx > 0:
+                self.facing_right = True
+            elif dx < 0:
+                self.facing_right = False
 
         if dist > 0:
             dx_norm = dx / dist
@@ -260,7 +265,7 @@ class Planta_Carnivora(Inimigo):
                 self.is_attacking = True
                 self.attack_timer = current_time # Registra o tempo de início do ataque
                 self.last_attack_time = current_time # Reseta o cooldown
-                self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque
+                self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque específico
                 # print("DEBUG(Planta_Carnivora): Planta Carnivora iniciou ataque!") # Debug
 
                 # Define a hitbox de ataque (exemplo: um retângulo ao redor do Planta Carnivora para ataque de contato)
@@ -335,7 +340,7 @@ class Planta_Carnivora(Inimigo):
                                 # print(f"DEBUG(Planta_Carnivora): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
                                 player.receber_dano(dano_inimigo)
                                 self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
-                                # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
+                                # Opcional: Adicionar um som ou efeito visual para dano por contato
 
 
             # >>> Lógica de Perseguição (Movimento) <<<

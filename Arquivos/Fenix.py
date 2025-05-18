@@ -3,9 +3,13 @@ import pygame
 import random
 import math # Importa math para a função hypot
 import time # Importa time para usar time.time() ou pygame.time.get_ticks()
+import os # Importa os para verificar a existência de arquivos
 
-# Importa a classe base Inimigo do ficheiro Inimigos.py
-# Certifique-se de que o ficheiro Inimigos.py está na mesma pasta ou num caminho acessível
+# Certifique-se de que Inimigo está acessível
+# from Inimigos import Inimigo # Importe a classe base Inimigo
+
+# --- Placeholder para a classe base Inimigo se o arquivo Inimigos.py não for fornecido ---
+# REMOVA este bloco inteiro si você tem o arquivo Inimigos.py
 try:
     from Inimigos import Inimigo
 except ImportError:
@@ -25,27 +29,34 @@ except ImportError:
             self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato
             self.max_hp = self.hp # Armazena HP máximo para barra de vida
 
-
         def receber_dano(self, dano):
             self.hp -= dano
             if self.hp <= 0:
                 self.hp = 0 # Garante que a vida não fica negativa
-                # print(f"DEBUG(Inimigo Base): Inimigo morreu.") # Debug
-                # A remoção do inimigo da lista/grupo deve ser feita no GerenciadorDeInimigos
                 # self.kill() # Pode ser chamado aqui se estiver usando grupos de sprites
 
         def update(self, player):
+            # Lógica de atualização padrão (pode ser sobrescrita)
             pass
 
         def desenhar(self, surface, camera_x, camera_y):
             # Desenha o inimigo com o offset da câmera
             surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-            # Lógica de desenho da barra de vida removida
+            # Opcional: Desenhar barra de vida do inimigo aqui
 
         def esta_vivo(self):
-             return self.hp > 0
+            return self.hp > 0
 
         def mover_em_direcao(self, alvo_x, alvo_y):
+            """
+            Move o inimigo na direção de um ponto alvo.
+            Este é um método base que pode ser sobrescrito por subclasses.
+
+            Args:
+                alvo_x (int): A coordenada x do ponto alvo.
+                alvo_y (int): A coordenada y do ponto alvo.
+            """
+            # Só move si estiver vivo e tiver velocidade
             if self.esta_vivo() and self.velocidade > 0:
                 dx = alvo_x - self.rect.centerx
                 dy = alvo_y - self.rect.centery
@@ -56,8 +67,14 @@ except ImportError:
                     dy_norm = dy / distancia
                     self.rect.x += dx_norm * self.velocidade
                     self.rect.y += dy_norm * self.velocidade
+                    # Retorna a direção horizontal para que a subclasse possa usar
+                    return dx_norm # Retorna a componente X normalizada
+                return 0 # Retorna 0 si não houver movimento
+            return 0 # Retorna 0 si não estiver vivo ou não tiver velocidade
 
-        # Método desenhar_barra_vida removido do placeholder
+        # Adicione outros métodos base comuns a todos os inimigos aqui
+# --- Fim do Placeholder para Inimigo ---
+
 
 """
 Classe para o inimigo Fênix.
@@ -67,7 +84,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
     # Variável de classe para armazenar os sprites carregados uma única vez
     sprites_carregados = None
 
-    def __init__(self, x, y, velocidade=3.0): # Velocidade padrão da Fênix (mais rápida que o Espantalho)
+    def __init__(self, x, y, velocidade=3.0): # Velocidade padrão da Fênix (mais rápida)
         """
         Inicializa um novo objeto Fênix.
 
@@ -93,10 +110,19 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
             for path in caminhos:
                 try:
-                    sprite = pygame.image.load(path).convert_alpha()
-                    # Redimensiona sprites para o tamanho desejado
-                    sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
-                    Fenix.sprites_carregados.append(sprite)
+                    # Verifica se o arquivo existe antes de tentar carregar
+                    if os.path.exists(path):
+                        sprite = pygame.image.load(path).convert_alpha()
+                        # Redimensiona sprites para o tamanho desejado
+                        sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
+                        Fenix.sprites_carregados.append(sprite)
+                    else:
+                        print(f"DEBUG(Fenix): Aviso: Sprite da Fênix não encontrado: {path}")
+                        # Se o arquivo não existir, adicione um placeholder
+                        placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
+                        pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Orange placeholder
+                        Fenix.sprites_carregados.append(placeholder)
+
                 except pygame.error as e:
                     print(f"DEBUG(Fenix): Erro ao carregar o sprite da Fênix: {path}")
                     print(f"DEBUG(Fenix): Detalhes do erro: {e}")
@@ -105,7 +131,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
                     pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Orange placeholder
                     Fenix.sprites_carregados.append(placeholder)
 
-            # Certifique-se de que há pelo menos um sprite carregado
+            # Certifique-se de que há pelo menos um sprite carregado, mesmo que seja um placeholder
             if not Fenix.sprites_carregados:
                 print("DEBUG(Fenix): Aviso: Nenhum sprite da Fênix carregado. Usando placeholder padrão.")
                 tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder si nenhum sprite carregar
@@ -143,14 +169,16 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
         # self.hit_by_player_this_attack é herdado da classe base
 
 
-        # Atributo para rastrear a direção da Fênix (para posicionar a hitbox de ataque)
-        self.direction = "down" # Pode ser útil para ataques direcionais
+        # Atributo para rastrear a direção horizontal para espelhamento
+        self.facing_right = True # True si estiver virado para a direita, False para a esquerda
 
 
         # >>> Atributos para Dano por Contato <<<
         self.contact_damage = 5 # Dano de contato (ajuste)
         self.contact_cooldown = 300 # Cooldown de dano de contato em milissegundos (mais rápido)
         self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
+
+        print(f"DEBUG(Fenix): Fênix inicializada com sucesso em ({x}, {y}). HP: {self.hp}, Velocidade: {self.velocidade}") # Debug final da inicialização
 
 
     # O método esta_vivo() é herdado da classe base Inimigo.
@@ -181,7 +209,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
             self.tempo_ultimo_update_animacao = agora
             # Incrementa o índice do sprite lentamente para a animação
             self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
-            # Define a imagem atual com base no índice
+            # Define a imagem atual com base no índice (sem aplicar o flip ainda)
             self.image = self.sprites[int(self.sprite_index)]
             # Opcional: Redimensionar a imagem atualizada si necessário (mas já redimensionamos no carregamento)
             # self.image = pygame.transform.scale(self.image, (70, 70)) # Ajuste o tamanho se redimensionar aqui
@@ -191,19 +219,39 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
              if self.sprites:
                  self.image = self.sprites[int(self.sprite_index % len(self.sprites))] # Mantém o último frame (garante índice válido)
              else:
-                  # Fallback si não houver sprites
-                  tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder
-                  self.image = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
-                  pygame.draw.rect(self.image, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
+                 # Fallback si não houver sprites
+                 tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder
+                 self.image = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
+                 pygame.draw.rect(self.image, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
 
 
-    # O método mover_em_direcao() é herdado da classe base Inimigo agora.
-    # Se precisar de lógica de movimento específica para a Fênix, sobrescreva-o aqui.
-    # Exemplo de sobrescrita (si necessário):
-    # def mover_em_direcao(self, alvo_x, alvo_y):
-    #     # Lógica de movimento específica da Fênix (talvez voando ou desviando)
-    #     super().mover_em_direcao(alvo_x, alvo_y) # Chama o método da classe base
+    # Sobrescreve o método mover_em_direcao para atualizar a direção horizontal
+    def mover_em_direcao(self, alvo_x, alvo_y):
+        """
+        Move a Fênix na direção de um ponto alvo e atualiza a direção horizontal.
 
+        Args:
+            alvo_x (int): A coordenada x do ponto alvo.
+            alvo_y (int): A coordenada y do ponto alvo.
+        """
+        # Só move si estiver vivo e tiver velocidade
+        if self.esta_vivo() and self.velocidade > 0:
+            dx = alvo_x - self.rect.centerx
+            dy = alvo_y - self.rect.centery
+            distancia = math.hypot(dx, dy)
+
+            if distancia > 0:
+                dx_norm = dx / distancia
+                dy_norm = dy / distancia
+                self.rect.x += dx_norm * self.velocidade
+                self.rect.y += dy_norm * self.velocidade
+
+                # Atualiza a direção horizontal com base no movimento em X
+                if dx > 0:
+                    self.facing_right = True
+                elif dx < 0:
+                    self.facing_right = False
+                # Si dx for 0, mantém a direção anterior
 
     def atacar(self, player):
         """
@@ -262,7 +310,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
         # Só atualiza si estiver vivo
         if self.esta_vivo():
-            # print(f"DEBUG(Fenix): Fênix está viva. HP: {self.hp}") # Debug
+            # print(f"DEBUG(Fenix): Fênix está viva e atualizando. Posição: ({self.rect.x}, {self.rect.y}), HP: {self.hp}") # Debug de atualização
             current_time = time.time()
             current_ticks = pygame.time.get_ticks() # Usando get_ticks() para consistência com contact_cooldown
 
@@ -297,18 +345,18 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
                       # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
                       # si tem hitbox de ataque e si colide com o rect do jogador.
                       if not self.hit_by_player_this_attack and \
-                         hasattr(self, 'attack_hitbox') and \
-                         hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                         self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
+                           hasattr(self, 'attack_hitbox') and \
+                           hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                           self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
 
-                          # Verifica si o jogador tem o método receber_dano e está vivo
-                          if hasattr(player, 'receber_dano'):
-                              # Aplica dano do ataque específico ao jogador
-                              dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
-                              # print(f"DEBUG(Fenix): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
-                              player.receber_dano(dano_inimigo)
-                              self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
-                              # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
+                           # Verifica si o jogador tem o método receber_dano e está vivo
+                           if hasattr(player, 'receber_dano'):
+                                # Aplica dano do ataque específico ao jogador
+                                dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
+                                print(f"DEBUG(Fenix): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
+                                player.receber_dano(dano_inimigo)
+                                self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
+                                # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
 
 
             # >>> Lógica de Perseguição (Movimento) <<<
@@ -328,7 +376,7 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
             if fenix_esta_viva and player_tem_rect and player_esta_vivo and fenix_tem_velocidade:
                  # print("DEBUG(Fenix): Condições de movimento atendidas. Chamando mover_em_direcao.") # Debug: Condições atendidas
-                 # Move a Fênix na direção do centro do retângulo do jogador
+                 # Move a Fênix na direção do centro do retângulo do jogador e atualiza a direção horizontal
                  self.mover_em_direcao(player.rect.centerx, player.rect.centery)
             else:
                  # print("DEBUG(Fenix): Condições de movimento NÃO atendidas. Não movendo.") # Debug: Condições não atendidas
@@ -357,13 +405,21 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
              # print(f"DEBUG(Fenix): Fênix não está viva. Não atualizando. HP: {self.hp}") # Debug se não estiver vivo
 
 
-    # O método desenhar() é herdado da classe base Inimigo e deve funcionar
-    # se a classe base tiver um método desenhar que aceita surface, camera_x, camera_y.
-    # Sobrescrevendo desenhar para remover a barra de vida
+    # Sobrescreve o método desenhar para aplicar o espelhamento
     def desenhar(self, surface, camera_x, camera_y):
-        """Desenha a Fênix."""
-        # Desenha o sprite da Fênix com o offset da câmera
-        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        """Desenha a Fênix, aplicando espelhamento horizontal se necessário."""
+        # Verifica se o inimigo está vivo antes de desenhar
+        if self.esta_vivo():
+            # Obtém a imagem atual (já atualizada pela animação)
+            imagem_para_desenhar = self.image
+
+            # Aplica o espelhamento horizontal si estiver virado para a esquerda
+            if not self.facing_right:
+                imagem_para_desenhar = pygame.transform.flip(imagem_para_desenhar, True, False) # Flip horizontalmente, não verticalmente
+
+            # Desenha a imagem (espelhada ou não) com o offset da câmera
+            surface.blit(imagem_para_desenhar, (self.rect.x - camera_x, self.rect.y - camera_y))
+
         # Lógica de desenho da barra de vida removida
 
     # O método receber_dano() é herdado da classe base Inimigo e sobrescrito aqui.

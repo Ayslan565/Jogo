@@ -180,9 +180,9 @@ class Player(pygame.sprite.Sprite):
                      self.frame_idle = (self.frame_idle + 1) % len(self.sprites_idle_esquerda)
                      # Seleciona o sprite de idle correto com base na direção
                      if self.direction == "left" and self.sprites_idle_esquerda:
-                         self.image = self.sprites_idle_esquerda[self.frame_idle]
+                          self.image = self.sprites_idle_esquerda[self.frame_idle]
                      elif self.direction == "right" and self.sprites_idle_direita:
-                         self.image = self.sprites_idle_direita[self.frame_idle]
+                          self.image = self.sprites_idle_direita[self.frame_idle]
                      else: # Fallback para esquerda si direita não existir
                           self.image = self.sprites_idle_esquerda[self.frame_idle]
                 elif self.sprites_idle_direita: # Fallback para direita si esquerda estiver vazia
@@ -199,9 +199,9 @@ class Player(pygame.sprite.Sprite):
                      self.atual = (self.atual + 1) % len(self.sprites_esquerda)
                      # Seleciona o sprite de movimento correto com base na direção
                      if self.direction == "left" and self.sprites_esquerda:
-                         self.image = self.sprites_esquerda[self.atual]
+                          self.image = self.sprites_esquerda[self.atual]
                      elif self.direction == "right" and self.sprites_direita:
-                         self.image = self.sprites_direita[self.atual]
+                          self.image = self.sprites_direita[self.atual]
                      else: # Fallback para esquerda si direita não existir
                           self.image = self.sprites_esquerda[self.atual]
                 elif self.sprites_direita: # Fallback para direita si esquerda estiver vazia
@@ -260,12 +260,12 @@ class Player(pygame.sprite.Sprite):
                      # Verifica si a árvore existe e tem um retângulo de colisão ou rect
                      arvore_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
                      if arvore is not None and arvore_rect is not None:
-                         if self.rect_colisao.colliderect(arvore_rect):
-                             # Si houver colisão no X, reverte o movimento no X
-                             self.x = original_x
-                             if hasattr(self, 'rect_colisao'): # Atualiza a hitbox após reverter
-                                  self.rect_colisao.center = (self.x, self.y)
-                             break # Sai do loop de árvores após encontrar uma colisão
+                          if self.rect_colisao.colliderect(arvore_rect):
+                               # Si houver colisão no X, reverte o movimento no X
+                               self.x = original_x
+                               if hasattr(self, 'rect_colisao'): # Atualiza a hitbox após reverter
+                                    self.rect_colisao.center = (self.x, self.y)
+                               break # Sai do loop de árvores após encontrar uma colisão
 
         # else:
              # print("DEBUG(Player): self.rect_colisao não existe. Colisão com árvores no X não verificada.")
@@ -282,12 +282,12 @@ class Player(pygame.sprite.Sprite):
                       # Verifica si a árvore existe e tem um retângulo de colisão ou rect
                       arvore_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
                       if arvore is not None and arvore_rect is not None:
-                         if self.rect_colisao.colliderect(arvore_rect):
-                             # Si houver colisão no Y, reverte o movimento no Y
-                             self.y = original_y
-                             if hasattr(self, 'rect_colisao'): # Atualiza a hitbox após reverter
-                                  self.rect_colisao.center = (self.x, self.y)
-                             break # Sai do loop de árvores após encontrar uma colisão
+                          if self.rect_colisao.colliderect(arvore_rect):
+                               # Si houver colisão no Y, reverte o movimento no Y
+                               self.y = original_y
+                               if hasattr(self, 'rect_colisao'): # Atualiza a hitbox após reverter
+                                    self.rect_colisao.center = (self.x, self.y)
+                               break # Sai do loop de árvores após encontrar uma colisão
         # else:
              # print("DEBUG(Player): self.rect_colisao não existe. Colisão com árvores no Y não verificada.")
 
@@ -350,17 +350,17 @@ class Player(pygame.sprite.Sprite):
                      # 2. Um atributo rect (pygame.Rect) para colisão
                      # 3. Um método receber_dano(dano)
                      if inimigo is not None and hasattr(inimigo, 'esta_vivo') and inimigo.esta_vivo() and hasattr(inimigo, 'rect'):
-                         # Verifica colisão da hitbox de ataque do jogador com o inimigo
-                         # E si o inimigo ainda não foi atingido neste ataque
-                         if self.attack_hitbox.colliderect(inimigo.rect) and inimigo not in self.hit_enemies_this_attack:
-                             # Aplica dano ao inimigo
-                             if hasattr(inimigo, 'receber_dano'): # Verifica si o inimigo pode receber dano
-                                 # print(f"DEBUG(Player): Acertou {type(inimigo).__name__}! Causando {self.attack_damage} de dano.") # Debug
-                                 inimigo.receber_dano(self.attack_damage)
-                                 self.hit_enemies_this_attack.add(inimigo) # Adiciona o inimigo à lista de atingidos
-                                 # Opcional: Adicionar som ou efeito visual de hit
-                             else:
-                                  print(f"DEBUG(Player): Aviso: Inimigo {type(inimigo).__name__} não tem método 'receber_dano'. Dano não aplicado.")
+                          # Verifica colisão da hitbox de ataque do jogador com o inimigo
+                          # E si o inimigo ainda não foi atingido neste ataque
+                          if self.attack_hitbox.colliderect(inimigo.rect) and inimigo not in self.hit_enemies_this_attack:
+                               # Aplica dano ao inimigo
+                               if hasattr(inimigo, 'receber_dano'): # Verifica si o inimigo pode receber dano
+                                    # print(f"DEBUG(Player): Acertou {type(inimigo).__name__}! Causando {self.attack_damage} de dano.") # Debug
+                                    inimigo.receber_dano(self.attack_damage)
+                                    self.hit_enemies_this_attack.add(inimigo) # Adiciona o inimigo à lista de atingidos
+                                    # Opcional: Adicionar som ou efeito visual de hit
+                               else:
+                                    print(f"DEBUG(Player): Aviso: Inimigo {type(inimigo).__name__} não tem método 'receber_dano'. Dano não aplicado.")
                      elif inimigo is not None:
                           if not hasattr(inimigo, 'esta_vivo'):
                                print(f"DEBUG(Player): Aviso: Inimigo {type(inimigo).__name__} não tem método 'esta_vivo'. Ignorando para ataque.")
@@ -383,7 +383,7 @@ class Player(pygame.sprite.Sprite):
             # Desenha o jogador com o offset da câmera
             janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
         # else:
-            # print("DEBUG(Player): Imagem ou rect do jogador ausente. Não foi possível desenhar o jogador.")
+             # print("DEBUG(Player): Imagem ou rect do jogador ausente. Não foi possível desenhar o jogador.")
 
 
         # Opcional: Desenhar a hitbox de colisão (para depuração)

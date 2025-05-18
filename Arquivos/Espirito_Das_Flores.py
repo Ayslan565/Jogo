@@ -34,7 +34,7 @@ except ImportError:
                 self.hp = 0 # Garante que a vida não fica negativa
                 # print(f"DEBUG(Inimigo Base): Inimigo morreu.") # Debug
                 # A remoção do inimigo da lista/grupo deve ser feita no GerenciadorDeInimigos
-                # self.kill() # Pode ser chamado aqui se estiver usando grupos de sprites
+                # self.kill() # Pode ser chamado aqui si estiver usando grupos de sprites
 
         def update(self, player):
             pass # Update placeholder
@@ -72,6 +72,8 @@ class Espirito_Das_Flores(Inimigo):
     """
     # Variável de classe para armazenar os sprites carregados uma única vez
     sprites_carregados = None
+    # Adiciona uma variável de classe para armazenar os sprites originais (não flipados)
+    sprites_originais = None # Adicionado para armazenar sprites originais
 
     def __init__(self, x, y, velocidade=1.8): # Velocidade padrão do Espírito das Flores (ajustada)
         """
@@ -85,7 +87,7 @@ class Espirito_Das_Flores(Inimigo):
         print(f"DEBUG(Espirito_Das_Flores): Inicializando Espírito das Flores em ({x}, {y}) com velocidade {velocidade}.") # Debug inicialização
 
         # Carrega os sprites apenas uma vez para todas as instâncias de Espirito_Das_Flores
-        if Espirito_Das_Flores.sprites_carregados is None:
+        if Espirito_Das_Flores.sprites_originais is None: # Carrega na variável de sprites_originais
             caminhos = [
                 # >>> AJUSTE ESTES CAMINHOS PARA OS SEUS ARQUIVOS DE SPRITE DO ESPÍRITO DAS FLORES <<<
                 "Sprites/Inimigos/Espirito_Flores/Espirito_Flores1.png",
@@ -99,7 +101,7 @@ class Espirito_Das_Flores(Inimigo):
 
                 # Adicione mais caminhos de sprite de animação aqui
             ]
-            Espirito_Das_Flores.sprites_carregados = []
+            Espirito_Das_Flores.sprites_originais = [] # Inicializa a lista de sprites originais
             tamanho_sprite_desejado = (70, 70) # >>> AJUSTE O TAMANHO DESEJADO PARA O SPRITE DO ESPÍRITO <<<
 
             for path in caminhos:
@@ -108,13 +110,13 @@ class Espirito_Das_Flores(Inimigo):
                         sprite = pygame.image.load(path).convert_alpha()
                         # Redimensiona sprites para o tamanho desejado
                         sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
-                        Espirito_Das_Flores.sprites_carregados.append(sprite)
+                        Espirito_Das_Flores.sprites_originais.append(sprite) # Adiciona aos sprites originais
                     else:
                          print(f"DEBUG(Espirito_Das_Flores): Aviso: Sprite do Espírito das Flores não encontrado: {path}")
                          # Se o arquivo não existir, adicione um placeholder
                          placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                          pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Pink placeholder
-                         Espirito_Das_Flores.sprites_carregados.append(placeholder)
+                         Espirito_Das_Flores.sprites_originais.append(placeholder) # Adiciona o placeholder aos sprites originais
 
                 except pygame.error as e:
                     print(f"DEBUG(Espirito_Das_Flores): Erro ao carregar o sprite do Espírito das Flores: {path}")
@@ -122,27 +124,27 @@ class Espirito_Das_Flores(Inimigo):
                     # Se um sprite falhar, adicione um placeholder com o tamanho correto
                     placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Pink placeholder
-                    Espirito_Das_Flores.sprites_carregados.append(placeholder)
+                    Espirito_Das_Flores.sprites_originais.append(placeholder) # Adiciona o placeholder aos sprites originais
 
             # Certifique-se de que há pelo menos um sprite carregado, mesmo que seja um placeholder
-            if not Espirito_Das_Flores.sprites_carregados:
+            if not Espirito_Das_Flores.sprites_originais:
                 print("DEBUG(Espirito_Das_Flores): Aviso: Nenhum sprite do Espírito das Flores carregado. Usando placeholder padrão.")
                 tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder si nenhum sprite carregar
                 placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
-                Espirito_Das_Flores.sprites_carregados.append(placeholder)
+                Espirito_Das_Flores.sprites_originais.append(placeholder) # Adiciona o placeholder aos sprites originais
 
 
         # Inicializa a classe base Inimigo PASSANDO A PRIMEIRA SURFACE CARREGADA E A VELOCIDADE.
         # Certifique-se de que Espirito_Das_Flores.sprites_carregados não está vazio antes de acessar o índice [0]
-        initial_image = Espirito_Das_Flores.sprites_carregados[0] if Espirito_Das_Flores.sprites_carregados else pygame.Surface((70, 70), pygame.SRCALPHA) # Usa placeholder se a lista estiver vazia
+        initial_image = Espirito_Das_Flores.sprites_originais[0] if Espirito_Das_Flores.sprites_originais else pygame.Surface((70, 70), pygame.SRCALPHA) # Usa placeholder se a lista estiver vazia
         super().__init__(x, y, initial_image, velocidade) # >>> Passa a velocidade para a classe base <<<
 
 
         self.hp = 75 # Pontos de vida do Espírito das Flores (ajustado)
         self.max_hp = self.hp # Define HP máximo para barra de vida
         # self.velocidade é definido na classe base agora
-        self.sprites = Espirito_Das_Flores.sprites_carregados # Referência à lista de sprites carregados
+        self.sprites = Espirito_Das_Flores.sprites_originais # Referência à lista de sprites carregados
         self.sprite_index = 0 # Índice do sprite atual para animação
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks() # Tempo do último update da animação
         self.intervalo_animacao = 180 # milissegundos entre frames de animação (ajustado)
@@ -161,6 +163,11 @@ class Espirito_Das_Flores(Inimigo):
         self.last_attack_time = time.time() # Tempo em que o último ataque ocorreu (usando time.time())
         # self.hit_by_player_this_attack é herdado da classe base
 
+        # Atributo para rastrear a direção horizontal para espelhamento
+        # Assume que o sprite original está virado para a esquerda ou para baixo.
+        # Vamos flipar quando facing_right for True.
+        self.facing_right = False # Inicializa como False (virado para a esquerda ou padrão)
+
 
         # Atributo para rastrear a direção do Espírito das Flores (para posicionar a hitbox de ataque)
         # Inicializa com uma direção padrão, será atualizado no mover_em_direcao
@@ -173,7 +180,7 @@ class Espirito_Das_Flores(Inimigo):
         self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
 
 
-        # >>> Atributos Específicos do Espírito das Flores <<<
+        # >>> Atributos Específicos do Espírito das Flores (Cura, etc.) <<<
         # Adicione atributos únicos aqui, como:
         # self.chance_de_curar_aliado = 0.1 # Exemplo: 10% de chance de curar um inimigo próximo
         # self.raio_cura = 150 # Exemplo: raio de busca por aliados para curar
@@ -201,35 +208,54 @@ class Espirito_Das_Flores(Inimigo):
 
 
     def atualizar_animacao(self):
-        """Atualiza o índice do sprite para a animação."""
+        """Atualiza o índice do sprite para a animação e aplica o flip horizontal."""
         agora = pygame.time.get_ticks()
-        # Verifica si self.sprites não está vazio antes de calcular o módulo
+        # Verifica si self.sprites (sprites originais) não está vazio antes de calcular o módulo
         if self.sprites and self.esta_vivo() and agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao: # Só anima si estiver vivo
             self.tempo_ultimo_update_animacao = agora
             # Incrementa o índice do sprite lentamente para a animação
             self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
-            # Define a imagem atual com base no índice
-            self.image = self.sprites[int(self.sprite_index)]
-            # Opcional: Redimensionar a imagem atualizada si necessário (mas já redimensionamos no carregamento)
-            # self.image = pygame.transform.scale(self.image, (70, 70))
-        elif not self.esta_vivo() and self.sprites:
-             # Si morreu, pode definir um sprite de morte ou manter o último frame
-             # Por enquanto, mantém o último frame ou o primeiro si a lista estiver vazia
-             if self.sprites:
-                 self.image = self.sprites[int(self.sprite_index % len(self.sprites))] # Mantém o último frame (garante índice válido)
-             else:
-                  # Fallback si não houver sprites
-                  tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder
-                  self.image = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
-                  pygame.draw.rect(self.image, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
+
+        # Define a imagem atual com base no índice, usando os sprites originais
+        if self.sprites:
+            base_image = self.sprites[int(self.sprite_index % len(self.sprites))]
+            # Aplica o flip horizontal si estiver virado para a direita
+            if self.facing_right:
+                self.image = pygame.transform.flip(base_image, True, False)
+            else:
+                self.image = base_image
+        else:
+            # Fallback si não houver sprites
+            tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder
+            self.image = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
 
 
-    # O método mover_em_direcao() é herdado da classe base Inimigo agora.
-    # Se precisar de lógica de movimento específica para o Espírito das Flores, sobrescreva-o aqui.
-    # Exemplo de sobrescrita (si necessário):
-    # def mover_em_direcao(self, alvo_x, alvo_y):
-    #     # Lógica de movimento específica do Espírito das Flores (talvez flutuando ou se teletransportando)
-    #     super().mover_em_direcao(alvo_x, alvo_y) # Chama o método da classe base
+    # Sobrescreve o método mover_em_direcao para adicionar a lógica de direção horizontal
+    def mover_em_direcao(self, alvo_x, alvo_y):
+        """
+        Move o Espírito das Flores em direção a um alvo e atualiza a direção horizontal.
+
+        Args:
+            alvo_x (int): A coordenada x do alvo.
+            alvo_y (int): A coordenada y do alvo.
+        """
+        dx = alvo_x - self.rect.centerx
+        dy = alvo_y - self.rect.centery
+        dist = math.hypot(dx, dy)
+
+        # Atualiza a direção horizontal com base em dx apenas se houver movimento horizontal significativo
+        if abs(dx) > 0.1: # Adiciona uma pequena tolerância para evitar flipar por micro-movimentos
+            if dx > 0:
+                self.facing_right = True
+            elif dx < 0:
+                self.facing_right = False
+
+        if dist > 0:
+            dx_norm = dx / dist
+            dy_norm = dy / dist
+            self.rect.x += dx_norm * self.velocidade
+            self.rect.y += dy_norm * self.velocidade
 
 
     def atacar(self, player):
@@ -251,7 +277,7 @@ class Espirito_Das_Flores(Inimigo):
         if self.esta_vivo() and (current_time - self.last_attack_time >= self.attack_cooldown):
             # Calcula a distância até o jogador
             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                              self.rect.centery - player.rect.centery)
+                                               self.rect.centery - player.rect.centery)
 
             if distancia_ao_jogador <= self.attack_range:
                 # Inicia o ataque
@@ -276,7 +302,8 @@ class Espirito_Das_Flores(Inimigo):
                 # verificando a colisão da hitbox de ataque enquanto is_attacking é True.
                 # Exemplo de ataque instantâneo:
                 # if hasattr(player, 'receber_dano'):
-                #     player.receber_dano(self.attack_damage)
+                #     dano_inimigo = getattr(self, 'attack_damage', 0)
+                #     player.receber_dano(dano_inimigo)
                 #     self.hit_by_player_this_attack = True # Marca como atingido para evitar múltiplos hits no mesmo ataque instantâneo
 
 
@@ -312,7 +339,7 @@ class Espirito_Das_Flores(Inimigo):
                 # Aplica dano por contato ao jogador
                 # Verifica si o jogador tem o método receber_dano
                 if hasattr(player, 'receber_dano'):
-                    # print(f"DEBUG(Espirito_Das_Flores): Colisão de contato! Espírito das Flores tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug
+                    print(f"DEBUG(Espirito_Das_Flores): Colisão de contato! Espírito das Flores tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug
                     player.receber_dano(self.contact_damage)
                     self.last_contact_time = current_ticks # Atualiza o tempo do último contato (em milissegundos)
                     # Opcional: Adicionar um som ou efeito visual para dano por contato
@@ -333,18 +360,18 @@ class Espirito_Das_Flores(Inimigo):
                       # si tem hitbox de ataque e si colide com o rect do jogador.
                       # Esta lógica é para ataques que duram um tempo (animação).
                       if not self.hit_by_player_this_attack and \
-                         hasattr(self, 'attack_hitbox') and \
-                         hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                         self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
+                           hasattr(self, 'attack_hitbox') and \
+                           hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                           self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
 
-                          # Verifica si o jogador tem o método receber_dano e está vivo
-                          if hasattr(player, 'receber_dano'):
-                               # Aplica dano do ataque específico ao jogador
-                               dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
-                               # print(f"DEBUG(Espirito_Das_Flores): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
-                               player.receber_dano(dano_inimigo)
-                               self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
-                               # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
+                           # Verifica si o jogador tem o método receber_dano e está vivo
+                           if hasattr(player, 'receber_dano'):
+                                # Aplica dano do ataque específico ao jogador
+                                dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
+                                # print(f"DEBUG(Espirito_Das_Flores): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
+                                player.receber_dano(dano_inimigo)
+                                self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
+                                # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
 
 
             # >>> Lógica de Perseguição (Movimento) <<<
