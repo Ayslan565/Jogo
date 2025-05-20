@@ -6,74 +6,8 @@ import time # Importa time para usar time.time() ou pygame.time.get_ticks()
 import os # Importa os para verificar a existência de arquivos
 
 # Certifique-se de que Inimigo está acessível
-# from Inimigos import Inimigo # Importe a classe base Inimigo
-
-# --- Placeholder para a classe base Inimigo se o arquivo Inimigos.py não for fornecido ---
-# REMOVA este bloco inteiro si você tem o arquivo Inimigos.py
-try:
-    from Inimigos import Inimigo
-except ImportError:
-    print("DEBUG(Fenix): Aviso: Módulo 'Inimigos.py' não encontrado. Usando classe base Inimigo placeholder.")
-    class Inimigo(pygame.sprite.Sprite):
-        def __init__(self, x, y, image, velocidade=1):
-            super().__init__()
-            self.image = image
-            self.rect = self.image.get_rect(topleft=(x, y))
-            self.hp = 100 # Vida padrão
-            self.velocidade = velocidade # Velocidade padrão
-            self.is_attacking = False # Flag de ataque padrão
-            self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Hitbox de ataque padrão (vazia)
-            self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
-            self.contact_damage = 5 # Dano de contato padrão
-            self.contact_cooldown = 1000 # Cooldown de contato padrão (em milissegundos)
-            self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato
-            self.max_hp = self.hp # Armazena HP máximo para barra de vida
-
-        def receber_dano(self, dano):
-            self.hp -= dano
-            if self.hp <= 0:
-                self.hp = 0 # Garante que a vida não fica negativa
-                # self.kill() # Pode ser chamado aqui se estiver usando grupos de sprites
-
-        def update(self, player):
-            # Lógica de atualização padrão (pode ser sobrescrita)
-            pass
-
-        def desenhar(self, surface, camera_x, camera_y):
-            # Desenha o inimigo com o offset da câmera
-            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-            # Opcional: Desenhar barra de vida do inimigo aqui
-
-        def esta_vivo(self):
-            return self.hp > 0
-
-        def mover_em_direcao(self, alvo_x, alvo_y):
-            """
-            Move o inimigo na direção de um ponto alvo.
-            Este é um método base que pode ser sobrescrito por subclasses.
-
-            Args:
-                alvo_x (int): A coordenada x do ponto alvo.
-                alvo_y (int): A coordenada y do ponto alvo.
-            """
-            # Só move si estiver vivo e tiver velocidade
-            if self.esta_vivo() and self.velocidade > 0:
-                dx = alvo_x - self.rect.centerx
-                dy = alvo_y - self.rect.centery
-                distancia = math.hypot(dx, dy)
-
-                if distancia > 0:
-                    dx_norm = dx / distancia
-                    dy_norm = dy / distancia
-                    self.rect.x += dx_norm * self.velocidade
-                    self.rect.y += dy_norm * self.velocidade
-                    # Retorna a direção horizontal para que a subclasse possa usar
-                    return dx_norm # Retorna a componente X normalizada
-                return 0 # Retorna 0 si não houver movimento
-            return 0 # Retorna 0 si não estiver vivo ou não tiver velocidade
-
-        # Adicione outros métodos base comuns a todos os inimigos aqui
-# --- Fim do Placeholder para Inimigo ---
+# Importa a classe base Inimigo do ficheiro Inimigos.py
+from Inimigos import Inimigo
 
 
 """
@@ -81,6 +15,11 @@ Classe para o inimigo Fênix.
 Herda da classe base Inimigo.
 """
 class Fenix(Inimigo): # Nome da classe alterado para Fenix
+    """
+    Representa um inimigo Fênix.
+    Persegue o jogador quando este está vivo e dentro do alcance (se aplicável).
+    Implementa lógica de desvio quando presa.
+    """
     # Variável de classe para armazenar os sprites carregados uma única vez
     sprites_carregados = None
 
@@ -93,8 +32,6 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
             y (int): A posição inicial y da Fênix.
             velocidade (float): A velocidade de movimento da Fênix.
         """
-        print(f"DEBUG(Fenix): Inicializando Fênix em ({x}, {y}) com velocidade {velocidade}.") # Debug inicialização
-
         # Carrega os sprites apenas uma vez para todas as instâncias de Fênix
         if Fenix.sprites_carregados is None:
             caminhos = [
@@ -117,27 +54,33 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
                         sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
                         Fenix.sprites_carregados.append(sprite)
                     else:
-                        print(f"DEBUG(Fenix): Aviso: Sprite da Fênix não encontrado: {path}")
-                        # Se o arquivo não existir, adicione um placeholder
-                        placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
-                        pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Orange placeholder
-                        Fenix.sprites_carregados.append(placeholder)
+                       # Se o arquivo não existir, adicione um placeholder
+                       placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
+                       pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Orange placeholder
+                       fonte = pygame.font.Font(None, 20)
+                       texto_erro = fonte.render("Sprite", True, (255, 255, 255))
+                       placeholder.blit(texto_erro, (5, 15))
+                       texto_erro2 = fonte.render("Erro", True, (255, 255, 255))
+                       placeholder.blit(texto_erro2, (10, 35))
+                       Fenix.sprites_carregados.append(placeholder)
 
                 except pygame.error as e:
-                    print(f"DEBUG(Fenix): Erro ao carregar o sprite da Fênix: {path}")
-                    print(f"DEBUG(Fenix): Detalhes do erro: {e}")
                     # Se um sprite falhar, adicione um placeholder com o tamanho correto
                     placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Orange placeholder
+                    fonte = pygame.font.Font(None, 20)
+                    texto_erro = fonte.render("Sprite", True, (255, 255, 255))
+                    placeholder.blit(texto_erro, (5, 15))
+                    texto_erro2 = fonte.render("Erro", True, (255, 255, 255))
+                    placeholder.blit(texto_erro2, (10, 35))
                     Fenix.sprites_carregados.append(placeholder)
 
             # Certifique-se de que há pelo menos um sprite carregado, mesmo que seja um placeholder
             if not Fenix.sprites_carregados:
-                print("DEBUG(Fenix): Aviso: Nenhum sprite da Fênix carregado. Usando placeholder padrão.")
                 tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder si nenhum sprite carregar
                 placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
-                Fenix.sprites_carregados.append(placeholder)
+                Fenix.sprites_carregados.append(placeholder) # Adiciona o placeholder aos sprites originais
 
 
         # Inicializa a classe base Inimigo PASSANDO A PRIMEIRA SURFACE CARREGADA E A VELOCIDADE.
@@ -178,7 +121,14 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
         self.contact_cooldown = 300 # Cooldown de dano de contato em milissegundos (mais rápido)
         self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
 
-        print(f"DEBUG(Fenix): Fênix inicializada com sucesso em ({x}, {y}). HP: {self.hp}, Velocidade: {self.velocidade}") # Debug final da inicialização
+        # Atributos para detecção de estar preso e lógica de desvio (herdado da classe base)
+        # self._previous_pos = (self.rect.x, self.rect.y)
+        # self.is_stuck = False
+        # self._stuck_timer = 0
+        # self._stuck_duration_threshold = 500
+        # self._evade_direction = None
+        # self._evade_timer = 0
+        # self._evade_duration = 500
 
 
     # O método esta_vivo() é herdado da classe base Inimigo.
@@ -193,10 +143,8 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
         # Verifica si o inimigo está vivo antes de receber dano
         if self.esta_vivo(): # Chama o método esta_vivo() herdado
             self.hp -= dano
-            print(f"DEBUG(Fenix): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug: Mostra dano recebido e HP restante
             if self.hp <= 0:
                 self.hp = 0
-                print(f"DEBUG(Fenix): Fênix morreu.") # Debug: Mostra que morreu
                 # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
                 # Opcional: self.kill() pode ser chamado aqui si estiver usando grupos de sprites.
 
@@ -226,32 +174,33 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
 
     # Sobrescreve o método mover_em_direcao para atualizar a direção horizontal
-    def mover_em_direcao(self, alvo_x, alvo_y):
+    # CORRIGIDO: Adicionado 'arvores' como argumento para compatibilidade com a classe base
+    def mover_em_direcao(self, alvo_x, alvo_y, arvores):
         """
-        Move a Fênix na direção de um ponto alvo e atualiza a direção horizontal.
+        Move a Fênix na direção de um ponto alvo e atualiza a direção horizontal,
+        verificando colisão com árvores.
 
         Args:
             alvo_x (int): A coordenada x do ponto alvo.
             alvo_y (int): A coordenada y do ponto alvo.
+            arvores (list): Uma lista de objetos Arvore para verificar colisão.
         """
-        # Só move si estiver vivo e tiver velocidade
-        if self.esta_vivo() and self.velocidade > 0:
-            dx = alvo_x - self.rect.centerx
-            dy = alvo_y - self.rect.centery
-            distancia = math.hypot(dx, dy)
+        # Chama o método mover_em_direcao da classe base para lidar com o movimento e colisão com árvores
+        # A lógica de detecção de estar preso e atualização de self.is_stuck ocorre na classe base.
+        super().mover_em_direcao(alvo_x, alvo_y, arvores)
 
-            if distancia > 0:
-                dx_norm = dx / distancia
-                dy_norm = dy / distancia
-                self.rect.x += dx_norm * self.velocidade
-                self.rect.y += dy_norm * self.velocidade
+        # Atualiza a direção horizontal com base no movimento em X, apenas se a Fênix se moveu
+        # A detecção de movimento agora está na classe base através de self.is_stuck
+        # Podemos inferir a direção horizontal do movimento se não estiver preso
+        if not self.is_stuck:
+             # Calcula a diferença de posição para determinar a direção horizontal do movimento
+             dx = self.rect.x - self._previous_pos[0]
+             if abs(dx) > 0.1: # Verifica se houve movimento horizontal significativo
+                 if dx > 0:
+                     self.facing_right = True
+                 elif dx < 0:
+                     self.facing_right = False
 
-                # Atualiza a direção horizontal com base no movimento em X
-                if dx > 0:
-                    self.facing_right = True
-                elif dx < 0:
-                    self.facing_right = False
-                # Si dx for 0, mantém a direção anterior
 
     def atacar(self, player):
         """
@@ -263,7 +212,6 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
         """
         # Adiciona verificação para garantir que o objeto player tem o atributo rect
         if not hasattr(player, 'rect'):
-            # print("DEBUG(Fenix): Objeto player passado para Fenix.atacar não tem atributo 'rect'.") # Debug
             return # Sai do método para evitar o erro
 
         current_time = time.time()
@@ -280,7 +228,6 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
                 self.attack_timer = current_time # Registra o tempo de início do ataque
                 self.last_attack_time = current_time # Reseta o cooldown
                 self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque
-                print("DEBUG(Fenix): Fênix iniciou ataque!") # Debug
 
                 # Define a hitbox de ataque (exemplo: uma área de dano de fogo ao redor da Fênix)
                 # Você precisará ajustar isso com base na animação ou tipo de ataque da sua Fênix
@@ -293,93 +240,98 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
 
     # O método update é herdado e sobrescrito aqui para incluir a lógica específica da Fênix
-    def update(self, player):
+    # CORRIGIDO: Adicionado 'arvores' como argumento
+    def update(self, player, arvores):
         """
         Atualiza o estado da Fênix (movimento, animação e ataque).
-        Inclui a lógica de aplicação de dano por contato.
+        Inclui a lógica de aplicação de dano por contato e desvio.
 
         Args:
             player (Player): O objeto jogador para seguir, verificar o alcance de ataque e aplicar dano.
+            arvores (list): Uma lista de objetos Arvore para colisão.
         """
-        # print("DEBUG(Fenix): Update da Fênix chamado.") # Debug geral
         # >>> Adiciona verificação para garantir que o objeto player tem os atributos necessários <<<
         # Verifica si o player tem pelo menos rect e vida (para verificar si está vivo e receber dano)
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
-            # print("DEBUG(Fenix): Objeto player passado para Fenix.update não tem todos os atributos necessários.") # Debug
             return # Sai do método para evitar o erro
 
         # Só atualiza si estiver vivo
         if self.esta_vivo():
-            # print(f"DEBUG(Fenix): Fênix está viva e atualizando. Posição: ({self.rect.x}, {self.rect.y}), HP: {self.hp}") # Debug de atualização
             current_time = time.time()
             current_ticks = pygame.time.get_ticks() # Usando get_ticks() para consistência com contact_cooldown
 
-            # >>> Lógica de Dano por Contato <<<
-            # Verifica si a Fênix está viva, si colide com o rect do jogador,
-            # e si o cooldown de contato passou.
-            # Adiciona verificação para garantir que player.vida existe e é válido
-            if self.esta_vivo() and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-               hasattr(player, 'rect') and self.rect.colliderect(player.rect) and \
-               (current_ticks - self.last_contact_time >= self.contact_cooldown): # Cooldown em milissegundos
-
-                # Aplica dano por contato ao jogador
-                # Verifica si o jogador tem o método receber_dano
-                if hasattr(player, 'receber_dano'):
-                    # print(f"DEBUG(Fenix): Colisão de contato! Fênix tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug
-                    player.receber_dano(self.contact_damage)
-                    self.last_contact_time = current_ticks # Atualiza o tempo do último contato (em milissegundos)
-                    # Opcional: Adicionar um som ou efeito visual para dano por contato
-
+            # Lógica de colisão com o jogador e dano por contato (herdado da classe base)
+            self.check_player_collision(player)
 
             # Lógica do temporizador de ataque específico
             if self.is_attacking:
-                 # print("DEBUG(Fenix): Fênix está atacando (ataque específico).") # Debug
                  # Verifica si a duração do ataque passou
                  if time.time() - self.attack_timer >= self.attack_duration: # Usa time.time() para consistência com attack_timer
                      self.is_attacking = False
                      self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Reseta a hitbox quando o ataque termina
                      self.hit_by_player_this_attack = False # Reseta a flag de acerto ao final do ataque específico
-                     # print("DEBUG(Fenix): Ataque específico da Fênix terminou.") # Debug
                  else:
                       # >>> Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE) <<<
                       # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
                       # si tem hitbox de ataque e si colide com o rect do jogador.
                       if not self.hit_by_player_this_attack and \
-                           hasattr(self, 'attack_hitbox') and \
-                           hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                           self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
+                             hasattr(self, 'attack_hitbox') and \
+                             hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                             self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
 
                            # Verifica si o jogador tem o método receber_dano e está vivo
                            if hasattr(player, 'receber_dano'):
                                 # Aplica dano do ataque específico ao jogador
                                 dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
-                                print(f"DEBUG(Fenix): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
                                 player.receber_dano(dano_inimigo)
                                 self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
                                 # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
 
 
-            # >>> Lógica de Perseguição (Movimento) <<<
+            # >>> Lógica de Movimento e Desvio <<<
             # A Fênix persegue o jogador si estiver vivo e o jogador estiver vivo.
-            # Adiciona verificação para garantir que player tem rect antes de passar para mover_em_direcao
+            # Implementa a lógica de desvio quando detecta que está presa.
             player_tem_rect = hasattr(player, 'rect')
             player_esta_vivo = hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo()
             fenix_esta_viva = self.esta_vivo()
             fenix_tem_velocidade = self.velocidade > 0
 
-
-            # print(f"DEBUG(Fenix): Player tem rect: {player_tem_rect}") # Debug: Verifica rect do player
-            # print(f"DEBUG(Fenix): Player está vivo: {player_esta_vivo}") # Debug: Verifica vida do player
-            # print(f"DEBUG(Fenix): Fênix está viva: {fenix_esta_viva}") # Debug: Verifica vida da fênix
-            # print(f"DEBUG(Fenix): Fênix tem velocidade > 0: {fenix_tem_velocidade}") # Debug: Verifica velocidade
-
-
             if fenix_esta_viva and player_tem_rect and player_esta_vivo and fenix_tem_velocidade:
-                 # print("DEBUG(Fenix): Condições de movimento atendidas. Chamando mover_em_direcao.") # Debug: Condições atendidas
-                 # Move a Fênix na direção do centro do retângulo do jogador e atualiza a direção horizontal
-                 self.mover_em_direcao(player.rect.centerx, player.rect.centery)
+                # Verifica se está preso por tempo suficiente e não está tentando desviar
+                if self.is_stuck and current_ticks - self._stuck_timer > self._stuck_duration_threshold and self._evade_direction is None:
+                    # Inicia uma tentativa de desvio
+                    # Escolhe uma direção aleatória para tentar desviar (horizontal ou vertical)
+                    self._evade_direction = random.choice(["left", "right", "up", "down"])
+                    self._evade_timer = current_ticks
+
+                # Se estiver tentando desviar
+                if self._evade_direction is not None:
+                    # Calcula o movimento de desvio
+                    evade_speed = self.velocidade * 1.2 # Pode desviar um pouco mais rápido
+                    evade_dx, evade_dy = 0, 0
+                    if self._evade_direction == "left":
+                        evade_dx = -evade_speed
+                    elif self._evade_direction == "right":
+                        evade_dx = evade_speed
+                    elif self._evade_direction == "up":
+                        evade_dy = -evade_speed
+                    elif self._evade_direction == "down":
+                        evade_dy = evade_speed
+
+                    # Aplica o movimento de desvio (sem verificar colisão com árvores durante o desvio simples)
+                    # Uma lógica de desvio mais avançada verificaria colisões também aqui.
+                    self.rect.x += evade_dx
+                    self.rect.y += evade_dy
+
+                    # Verifica se a duração do desvio terminou
+                    if current_ticks - self._evade_timer > self._evade_duration:
+                        self._evade_direction = None # Termina a tentativa de desvio
+                        self.is_stuck = False # Considera que não está mais preso (será reavaliado no próximo frame)
+                else:
+                    # Se não estiver tentando desviar, move normalmente em direção ao jogador (com verificação de colisão da base)
+                    target_x, target_y = player.rect.centerx, player.rect.centery
+                    self.mover_em_direcao(target_x, target_y, arvores) # Chama o método da base com a lista de árvores
             else:
-                 # print("DEBUG(Fenix): Condições de movimento NÃO atendidas. Não movendo.") # Debug: Condições não atendidas
                  pass # Não move si o player não tiver rect ou não estiver vivo
 
 
@@ -400,9 +352,6 @@ class Fenix(Inimigo): # Nome da classe alterado para Fenix
 
             # Atualiza a animação
             self.atualizar_animacao()
-
-        # else:
-             # print(f"DEBUG(Fenix): Fênix não está viva. Não atualizando. HP: {self.hp}") # Debug se não estiver vivo
 
 
     # Sobrescreve o método desenhar para aplicar o espelhamento

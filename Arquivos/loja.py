@@ -2,6 +2,7 @@ import pygame
 import time
 import random
 import os # Importa os para verificar a existência de arquivos
+import math # Importa math para cálculos (usado na seta, se aplicável)
 
 # --- Configuração para o ciclo de cores da borda dourada ---
 GOLD_PALETTE = [
@@ -25,6 +26,7 @@ border_radius = 10 # Raio do canto para arredondar as bordas
 # --- Inicializa a fonte placeholder de forma confiável ---
 # Assumimos que pygame.font já foi inicializado pelo jogo principal
 try:
+    pygame.font.init() # Garante que a fonte está inicializada
     fonte_placeholder = pygame.font.Font(None, 20)
     # Cria o texto de erro para o placeholder
     texto_erro_placeholder = fonte_placeholder.render("Erro", True, (0, 0, 0))
@@ -113,10 +115,10 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor=(600, 400))
         ]
         machados_imgs = []
         for path in machados_paths:
-             if os.path.exists(path):
+            if os.path.exists(path):
                 sprite = pygame.transform.scale(pygame.image.load(path).convert_alpha(), tamanho_item)
                 machados_imgs.append(sprite)
-             else:
+            else:
                 print(f"DEBUG(Loja): Aviso: Sprite de machado não encontrado: {path}")
                 machados_imgs.append(placeholder_img_item) # Adiciona placeholder se não encontrar
 
@@ -142,7 +144,7 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor=(600, 400))
                 cajados_imgs.append(sprite)
             else:
                 print(f"DEBUG(Loja): Aviso: Sprite de cajado não encontrado: {path}")
-                cajados_imgs.append(placeholder_img_item) # Adiciona placeholder se não encontrar
+                cajados_imgs.append(placeholder_img_item) # Adiciona placeholder si não encontrar
 
         imagem_Cajado_1 = cajados_imgs[0] if len(cajados_imgs) > 0 else placeholder_img_item
         imagem_Cajado_2 = cajados_imgs[1] if len(cajados_imgs) > 1 else placeholder_img_item
@@ -215,7 +217,7 @@ class Loja:
                     pygame.draw.rect(tela, (236, 00 , 00), item_rect, 3)
 
             # Desenha o nome e preço do item (posicionados mais à esquerda agora)
-            # Verifica se a fonte está disponível antes de renderizar
+            # Verifica si a fonte está disponível antes de renderizar
             if self.fonte:
                 nome = self.fonte.render(item["nome"], True, (255, 255, 255))
                 preco = self.fonte.render(f"Preço: {item['preco']}g", True, (200, 255, 255))
@@ -227,7 +229,7 @@ class Loja:
                 tela.blit(nome, (nome_x, nome_y))
                 tela.blit(preco, (preco_x, preco_y))
             else:
-                 print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar texto dos itens.")
+                print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar texto dos itens.")
 
 
         tela.set_clip(clip_rect) # Restaura a área de clip original
@@ -304,7 +306,7 @@ class Loja:
                      # print(f"Item '{item['nome']}' comprado!") # Mensagem de debug
                      return item, True, f"Comprou: {item['nome']}. Dinheiro restante: {jogador.dinheiro}g"
                  else:
-                      return None, False, "Inventário cheio!" # Mensagem se o inventário estiver cheio (exemplo)
+                     return None, False, "Inventário cheio!" # Mensagem se o inventário estiver cheio (exemplo)
             else:
                  return None, False, "Erro interno: Jogador sem método de inventário."
         else:
@@ -320,7 +322,7 @@ class Loja:
             area_desenho_rect (pygame.Rect): O retângulo da área onde os itens são desenhados.
 
         Returns:
-            int: O índice do item selecionado, ou -1 se nenhum item foi clicado.
+            int: O índice do item selecionado, ou -1 si nenhum item foi clicado.
         """
         if not area_desenho_rect.collidepoint(mouse_pos):
             return -1 # Clique fora da área de desenho da loja
@@ -329,7 +331,7 @@ class Loja:
         mouse_y_relativo = mouse_pos[1] - area_desenho_rect.top - self.scroll_y
 
         # Calcula o índice do item clicado
-        # Garante que o cálculo não resulte em um índice negativo se clicar acima da área visível
+        # Garante que o cálculo não resulte em um índice negativo si clicar acima da área visível
         if mouse_y_relativo < 0:
             return -1
 
@@ -390,13 +392,13 @@ def desenhar_menu_superior(tela, abas, aba_atual, largura, fonte):
         aba_rect = pygame.Rect(i * (largura // len(abas)), 0, largura // len(abas), 50)
         pygame.draw.rect(tela, cor_fundo, aba_rect)
         # Desenha o texto da aba centralizado
-        # Verifica se a fonte está disponível antes de renderizar
+        # Verifica si a fonte está disponível antes de renderizar
         if fonte:
             texto = fonte.render(aba, True, (255, 255, 255))
             texto_rect = texto.get_rect(center=aba_rect.center)
             tela.blit(texto, texto_rect)
         else:
-             print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar texto das abas.")
+            print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar texto das abas.")
 
 
 def desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect, itens_machados, itens_espadas, itens_cajados): # Adicionado listas de itens
@@ -420,6 +422,7 @@ def desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect, itens_machados
         loja.itens = itens_espadas
     elif aba_atual == 2:
         loja.itens = itens_cajados
+    # Adicione mais abas aqui se necessário
 
     # Garante que o item selecionado seja válido para a nova lista
     if loja.selecionado >= len(loja.itens):
@@ -432,23 +435,23 @@ def desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect, itens_machados
 
 def desenhar_dinheiro(tela, dinheiro, fonte, altura):
     """Desenha a quantidade de dinheiro do jogador."""
-    # Verifica se a fonte está disponível antes de renderizar
+    # Verifica si a fonte está disponível antes de renderizar
     if fonte:
         texto_dinheiro = fonte.render(f"Quantidade de Aurums: {dinheiro}", True, (255, 255, 255))
         # Posiciona o texto do dinheiro no canto inferior esquerdo
         tela.blit(texto_dinheiro, (10, altura - 40))
     else:
-         print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar o dinheiro.")
+        print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar o dinheiro.")
 
 
 def desenhar_mensagem(tela, mensagem, fonte, largura, altura):
     """Desenha uma mensagem temporária no centro inferior da tela."""
-    if mensagem and fonte: # Verifica se há mensagem e se a fonte está disponível
+    if mensagem and fonte: # Verifica se há mensagem e si a fonte está disponível
         texto_mensagem = fonte.render(mensagem, True, (255, 0, 0))
         # Posiciona a mensagem centralizada horizontalmente, um pouco acima da parte inferior
         tela.blit(texto_mensagem, (largura // 2 - texto_mensagem.get_width() // 2, altura - 80))
     elif mensagem and not fonte:
-         print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar a mensagem.")
+        print("DEBUG(Loja): Aviso: Fonte da loja não disponível. Não foi possível desenhar a mensagem.")
 
 
 def verificar_clique_mouse_aba(mouse_pos, largura, abas):
@@ -617,73 +620,67 @@ def run_shop_scene(tela, jogador, largura_tela, altura_tela):
                     # Muda para a próxima aba
                     aba_atual = (aba_atual + 1) % len(abas)
                     loja.selecionar_item(0, area_loja_rect) # Reseta a seleção e rolagem na nova aba (Passa area_loja_rect)
-
             elif evento.type == pygame.MOUSEBUTTONDOWN:
-                # Verifica clique nas abas
-                aba_selecionada = verificar_clique_mouse_aba(mouse_pos, largura_tela, abas)
-                if aba_selecionada != -1:
-                    aba_atual = aba_selecionada
-                    loja.selecionar_item(0, area_loja_rect) # Reseta a seleção e rolagem na nova aba (Passa area_loja_rect)
-                else:
-                    # Verifica clique nos itens da loja
-                    item_selecionado_indice = loja.selecionar_item_por_posicao(mouse_pos, area_loja_rect)
-                    if item_selecionado_indice != -1:
-                        # Define o item selecionado e tenta comprar
-                        item, sucesso, msg = loja.comprar_item(jogador) # Passa o objeto jogador
-                        mensagem = msg
-                        tempo_mensagem = duracao_mensagem # Define o tempo para exibir a mensagem
+                 # Verifica clique nas abas
+                 aba_clicada = verificar_clique_mouse_aba(mouse_pos, largura_tela, abas)
+                 if aba_clicada != -1:
+                      aba_atual = aba_clicada
+                      loja.selecionar_item(0, area_loja_rect) # Reseta a seleção e rolagem na nova aba (Passa area_loja_rect)
+                 else:
+                      # Verifica clique nos itens da loja
+                      item_clicado_indice = loja.selecionar_item_por_posicao(mouse_pos, area_loja_rect)
+                      if item_clicado_indice != -1:
+                           # Define o item selecionado e tenta comprar
+                           # A seleção já é feita dentro de selecionar_item_por_posicao
+                           item, sucesso, msg = loja.comprar_item(jogador) # Passa o objeto jogador
+                           mensagem = msg
+                           tempo_mensagem = duracao_mensagem # Define o tempo para exibir a mensagem
+
+        # --- Lógica de Atualização ---
+        loja.update_blink() # Atualiza o contador de piscar
+        loja.update_gold_border() # Atualiza o ciclo de cores da borda dourada
 
         # Atualiza a mensagem temporária
         if tempo_mensagem > 0:
-            tempo_mensagem -= 1
-        else:
-            mensagem = "" # Limpa a mensagem quando o tempo acabar
-
-        # Atualiza o contador de piscar da borda vermelha
-        loja.update_blink()
-
-        # Atualiza o ciclo de cores da borda dourada
-        loja.update_gold_border()
-
+            tempo_mensagem -= 1 # Decrementa o contador de frames da mensagem
+            if tempo_mensagem <= 0:
+                mensagem = "" # Limpa a mensagem quando o tempo acaba
 
         # --- Desenho ---
-        tela.fill((0, 0, 0)) # Preenche o fundo
+        tela.fill((30, 30, 30)) # Fundo escuro para a loja
+
+        # Desenha a imagem do vendedor (posicionada no centro superior)
+        # Verifica se a imagem do vendedor existe antes de desenhar
+        if imagem_vendedor is not None:
+             vendedor_x = (largura_tela - imagem_vendedor.get_width()) // 2
+             vendedor_y = altura_menu_superior + 10 # Um pouco abaixo do menu superior
+             tela.blit(imagem_vendedor, (vendedor_x, vendedor_y))
 
         # Desenha o menu superior (abas)
         desenhar_menu_superior(tela, abas, aba_atual, largura_tela, loja.fonte) # Usa a fonte da loja
 
-        # Desenha o vendedor no topo, centralizado horizontalmente
-        vendedor_x = (largura_tela - imagem_vendedor.get_width()) // 2
-        vendedor_y = altura_menu_superior + 10 # Um pouco abaixo do menu superior
-        tela.blit(imagem_vendedor, (vendedor_x, vendedor_y))
+        # Desenha a área de conteúdo da loja (itens)
+        desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect, itens_machados, itens_espadas, itens_cajados) # Passa as listas de itens
 
-        # Desenha o fundo cinza, a borda dourada animada e a imagem do item selecionado
-        desenhar_item_selecionado_detalhes(tela, loja, largura_tela, altura_tela, loja.fonte) # Usa a fonte da loja
+        # Desenha os detalhes do item selecionado (fundo, borda, imagem)
+        desenhar_item_selecionado_detalhes(tela, loja, largura_tela, altura_tela, loja.fonte)
 
-
-        # Desenha um fundo para a área da lista de itens (opcional, para visualização)
-        pygame.draw.rect(tela, (20, 20, 20), area_loja_rect)
-        pygame.draw.rect(tela, (150, 150, 150), area_loja_rect, 2) # Borda
-
-        # Desenha o conteúdo da loja (itens) dentro da área definida
-        desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect, itens_machados, itens_espadas, itens_cajados) # Passa listas de itens
-
-
-        # Desenha a quantidade de dinheiro
-        # Assume que o jogador tem um atributo 'dinheiro'
-        if hasattr(jogador, 'dinheiro'):
-             desenhar_dinheiro(tela, jogador.dinheiro, loja.fonte, altura_tela) # Usa a fonte da loja
+        # Desenha a quantidade de dinheiro do jogador
+        # Verifica se o jogador e o atributo dinheiro existem
+        if jogador is not None and hasattr(jogador, 'dinheiro'):
+             desenhar_dinheiro(tela, jogador.dinheiro, loja.fonte, altura_tela)
         else:
-             print("DEBUG(Loja): Objeto jogador não tem atributo 'dinheiro'. Não foi possível desenhar o dinheiro.")
+             print("DEBUG(Loja): Objeto jogador ou atributo 'dinheiro' não disponível para desenhar dinheiro.")
 
 
-        # Desenha a mensagem temporária
-        desenhar_mensagem(tela, mensagem, loja.fonte, largura_tela, altura_tela) # Usa a fonte da loja
+        # Desenha a mensagem temporária (compra, erro, etc.)
+        desenhar_mensagem(tela, mensagem, loja.fonte, largura_tela, altura_tela)
 
 
         # Atualizar a tela
         pygame.display.flip()
 
-    # Se o loop terminar sem retornar True ou False (o que não deve acontecer com o ESC e QUIT),
-    # podemos retornar True por padrão para não sair do jogo.
-    return True
+    # Este ponto só será alcançado se rodando_cena_loja se tornar False,
+    # o que não é o fluxo de saída esperado baseado nos retornos True/False.
+    # O jogo deve sair ou retornar ao loop principal através dos returns no evento QUIT/KEYDOWN.
+    return True # Retorna True por padrão para não sair do jogo.

@@ -7,57 +7,8 @@ import os # Importa os para verificar a existência de arquivos
 
 # Importa a classe base Inimigo do ficheiro Inimigos.py
 # Certifique-se de que o ficheiro Inimigos.py está na mesma pasta ou num caminho acessível
-try:
-    from Inimigos import Inimigo
-except ImportError:
-    print("DEBUG(Mae_Natureza): Aviso: Módulo 'Inimigos.py' ou classe 'Inimigo' não encontrado. Usando placeholder.")
-    # Define uma classe Inimigo placeholder para evitar NameError se a importação falhar
-    class Inimigo(pygame.sprite.Sprite):
-        def __init__(self, x, y, image, velocidade=1):
-            super().__init__()
-            self.image = image
-            self.rect = self.image.get_rect(topleft=(x, y))
-            self.hp = 100 # Vida padrão
-            self.velocidade = velocidade # Velocidade padrão
-            self.is_attacking = False # Flag de ataque padrão
-            self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Hitbox de ataque padrão (vazia)
-            self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
-            self.contact_damage = 5 # Dano de contato padrão
-            self.contact_cooldown = 1000 # Cooldown de contato padrão (em milissegundos)
-            self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato
-            self.max_hp = self.hp # Armazena HP máximo para barra de vida
-
-
-        def receber_dano(self, dano):
-            self.hp -= dano
-            if self.hp <= 0:
-                self.hp = 0 # Garante que a vida não fica negativa
-                # A remoção do inimigo da lista/grupo deve ser feita no GerenciadorDeInimigos
-                # self.kill() # Pode ser chamado aqui se estiver usando grupos de sprites
-
-        def update(self, player):
-            pass # Update placeholder
-
-        def desenhar(self, janela, camera_x, camera_y):
-            # Desenho placeholder
-            janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-            # Lógica de desenho da barra de vida removida
-
-        def esta_vivo(self):
-            return self.hp > 0
-
-        def mover_em_direcao(self, alvo_x, alvo_y):
-            # Lógica de movimento placeholder
-            dx = alvo_x - self.rect.centerx
-            dy = alvo_y - self.rect.centery
-            dist = math.hypot(dx, dy)
-            if dist > 0:
-                dx_norm = dx / dist
-                dy_norm = dy / dist
-                self.rect.x += dx_norm * self.velocidade
-                self.rect.y += dy_norm * self.velocidade
-
-        # Método desenhar_barra_vida removido do placeholder
+# Removido o bloco try-except ImportError conforme solicitado anteriormente
+from Inimigos import Inimigo
 
 
 """
@@ -83,8 +34,6 @@ class Mae_Natureza(Inimigo):
             y (int): A posição inicial y da Mãe Natureza.
             velocidade (float): A velocidade de movimento da Mãe Natureza.
         """
-        print(f"DEBUG(Mae_Natureza): Inicializando Mãe Natureza em ({x}, {y}) com velocidade {velocidade}.") # Debug inicialização
-
         # Carrega os sprites apenas uma vez para todas as instâncias de Mae_Natureza
         if Mae_Natureza.sprites_originais is None: # Carrega na variável de sprites_originais
             caminhos = [
@@ -106,23 +55,29 @@ class Mae_Natureza(Inimigo):
                         sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
                         Mae_Natureza.sprites_originais.append(sprite) # CORRIGIDO: Adiciona aos sprites originais
                     else:
-                         print(f"DEBUG(Mae_Natureza): Aviso: Sprite da Mãe Natureza não encontrado: {path}") # Nome atualizado
-                         # Se o arquivo não existir, adicione um placeholder
-                         placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
-                         pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Pink placeholder
-                         Mae_Natureza.sprites_originais.append(placeholder) # Referência à nova classe
+                       # Se o arquivo não existir, adicione um placeholder
+                       placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
+                       pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Pink placeholder
+                       fonte = pygame.font.Font(None, 20)
+                       texto_erro = fonte.render("Sprite", True, (255, 255, 255))
+                       placeholder.blit(texto_erro, (5, 15))
+                       texto_erro2 = fonte.render("Erro", True, (255, 255, 255))
+                       placeholder.blit(texto_erro2, (10, 35))
+                       Mae_Natureza.sprites_originais.append(placeholder) # Referência à nova classe
 
                 except pygame.error as e:
-                    print(f"DEBUG(Mae_Natureza): Erro ao carregar o sprite da Mãe Natureza: {path}") # Nome atualizado
-                    print(f"DEBUG(Mae_Natureza): Detalhes do erro: {e}")
                     # Se um sprite falhar, adicione um placeholder com o tamanho correto
                     placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Pink placeholder
+                    fonte = pygame.font.Font(None, 20)
+                    texto_erro = fonte.render("Sprite", True, (255, 255, 255))
+                    placeholder.blit(texto_erro, (5, 15))
+                    texto_erro2 = fonte.render("Erro", True, (255, 255, 255))
+                    placeholder.blit(texto_erro2, (10, 35))
                     Mae_Natureza.sprites_originais.append(placeholder) # Referência à nova classe
 
             # Certifique-se de que há pelo menos um sprite carregado, mesmo que seja um placeholder
             if not Mae_Natureza.sprites_originais: # Referência à nova classe
-                print("DEBUG(Mae_Natureza): Aviso: Nenhum sprite da Mãe Natureza carregado. Usando placeholder padrão.") # Nome atualizado
                 tamanho_sprite_desejado = (70, 70) # Tamanho do placeholder si nenhum sprite carregar
                 placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
@@ -193,10 +148,8 @@ class Mae_Natureza(Inimigo):
         # Verifica si o inimigo está vivo antes de receber dano
         if self.esta_vivo(): # Chama o método esta_vivo() herdado
             self.hp -= dano
-            print(f"DEBUG(Mae_Natureza): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug: Mostra dano recebido e HP restante (Nome atualizado)
             if self.hp <= 0:
                 self.hp = 0
-                print(f"DEBUG(Mae_Natureza): Mãe Natureza morreu.") # Debug: Mostra que morreu (Nome atualizado)
                 # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
                 # Opcional: self.kill() pode ser chamado aqui si estiver usando grupos de sprites.
 
@@ -226,13 +179,16 @@ class Mae_Natureza(Inimigo):
 
 
     # Sobrescreve o método mover_em_direcao para adicionar a lógica de direção horizontal
-    def mover_em_direcao(self, alvo_x, alvo_y):
+    # CORRIGIDO: Adicionado 'arvores' como argumento para compatibilidade com a classe base
+    def mover_em_direcao(self, alvo_x, alvo_y, arvores):
         """
-        Move a Mãe Natureza em direção a um alvo e atualiza a direção horizontal.
+        Move a Mãe Natureza em direção a um alvo e atualiza a direção horizontal,
+        verificando colisão com árvores.
 
         Args:
             alvo_x (int): A coordenada x do alvo.
             alvo_y (int): A coordenada y do alvo.
+            arvores (list): Uma lista de objetos Arvore para verificar colisão.
         """
         dx = alvo_x - self.rect.centerx
         dy = alvo_y - self.rect.centery
@@ -245,11 +201,9 @@ class Mae_Natureza(Inimigo):
             elif dx < 0:
                 self.facing_right = False
 
-        if dist > 0:
-            dx_norm = dx / dist
-            dy_norm = dy / dist
-            self.rect.x += dx_norm * self.velocidade
-            self.rect.y += dy_norm * self.velocidade
+        # Chama o método mover_em_direcao da classe base para lidar com o movimento e colisão com árvores
+        # Passa todos os argumentos necessários, incluindo a lista de árvores
+        super().mover_em_direcao(alvo_x, alvo_y, arvores)
 
 
     def atacar(self, player):
@@ -262,7 +216,6 @@ class Mae_Natureza(Inimigo):
         """
         # Adiciona verificação para garantir que o objeto player tem o atributo rect
         if not hasattr(player, 'rect'):
-            # print("DEBUG(Mae_Natureza): Objeto player passado para Mae_Natureza.atacar não tem atributo 'rect'.") # Debug (Nome atualizado)
             return # Sai do método para evitar o erro
 
         current_time = time.time()
@@ -271,7 +224,7 @@ class Mae_Natureza(Inimigo):
         if self.esta_vivo() and (current_time - self.last_attack_time >= self.attack_cooldown):
             # Calcula a distância até o jogador
             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                              self.rect.centery - player.rect.centery)
+                                             self.rect.centery - player.rect.centery)
 
             if distancia_ao_jogador <= self.attack_range:
                 # Inicia o ataque
@@ -279,7 +232,6 @@ class Mae_Natureza(Inimigo):
                 self.attack_timer = current_time # Registra o tempo de início do ataque
                 self.last_attack_time = current_time # Reseta o cooldown
                 self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque
-                print("DEBUG(Mae_Natureza): Mãe Natureza iniciou ataque!") # Debug (Nome atualizado)
 
                 # Define a hitbox de ataque (exemplo: uma área de dano ao redor do espírito)
                 # Você precisará ajustar isso com base na animação ou tipo de ataque do seu espírito
@@ -302,19 +254,19 @@ class Mae_Natureza(Inimigo):
 
 
     # O método update é herdado e sobrescrito aqui para incluir a lógica específica da Mãe Natureza
-    def update(self, player):
+    # CORRIGIDO: Adicionado 'arvores' como argumento
+    def update(self, player, arvores):
         """
         Atualiza o estado da Mãe Natureza (movimento, animação e ataque).
         Inclui a lógica de aplicação de dano por contato e ataque específico.
 
         Args:
             player (Player): O objeto jogador para seguir, verificar o alcance de ataque e aplicar dano.
+            arvores (list): Uma lista de objetos Arvore para colisão.
         """
-        # print("DEBUG(Mae_Natureza): Update da Mãe Natureza chamado.") # Debug geral (Nome atualizado)
         # >>> Adiciona verificação para garantir que o objeto player tem os atributos necessários <<<
         # Verifica si o player tem pelo menos rect e vida (para verificar si está vivo e receber dano)
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
-            # print("DEBUG(Mae_Natureza): Objeto player passado para Mae_Natureza.update não tem todos os atributos necessários.") # Debug (Nome atualizado)
             return # Sai do método para evitar o erro
 
         # Só atualiza si estiver vivo
@@ -333,7 +285,6 @@ class Mae_Natureza(Inimigo):
                 # Aplica dano por contato ao jogador
                 # Verifica si o jogador tem o método receber_dano
                 if hasattr(player, 'receber_dano'):
-                    print(f"DEBUG(Mae_Natureza): Colisão de contato! Mãe Natureza tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug (Nome atualizado)
                     player.receber_dano(self.contact_damage)
                     self.last_contact_time = current_ticks # Atualiza o tempo do último contato (em milissegundos)
                     # Opcional: Adicionar um som ou efeito visual para dano por contato
@@ -341,28 +292,25 @@ class Mae_Natureza(Inimigo):
 
             # Lógica do temporizador de ataque específico
             if self.is_attacking:
-                 # print("DEBUG(Mae_Natureza): Mãe Natureza está atacando (ataque específico).") # Debug (Nome atualizado)
                  # Verifica si a duração do ataque passou
                  if time.time() - self.attack_timer >= self.attack_duration: # Usa time.time() para consistência com attack_timer
                      self.is_attacking = False
                      self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Reseta a hitbox quando o ataque termina
                      self.hit_by_player_this_attack = False # Reseta a flag de acerto ao final do ataque específico
-                     # print("DEBUG(Mae_Natureza): Ataque específico da Mãe Natureza terminou.") # Debug (Nome atualizado)
                  else:
                       # >>> Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE) <<<
                       # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
                       # si tem hitbox de ataque e si colide com o rect do jogador.
                       # Esta lógica é para ataques que duram um tempo (animação).
                       if not self.hit_by_player_this_attack and \
-                           hasattr(self, 'attack_hitbox') and \
-                           hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                           self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
+                             hasattr(self, 'attack_hitbox') and \
+                             hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                             self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
 
                            # Verifica si o jogador tem o método receber_dano e está vivo
                            if hasattr(player, 'receber_dano'):
                                 # Aplica dano do ataque específico ao jogador
                                 dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
-                                print(f"DEBUG(Mae_Natureza): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug (Nome atualizado)
                                 player.receber_dano(dano_inimigo)
                                 self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
                                 # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
@@ -376,18 +324,12 @@ class Mae_Natureza(Inimigo):
             mae_natureza_esta_vivo = self.esta_vivo() # Referência à nova classe
             mae_natureza_tem_velocidade = self.velocidade > 0 # Referência à nova classe
 
-            # print(f"DEBUG(Mae_Natureza): Player tem rect: {player_tem_rect}") # Debug: Verifica rect do player (Nome atualizado)
-            # print(f"DEBUG(Mae_Natureza): Player está vivo: {player_esta_vivo}") # Debug: Verifica vida do player (Nome atualizado)
-            # print(f"DEBUG(Mae_Natureza): Mãe Natureza está vivo: {mae_natureza_esta_vivo}") # Debug: Verifica vida da Mãe Natureza (Nome atualizado)
-            # print(f"DEBUG(Mae_Natureza): Mãe Natureza tem velocidade > 0: {mae_natureza_tem_velocidade}") # Debug: Verifica velocidade (Nome atualizado)
-
             if mae_natureza_esta_vivo and player_tem_rect and player_esta_vivo and mae_natureza_tem_velocidade:
-                 # print("DEBUG(Mae_Natureza): Condições de movimento atendidas. Chamando mover_em_direcao.") # Debug: Condições atendidas (Nome atualizado)
                  # Move a Mãe Natureza na direção do centro do retângulo do jogador
                  # Acessa centerx e centery do rect do player
-                 self.mover_em_direcao(player.rect.centerx, player.rect.centery)
+                 # CORRIGIDO: Passando a lista de árvores para mover_em_direcao
+                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, arvores)
             else:
-                 # print("DEBUG(Mae_Natureza): Condições de movimento NÃO atendidas. Não movendo.") # Debug: Condições não atendidas (Nome atualizado)
                  pass # Não move si o player não tiver rect ou não estiver vivo
 
 
@@ -401,10 +343,8 @@ class Mae_Natureza(Inimigo):
             # if self.esta_vivo() and random.random() < self.chance_de_curar_aliado: # Verifica a chance de curar
             #     # Encontra aliados próximos (precisa de acesso à lista de todos os inimigos)
             #     # Esta lógica geralmente seria melhor no GerenciadorDeInimigos ou em um sistema de buff/debuff
-            #     print("DEBUG(Mae_Natureza): Tentando curar aliados próximos.") # Debug (Nome atualizado)
             #     # Exemplo BÁSICO: Cura a si mesmo (apenas para demonstração)
             #     # self.hp = min(self.max_hp, self.hp + self.quantidade_cura)
-            #     # print(f"DEBUG(Mae_Natureza): Curou a si mesmo. HP atual: {self.hp}") # Debug (Nome atualizado)
 
 
             # >>> Posicionamento da Hitbox de Ataque Específico (Atualiza mesmo si não estiver atacando ativamente) <<<

@@ -5,73 +5,9 @@ import pygame
 import math # Importe math se for usado para cooldowns ou outras lógicas de tempo
 import os # Importa os para verificar a existência de arquivos
 
-# Inclui a classe base Inimigo aqui para garantir que BonecoDeNeve funcione mesmo sem Inimigos.py
-# Se você tiver um arquivo Inimigos.py separado, este bloco será substituído pela importação real.
-try:
-    from Inimigos import Inimigo
-except ImportError:
-    print("DEBUG(BonecoDeNeve): Aviso: Módulo 'Inimigos.py' ou classe 'Inimigo' não encontrado. Usando placeholder.")
-    class Inimigo(pygame.sprite.Sprite):
-        def __init__(self, x, y, image, velocidade=1):
-            super().__init__()
-            self.image = image
-            self.rect = self.image.get_rect(topleft=(x, y))
-            self.hp = 100 # Vida padrão
-            self.velocidade = velocidade # Velocidade padrão
-            self.is_attacking = False # Flag de ataque padrão
-            self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Hitbox de ataque padrão (vazia)
-            self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
-            self.contact_damage = 5 # Dano de contato padrão
-            self.contact_cooldown = 1000 # Cooldown de contato padrão (em milissegundos)
-            self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato
-            self.max_hp = self.hp # Armazena HP máximo para barra de vida
-
-
-        def receber_dano(self, dano):
-            self.hp -= dano
-            if self.hp <= 0:
-                self.kill() # Remove o sprite do grupo
-
-        def update(self, player):
-            # Lógica de atualização padrão (pode ser sobrescrita)
-            pass
-
-        def desenhar(self, surface, camera_x, camera_y):
-            # Desenha o inimigo com o offset da câmera
-            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-            # Opcional: Desenhar barra de vida do inimigo aqui
-
-        def esta_vivo(self):
-             """Verifica se o inimigo está vivo."""
-             return self.hp > 0
-
-        def mover_em_direcao(self, alvo_x, alvo_y):
-            """
-            Move o inimigo na direção de um ponto alvo.
-            Este é um método base que pode ser sobrescrito por subclasses.
-
-            Args:
-                alvo_x (int): A coordenada x do ponto alvo.
-                alvo_y (int): A coordenada y do ponto alvo.
-            """
-            # Só move si estiver vivo e tiver velocidade
-            if self.esta_vivo() and self.velocidade > 0:
-                dx = alvo_x - self.rect.centerx
-                dy = alvo_y - self.rect.centery
-                distancia = math.hypot(dx, dy)
-
-                if distancia > 0:
-                    dx_norm = dx / distancia
-                    dy_norm = dy / distancia
-                    self.rect.x += dx_norm * self.velocidade
-                    self.rect.y += dy_norm * self.velocidade
-                    # Retorna a componente X normalizada para que a subclasse possa usar
-                    return dx_norm
-                return 0 # Retorna 0 si não houver movimento
-            return 0 # Retorna 0 si não estiver vivo ou não tiver velocidade
-
-        # Adicione outros métodos base comuns a todos os inimigos aqui
-# --- Fim do Placeholder para Inimigo ---
+# Importa a classe base Inimigo do ficheiro Inimigos.py
+# Certifique-se de que o ficheiro Inimigos.py está na mesma pasta ou num caminho acessível
+from Inimigos import Inimigo
 
 
 # Importa a nova classe de projétil
@@ -79,7 +15,6 @@ try:
     # Certifique-se de que o nome do arquivo e da classe estão corretos
     from Projetil_BolaNeve import ProjetilNeve
 except ImportError:
-    print("DEBUG(BonecoDeNeve): Aviso: Módulo 'Projetil_BolaNeve.py' ou classe 'ProjetilNeve' não encontrado.")
     ProjetilNeve = None # Define como None se a importação falhar
 
 
@@ -92,6 +27,7 @@ class BonecoDeNeve(Inimigo):
     Representa um inimigo Boneco de Neve.
     Persegue o jogador quando este está vivo e dentro do alcance (se aplicável).
     Atira projéteis de neve no jogador.
+    Implementa lógica de desvio quando preso.
     """
     # Variável de classe para armazenar os sprites carregados uma única vez
     sprites_carregados = None
@@ -107,8 +43,6 @@ class BonecoDeNeve(Inimigo):
             y (int): A posição inicial y do boneco de neve.
             velocidade (float): A velocidade de movimento do boneco de neve.
         """
-        # print(f"DEBUG(BonecoDeNeve): Inicializando Boneco de Neve em ({x}, {y}) com velocidade {velocidade}.") # Debug inicialização
-
         # Carrega os sprites apenas uma vez para todas as instâncias de BonecoDeNeve
         if BonecoDeNeve.sprites_originais is None: # Carrega na variável de sprites_originais
             caminhos = [
@@ -129,20 +63,17 @@ class BonecoDeNeve(Inimigo):
                         sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
                         BonecoDeNeve.sprites_originais.append(sprite) # Adiciona aos sprites originais
                     else:
-                         print(f"DEBUG(BonecoDeNeve): Aviso: Sprite do Boneco de Neve não encontrado: {path}")
-                         # Se o arquivo não existir, adicione um placeholder
-                         placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
-                         pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Cyan placeholder
-                         fonte = pygame.font.Font(None, 20)
-                         texto_erro = fonte.render("Sprite", True, (0, 0, 0))
-                         placeholder.blit(texto_erro, (5, 15))
-                         texto_erro2 = fonte.render("Erro", True, (0, 0, 0))
-                         placeholder.blit(texto_erro2, (10, 35))
-                         BonecoDeNeve.sprites_originais.append(placeholder) # Adiciona o placeholder aos sprites originais
+                       # Se o arquivo não existir, adicione um placeholder
+                       placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
+                       pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Cyan placeholder
+                       fonte = pygame.font.Font(None, 20)
+                       texto_erro = fonte.render("Sprite", True, (0, 0, 0))
+                       placeholder.blit(texto_erro, (5, 15))
+                       texto_erro2 = fonte.render("Erro", True, (0, 0, 0))
+                       placeholder.blit(texto_erro2, (10, 35))
+                       BonecoDeNeve.sprites_originais.append(placeholder) # Adiciona o placeholder aos sprites originais
 
                 except pygame.error as e:
-                    print(f"DEBUG(BonecoDeNeve): Erro ao carregar o sprite do Boneco de Neve: {path}")
-                    print(f"DEBUG(BonecoDeNeve): Detalhes do erro: {e}")
                     # Se um sprite falhar, adicione um placeholder com o tamanho correto
                     placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Cyan placeholder
@@ -155,7 +86,6 @@ class BonecoDeNeve(Inimigo):
 
             # Certifique-se de que há pelo menos um sprite carregado
             if not BonecoDeNeve.sprites_originais:
-                print("DEBUG(BonecoDeNeve): Aviso: Nenhum sprite do Boneco de Neve carregado. Usando placeholder padrão.")
                 tamanho_sprite_desejado = (64, 64) # Tamanho do placeholder si nenhum sprite carregar
                 placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
@@ -209,8 +139,15 @@ class BonecoDeNeve(Inimigo):
         self.projectile_cooldown = 1.5 # Tempo em segundos entre lançamentos de projéteis (ajuste)
         self.last_projectile_time = time.time() # Tempo do último lançamento de projétil
 
-        # NOVO: Atributo para rastrear a posição anterior para verificar movimento
-        self._previous_pos = (self.rect.x, self.rect.y)
+        # NOVO: Atributo para rastrear a posição anterior para verificar movimento (herdado da base)
+        # self._previous_pos = (self.rect.x, self.rect.y)
+        # Atributos para detecção de estar preso e lógica de desvio (herdado da classe base)
+        # self.is_stuck = False
+        # self._stuck_timer = 0
+        # self._stuck_duration_threshold = 500
+        # self._evade_direction = None
+        # self._evade_timer = 0
+        # self._evade_duration = 500
 
 
     # Adicionado o método esta_vivo() para compatibilidade com o sistema de combate (já na base)
@@ -228,7 +165,6 @@ class BonecoDeNeve(Inimigo):
         # Verifica si o inimigo está vivo antes de receber dano
         if self.esta_vivo(): # Chama o método esta_vivo()
             self.hp -= dano
-            # print(f"DEBUG(BonecoDeNeve): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug
             if self.hp <= 0:
                 self.hp = 0 # Garante que a vida não fica negativa
                 # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
@@ -271,35 +207,32 @@ class BonecoDeNeve(Inimigo):
 
 
     # Sobrescreve o método mover_em_direcao para adicionar a lógica de direção horizontal
-    def mover_em_direcao(self, alvo_x, alvo_y):
+    # CORRIGIDO: Adicionado 'arvores' como argumento para compatibilidade com a classe base
+    def mover_em_direcao(self, alvo_x, alvo_y, arvores):
         """
-        Move o boneco de neve em direção a um alvo e atualiza a direção horizontal.
+        Move o boneco de neve em direção a um alvo e atualiza a direção horizontal,
+        verificando colisão com árvores.
 
         Args:
             alvo_x (int): A coordenada x do alvo.
             alvo_y (int): A coordenada y do alvo.
+            arvores (list): Uma lista de objetos Arvore para verificar colisão.
         """
-        # Armazena a posição antes de mover
-        self._previous_pos = (self.rect.x, self.rect.y) # Atualiza a posição anterior
+        # Chama o método mover_em_direcao da classe base para lidar com o movimento e colisão com árvores
+        # A lógica de detecção de estar preso e atualização de self.is_stuck ocorre na classe base.
+        super().mover_em_direcao(alvo_x, alvo_y, arvores)
 
-        dx = alvo_x - self.rect.centerx
-        dy = alvo_y - self.rect.centery
-        dist = math.hypot(dx, dy)
-
-        # Atualiza a direção horizontal com base em dx apenas se houver movimento horizontal significativo
-        if abs(dx) > 0.1: # Adiciona uma pequena tolerância para evitar flipar por micro-movimentos
-            if dx > 0:
-                self.facing_right = True
-                # print(f"DEBUG(BonecoDeNeve): Movendo para a direita (dx={dx:.2f}). facing_right = True") # Debug direção
-            elif dx < 0:
-                self.facing_right = False
-                # print(f"DEBUG(BonecoDeNeve): Movendo para a esquerda (dx={dx:.2f}). facing_right = False") # Debug direção
-
-        if dist > 0:
-            dx_norm = dx / dist
-            dy_norm = dy / dist
-            self.rect.x += dx_norm * self.velocidade
-            self.rect.y += dy_norm * self.velocidade
+        # Atualiza a direção horizontal com base no movimento em X, apenas se o Boneco de Neve se moveu
+        # A detecção de movimento agora está na classe base através de self.is_stuck
+        # Podemos inferir a direção horizontal do movimento se não estiver preso
+        if not self.is_stuck:
+             # Calcula a diferença de posição para determinar a direção horizontal do movimento
+             dx = self.rect.x - self._previous_pos[0]
+             if abs(dx) > 0.1: # Verifica se houve movimento horizontal significativo
+                 if dx > 0:
+                     self.facing_right = True
+                 elif dx < 0:
+                     self.facing_right = False
 
 
     # Modificado para incluir lógica de lançamento de projéteis
@@ -314,7 +247,6 @@ class BonecoDeNeve(Inimigo):
         """
         # Adiciona verificação para garantir que o objeto player tem o atributo rect
         if not hasattr(player, 'rect'):
-            # print("DEBUG(BonecoDeNeve): Objeto player passado para BonecoDeNeve.atacar não tem atributo 'rect'.") # Debug
             return # Sai do método para evitar o erro
 
         current_time = time.time()
@@ -323,7 +255,7 @@ class BonecoDeNeve(Inimigo):
         if self.esta_vivo() and (current_time - self.last_projectile_time >= self.projectile_cooldown):
             # Calcula a distância até o jogador
             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                              self.rect.centery - player.rect.centery)
+                                             self.rect.centery - player.rect.centery)
 
             if distancia_ao_jogador <= self.attack_range:
                 # Lança um projétil de neve
@@ -335,28 +267,27 @@ class BonecoDeNeve(Inimigo):
                                                  player.rect.centerx, player.rect.centery)
                     lista_projeteis.append(novo_projetil) # Adiciona o projétil à lista
                     self.last_projectile_time = current_time # Reseta o cooldown do projétil
-                    # print("DEBUG(BonecoDeNeve): Boneco de Neve lançou um projétil!") # Debug
                 else:
-                    print("DEBUG(BonecoDeNeve): Aviso: Classe 'ProjetilNeve' não disponível. Não foi possível lançar projétil.") # Debug aviso
+                    pass # Aviso já é dado na importação
 
 
-    # O método update agora recebe o objeto Player completo E a lista de projéteis
-    def update(self, player, lista_projeteis, tela_largura, tela_altura):
+    # O método update agora recebe o objeto Player completo E a lista de projéteis E a lista de árvores
+    # CORRIGIDO: Adicionado 'arvores' como argumento
+    def update(self, player, arvores, lista_projeteis, tela_largura, tela_altura):
         """
         Atualiza o estado do boneco de neve (movimento, animação e ataque/lançamento de projétil).
-        Inclui a lógica de aplicação de dano por contato.
+        Inclui a lógica de aplicação de dano por contato e desvio.
 
         Args:
             player (Player): O objeto jogador para seguir, verificar o alcance de ataque e aplicar dano.
+            arvores (list): Uma lista de objetos Arvore para colisão.
             lista_projeteis (list): A lista onde os projéteis ativos são armazenados (passada para o método atacar).
             tela_largura (int): Largura da tela (passada para a atualização dos projéteis).
             tela_altura (int): Altura da tela (passada para a atualização dos projéteis).
         """
-        # print("DEBUG(BonecoDeNeve): Update do BonecoDeNeve chamado.") # Debug geral
         # Adiciona verificação para garantir que o objeto player tem os atributos necessários
-        # Verifica se o player tem pelo menos rect e vida (para verificar se está vivo e receber dano)
+        # Verifica si o player tem pelo menos rect e vida (para verificar si está vivo e receber dano)
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
-            # print("DEBUG(BonecoDeNeve): Objeto player passado para BonecoDeNeve.update não tem todos os atributos necessários.") # Debug
             return # Sai do método para evitar o erro
 
         # Só atualiza si estiver vivo
@@ -364,32 +295,76 @@ class BonecoDeNeve(Inimigo):
             current_time = time.time()
             current_ticks = pygame.time.get_ticks() # Usando get_ticks() para consistência com contact_cooldown
 
-            # Lógica de Dano por Contato
-            # Verifica si o boneco de neve está vivo, si colide com o rect do jogador,
-            # e si o cooldown de contato passou.
-            # Adiciona verificação para garantir que player.vida existe e é válido
-            if self.esta_vivo() and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-               hasattr(player, 'rect') and self.rect.colliderect(player.rect) and \
-               (current_ticks - self.last_contact_time >= self.contact_cooldown): # Cooldown em milissegundos
+            # Lógica de colisão com o jogador e dano por contato (herdado da classe base)
+            self.check_player_collision(player)
 
-                # Aplica dano por contato ao jogador
-                # Verifica si o jogador tem o método receber_dano
-                if hasattr(player, 'receber_dano'):
-                    # print(f"DEBUG(BonecoDeNeve): Colisão de contato! Boneco de Neve tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug
-                    player.receber_dano(self.contact_damage)
-                    self.last_contact_time = current_ticks # Atualiza o tempo do último contato (em milissegundos)
-                    # Opcional: Adicionar um som ou efeito visual para dano por contato
+            # Lógica do temporizador de ataque específico (não usado para este inimigo, mas mantido por consistência)
+            if self.is_attacking:
+                 # Verifica si a duração do ataque passou
+                 if time.time() - self.attack_timer >= self.attack_duration: # Usa time.time() para consistência com attack_timer
+                     self.is_attacking = False
+                     self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Reseta a hitbox quando o ataque termina
+                     self.hit_by_player_this_attack = False # Reseta a flag de acerto ao final do ataque específico
+                 else:
+                      # Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE)
+                      if not self.hit_by_player_this_attack and \
+                             hasattr(self, 'attack_hitbox') and \
+                             hasattr(player, 'rect') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                             self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
+
+                           # Verifica si o jogador tem o método receber_dano e está vivo
+                           if hasattr(player, 'receber_dano'):
+                                # Aplica dano do ataque específico ao jogador
+                                dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
+                                player.receber_dano(dano_inimigo)
+                                self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
+                                # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
 
 
-            # Lógica de Perseguição (Movimento)
+            # >>> Lógica de Movimento e Desvio <<<
             # O boneco de neve persegue o jogador si estiver vivo e o jogador estiver vivo.
-            # Adiciona verificação para garantir que player tem rect antes de passar para mover_em_direcao
-            if self.esta_vivo() and hasattr(player, 'rect') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
-                 # Move o boneco de neve na direção do centro do retângulo do jogador
-                 # Acessa centerx e centery do rect do player
-                 self.mover_em_direcao(player.rect.centerx, player.rect.centery)
+            # Implementa a lógica de desvio quando detecta que está preso.
+            player_tem_rect = hasattr(player, 'rect')
+            player_esta_vivo = hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo()
+            boneco_esta_vivo = self.esta_vivo()
+            boneco_tem_velocidade = self.velocidade > 0
+
+            if boneco_esta_vivo and player_tem_rect and player_esta_vivo and boneco_tem_velocidade:
+                # Verifica se está preso por tempo suficiente e não está tentando desviar
+                if self.is_stuck and current_ticks - self._stuck_timer > self._stuck_duration_threshold and self._evade_direction is None:
+                    # Inicia uma tentativa de desvio
+                    # Escolhe uma direção aleatória para tentar desviar (horizontal ou vertical)
+                    self._evade_direction = random.choice(["left", "right", "up", "down"])
+                    self._evade_timer = current_ticks
+
+                # Se estiver tentando desviar
+                if self._evade_direction is not None:
+                    # Calcula o movimento de desvio
+                    evade_speed = self.velocidade * 1.2 # Pode desviar um pouco mais rápido
+                    evade_dx, evade_dy = 0, 0
+                    if self._evade_direction == "left":
+                        evade_dx = -evade_speed
+                    elif self._evade_direction == "right":
+                        evade_dx = evade_speed
+                    elif self._evade_direction == "up":
+                        evade_dy = -evade_speed
+                    elif self._evade_direction == "down":
+                        evade_dy = evade_speed
+
+                    # Aplica o movimento de desvio (sem verificar colisão com árvores durante o desvio simples)
+                    # Uma lógica de desvio mais avançada verificaria colisões também aqui.
+                    self.rect.x += evade_dx
+                    self.rect.y += evade_dy
+
+                    # Verifica se a duração do desvio terminou
+                    if current_ticks - self._evade_timer > self._evade_duration:
+                        self._evade_direction = None # Termina a tentativa de desvio
+                        self.is_stuck = False # Considera que não está mais preso (será reavaliado no próximo frame)
+                else:
+                    # Se não estiver tentando desviar, move normalmente em direção ao jogador (com verificação de colisão da base)
+                    target_x, target_y = player.rect.centerx, player.rect.centery
+                    self.mover_em_direcao(target_x, target_y, arvores) # Chama o método da base com a lista de árvores
             else:
-                 # print("DEBUG(BonecoDeNeve): Objeto player não tem atributos necessários para perseguição ou boneco de neve/jogador não está vivo.") # Debug
                  pass # Não move si o player não tiver rect ou não estiver vivo
 
 
@@ -412,8 +387,8 @@ class BonecoDeNeve(Inimigo):
             # Atualiza a animação (inclui o flip horizontal)
             self.atualizar_animacao()
 
-            # NOVO: Atualiza a posição anterior após o movimento para o próximo frame
-            self._previous_pos = (self.rect.x, self.rect.y)
+            # NOVO: Atualiza a posição anterior após o movimento para o próximo frame (herdado da base)
+            # self._previous_pos = (self.rect.x, self.rect.y)
 
 
     # O método desenhar() é herdado da classe base Inimigo e deve funcionar

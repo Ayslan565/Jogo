@@ -3,69 +3,11 @@ import time
 import pygame
 import random
 import math
-# Certifique-se de que Inimigo está acessível
-# from Inimigos import Inimigo # Importe a classe base Inimigo
 
-# --- Placeholder para a classe base Inimigo se o arquivo Inimigos.py não for fornecido ---
-# REMOVA este bloco inteiro si você tem o arquivo Inimigos.py
-try:
-    from Inimigos import Inimigo
-except ImportError:
-    print("DEBUG(Fantasma): Aviso: Módulo 'Inimigos.py' não encontrado. Usando classe base Inimigo placeholder.")
-    class Inimigo(pygame.sprite.Sprite):
-        def __init__(self, x, y, image, velocidade=20):
-            super().__init__()
-            self.image = image
-            self.rect = self.image.get_rect(topleft=(x, y))
-            self.hp = 100 # Vida padrão
-            self.velocidade = velocidade # Velocidade padrão
-            self.is_attacking = False # Flag de ataque padrão
-            self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Hitbox de ataque padrão (vazia)
-            self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
-            self.contact_damage = 5 # Dano de contato padrão
-            self.contact_cooldown = 1000 # Cooldown de contato padrão (em milissegundos)
-            self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato
-
-        def receber_dano(self, dano):
-            self.hp -= dano
-            if self.hp <= 0:
-                self.kill() # Remove o sprite do grupo
-
-        def update(self, player):
-            # Lógica de atualização padrão (pode ser sobrescrita)
-            pass
-
-        def desenhar(self, surface, camera_x, camera_y):
-            # Desenha o inimigo com o offset da câmera
-            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-            # Opcional: Desenhar barra de vida do inimigo aqui
-
-        def esta_vivo(self):
-             return self.hp > 0
-
-        def mover_em_direcao(self, alvo_x, alvo_y):
-            """
-            Move o inimigo na direção de um ponto alvo.
-            Este é um método base que pode ser sobrescrito por subclasses.
-
-            Args:
-                alvo_x (int): A coordenada x do ponto alvo.
-                alvo_y (int): A coordenada y do ponto alvo.
-            """
-            # Só move si estiver vivo e tiver velocidade
-            if self.esta_vivo() and self.velocidade > 0:
-                dx = alvo_x - self.rect.centerx
-                dy = alvo_y - self.rect.centery
-                distancia = math.hypot(dx, dy)
-
-                if distancia > 0:
-                    dx_norm = dx / distancia
-                    dy_norm = dy / distancia
-                    self.rect.x += dx_norm * self.velocidade
-                    self.rect.y += dy_norm * self.velocidade
-
-        # Adicione outros métodos base comuns a todos os inimigos aqui
-# --- Fim do Placeholder para Inimigo ---
+# Importa a classe base Inimigo do ficheiro Inimigos.py
+# Certifique-se de que o ficheiro Inimigos.py está na mesma pasta ou num caminho acessível
+# Removido o bloco try-except ImportError conforme solicitado anteriormente
+from Inimigos import Inimigo
 
 
 """
@@ -73,6 +15,11 @@ Classe para o inimigo Fantasma.
 Herda da classe base Inimigo.
 """
 class Fantasma(Inimigo):
+    """
+    Representa um inimigo Fantasma.
+    Persegue o jogador quando este está vivo e dentro do alcance (se aplicável).
+    Pode passar através de obstáculos como árvores.
+    """
     # Variável de classe para armazenar os sprites carregados uma única vez
     sprites_carregados = None
 
@@ -85,8 +32,6 @@ class Fantasma(Inimigo):
             y (int): A posição inicial y do fantasma.
             velocidade (float): A velocidade de movimento do fantasma.
         """
-        # print(f"DEBUG(Fantasma): Inicializando Fantasma em ({x}, {y}) com velocidade {velocidade}.") # Debug inicialização
-
         # Carrega os sprites apenas uma vez para todas as instâncias de Fantasma
         if Fantasma.sprites_carregados is None:
             caminhos = [
@@ -106,8 +51,6 @@ class Fantasma(Inimigo):
                     sprite = pygame.transform.scale(sprite, tamanho_sprite_desejado)
                     Fantasma.sprites_carregados.append(sprite)
                 except pygame.error as e:
-                    print(f"DEBUG(Fantasma): Erro ao carregar o sprite do Fantasma: {path}")
-                    print(f"DEBUG(Fantasma): Detalhes do erro: {e}")
                     # Se um sprite falhar, adicione um placeholder
                     placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (0, 0, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1])) # Blue placeholder
@@ -120,7 +63,6 @@ class Fantasma(Inimigo):
 
             # Certifique-se de que há pelo menos um sprite carregado
             if not Fantasma.sprites_carregados:
-                print("DEBUG(Fantasma): Aviso: Nenhum sprite do Fantasma carregado. Usando placeholder padrão.")
                 tamanho_sprite_desejado = (60, 80) # Tamanho do placeholder si nenhum sprite carregar
                 placeholder = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (0, 0, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
@@ -156,8 +98,6 @@ class Fantasma(Inimigo):
         self.contact_cooldown = 500 # Cooldown de dano de contato em milissegundos (ajuste)
         self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
 
-        # print(f"DEBUG(Fantasma): Fantasma inicializado em ({x}, {y}). is_attacking: {self.is_attacking}, Velocidade: {self.velocidade}") # Debug final da inicialização
-
 
     def receber_dano(self, dano):
         """
@@ -169,7 +109,6 @@ class Fantasma(Inimigo):
         # Verifica si o inimigo está vivo antes de receber dano
         if self.esta_vivo(): # Chama o método esta_vivo()
             self.hp -= dano
-            # print(f"DEBUG(Fantasma): Recebeu {dano} de dano. HP restante: {self.hp}") # Debug
             if self.hp <= 0:
                 self.hp = 0
                 # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
@@ -200,8 +139,30 @@ class Fantasma(Inimigo):
                   pygame.draw.rect(self.image, (0, 0, 255), (0, 0, tamanho_sprite_desejado[0], tamanho_sprite_desejado[1]))
 
 
-    # O método mover_em_direcao() é herdado da classe base Inimigo agora.
-    # Se precisar de lógica de movimento específica para o Fantasma, sobrescreva-o aqui.
+    # Sobrescreve o método mover_em_direcao para que o fantasma ignore colisões com árvores
+    # CORRIGIDO: Adicionado 'arvores' como argumento para compatibilidade com a chamada no GerenciadorDeInimigos
+    def mover_em_direcao(self, alvo_x, alvo_y, arvores):
+        """
+        Move o fantasma na direção de um ponto alvo, IGNORANDO colisões com árvores.
+
+        Args:
+            alvo_x (int): A coordenada x do ponto alvo.
+            alvo_y (int): A coordenada y do ponto alvo.
+            arvores (list): Uma lista de objetos Arvore (ignorada pelo fantasma).
+        """
+        # Só move si estiver vivo e tiver velocidade
+        if self.esta_vivo() and self.velocidade > 0:
+            dx = alvo_x - self.rect.centerx
+            dy = alvo_y - self.rect.centery
+            distancia = math.hypot(dx, dy)
+
+            if distancia > 0:
+                dx_norm = dx / distancia
+                dy_norm = dy / distancia
+                self.rect.x += dx_norm * self.velocidade
+                self.rect.y += dy_norm * self.velocidade
+
+            # Não há verificação de colisão com árvores aqui, permitindo que o fantasma as transpasse.
 
 
     def atacar(self, player):
@@ -214,7 +175,6 @@ class Fantasma(Inimigo):
         """
         # Adiciona verificação para garantir que o objeto player tem o atributo rect
         if not hasattr(player, 'rect'):
-            # print("DEBUG(Fantasma): Objeto player passado para Fantasma.atacar não tem atributo 'rect'.") # Debug
             return # Sai do método para evitar o erro
 
         current_time = time.time()
@@ -232,7 +192,6 @@ class Fantasma(Inimigo):
                 self.attack_timer = current_time # Registra o tempo de início do ataque
                 self.last_attack_time = current_time # Reseta o cooldown
                 self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque
-                # print("DEBUG(Fantasma): Fantasma iniciou ataque!") # Debug
 
                 # Define a hitbox de ataque (exemplo: um retângulo ao redor do fantasma para ataque de contato)
                 # Você precisará ajustar isso com base na animação ou tipo de ataque do seu fantasma
@@ -244,20 +203,20 @@ class Fantasma(Inimigo):
                 self.attack_hitbox.center = self.rect.center # Centraliza a hitbox no fantasma
 
 
-    # >>> CORREÇÃO: O método update agora recebe o objeto Player completo <<<
-    def update(self, player):
+    # >>> CORREÇÃO: O método update agora recebe o objeto Player completo E a lista de árvores <<<
+    # CORRIGIDO: Adicionado 'arvores' como argumento
+    def update(self, player, arvores):
         """
         Atualiza o estado do fantasma (movimento, animação e ataque).
         Inclui a lógica de aplicação de dano por contato.
 
         Args:
             player (Player): O objeto jogador para seguir, verificar o alcance de ataque e aplicar dano.
+            arvores (list): Uma lista de objetos Arvore (passada pelo GerenciadorDeInimigos, mas ignorada para movimento).
         """
-        # print("DEBUG(Fantasma): Update do Fantasma chamado.") # Debug geral
         # >>> Adiciona verificação para garantir que o objeto player tem os atributos necessários <<<
         # Verifica se o player tem pelo menos rect e vida (para verificar se está vivo e receber dano)
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
-            # print("DEBUG(Fantasma): Objeto player passado para Fantasma.update não tem todos os atributos necessários.") # Debug
             return # Sai do método para evitar o erro
 
         # Só atualiza si estiver vivo
@@ -276,7 +235,6 @@ class Fantasma(Inimigo):
                 # Aplica dano por contato ao jogador
                 # Verifica si o jogador tem o método receber_dano
                 if hasattr(player, 'receber_dano'):
-                    # print(f"DEBUG(Fantasma): Colisão de contato! Fantasma tocou no jogador. Aplicando {self.contact_damage} de dano.") # Debug
                     player.receber_dano(self.contact_damage)
                     self.last_contact_time = current_ticks # Atualiza o tempo do último contato (em milissegundos)
                     # Opcional: Adicionar um som ou efeito visual para dano por contato
@@ -289,35 +247,32 @@ class Fantasma(Inimigo):
                      self.is_attacking = False
                      self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Reseta a hitbox quando o ataque termina
                      self.hit_by_player_this_attack = False # Reseta a flag de acerto ao final do ataque específico
-                     # print("DEBUG(Fantasma): Ataque específico do Fantasma terminou.") # Debug
                  else:
-                     # >>> Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE) <<<
-                     # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
-                     # si tem hitbox de ataque e si colide com o rect do jogador.
-                     if not self.hit_by_player_this_attack and \
-                        hasattr(self, 'attack_hitbox') and \
-                        hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                        self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
+                      # >>> Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE) <<<
+                      # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
+                      # si tem hitbox de ataque e si colide com o rect do jogador.
+                      if not self.hit_by_player_this_attack and \
+                             hasattr(self, 'attack_hitbox') and \
+                             hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                             self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
 
-                         # Verifica si o jogador tem o método receber_dano e está vivo
-                         if hasattr(player, 'receber_dano'):
-                              # Aplica dano do ataque específico ao jogador
-                              dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
-                              # print(f"DEBUG(Fantasma): Ataque específico acertou o jogador! Causou {dano_inimigo} de dano.") # Debug
-                              player.receber_dano(dano_inimigo)
-                              self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
-                              # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
+                           # Verifica si o jogador tem o método receber_dano e está vivo
+                           if hasattr(player, 'receber_dano'):
+                                # Aplica dano do ataque específico ao jogador
+                                dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
+                                player.receber_dano(dano_inimigo)
+                                self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
+                                # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
 
 
             # >>> Lógica de Perseguição (Movimento) <<<
             # O fantasma persegue o jogador si estiver vivo e o jogador estiver vivo.
             # Adiciona verificação para garantir que player tem rect antes de passar para mover_em_direcao
-            if self.esta_vivo() and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
+            if self.esta_vivo() and hasattr(player, 'rect') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
                  # Move o fantasma na direção do centro do retângulo do jogador
-                 # >>> CORREÇÃO AQUI: Acessa centerx e centery do rect do player <<<
-                 self.mover_em_direcao(player.rect.centerx, player.rect.centery)
+                 # CORRIGIDO: Passando a lista de árvores para mover_em_direcao, mas o método sobrescrito a ignora
+                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, arvores)
             else:
-                 # print("DEBUG(Fantasma): Objeto player não tem atributos necessários para perseguição ou fantasma/jogador não está vivo.") # Debug
                  pass # Não move si o player não tiver rect ou não estiver vivo
 
 
