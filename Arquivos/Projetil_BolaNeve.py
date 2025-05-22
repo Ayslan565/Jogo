@@ -7,7 +7,7 @@ class ProjetilNeve(pygame.sprite.Sprite):
     """
     Representa um projétil de bola de neve atirado pelo Boneco de Neve.
     """
-    def __init__(self, x_origem, y_origem, x_alvo, y_alvo, velocidade=5, tamanho=10, cor=(200, 200, 255)):
+    def __init__(self, x_origem, y_origem, x_alvo, y_alvo, dano, velocidade=5, tamanho=10, cor=(200, 200, 255)):
         """
         Inicializa um novo projétil de neve.
 
@@ -16,6 +16,7 @@ class ProjetilNeve(pygame.sprite.Sprite):
             y_origem (int): A posição y inicial do projétil (geralmente a posição do inimigo).
             x_alvo (int): A posição x do alvo (geralmente a posição do jogador) no momento do disparo.
             y_alvo (int): A posição y do alvo (geralmente a posição do jogador) no momento do disparo.
+            dano (int): O dano que o projétil causará.
             velocidade (float): A velocidade de movimento do projétil.
             tamanho (int): O raio do círculo que representa o projétil.
             cor (tuple): A cor do projétil (R, G, B).
@@ -28,7 +29,8 @@ class ProjetilNeve(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, self.cor, (self.tamanho, self.tamanho), self.tamanho) # Desenha um círculo na superfície
 
         self.rect = self.image.get_rect(center=(x_origem, y_origem)) # Posição inicial centrada na origem
-        self.velocidade = velocidade
+        self.velocidade_magnitude = velocidade # Renomeado para evitar conflito com velocidade_x/y
+        self.dano = dano # Dano causado pelo projétil
 
         # Calcula a direção para o alvo
         dx = x_alvo - x_origem
@@ -37,17 +39,17 @@ class ProjetilNeve(pygame.sprite.Sprite):
 
         # Normaliza o vetor de direção e multiplica pela velocidade
         if distancia > 0:
-            self.velocidade_x = (dx / distancia) * self.velocidade
-            self.velocidade_y = (dy / distancia) * self.velocidade
+            self.velocidade_x = (dx / distancia) * self.velocidade_magnitude
+            self.velocidade_y = (dy / distancia) * self.velocidade_magnitude
         else:
-            # Se a origem e o alvo forem os mesmos, o projétil não se move
+            # Se a origem e o alvo forem os mesmos, o projétil não se move (ou move para uma direção padrão)
             self.velocidade_x = 0
-            self.velocidade_y = 0
+            self.velocidade_y = -self.velocidade_magnitude # Exemplo: move para cima
 
-        self.dano = 10 # Dano causado pelo projétil (ajuste conforme necessário)
         self.atingiu = False # Flag para saber se o projétil atingiu algo (jogador)
         self.tempo_criacao = time.time() # Tempo de criação para possível remoção por tempo
         self.vida_util = 5 # Tempo em segundos antes de o projétil desaparecer (ajuste)
+        self.alive = True # Flag para controlar se o projétil está ativo (para GerenciadorDeInimigos)
 
 
     def update(self, player, tela_largura, tela_altura):
@@ -59,30 +61,30 @@ class ProjetilNeve(pygame.sprite.Sprite):
             tela_largura (int): Largura da tela para verificar limites.
             tela_altura (int): Altura da tela para verificar limites.
         """
+        if not self.alive:
+            return
+
         # Move o projétil
         self.rect.x += self.velocidade_x
         self.rect.y += self.velocidade_y
 
         # Verifica colisão com o jogador (se o jogador estiver vivo e o projétil não tiver atingido nada ainda)
-        # Adiciona verificação para garantir que o objeto player tem os atributos necessários
         if not self.atingiu and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
             if self.rect.colliderect(player.rect):
-                # Aplica dano ao jogador
                 if hasattr(player, 'receber_dano'):
                     player.receber_dano(self.dano)
-                    self.atingiu = True # Marca o projétil como tendo atingido
-                    # print(f"DEBUG(ProjetilNeve): Projétil atingiu o jogador! Causou {self.dano} de dano.") # Debug
+                    self.atingiu = True 
+                    print(f"DEBUG(ProjetilNeve): Projétil atingiu o jogador! Causou {self.dano} de dano.") 
                 else:
-                     # print("DEBUG(ProjetilNeve): Objeto player não tem método 'receber_dano'.") # Debug
-                     pass # Não faz nada se o player não puder receber dano
-
-
-        # Remove o projétil se sair da tela ou se a vida útil acabar
+                    print("DEBUG(ProjetilNeve): Objeto player não tem método 'receber_dano'.")
+        
+        # Remove o projétil se sair da tela ou se a vida útil acabar ou se atingiu
         if self.rect.right < 0 or self.rect.left > tela_largura or \
            self.rect.bottom < 0 or self.rect.top > tela_altura or \
            self.atingiu or (time.time() - self.tempo_criacao > self.vida_util):
-            self.kill() # Remove o sprite do grupo (se estiver usando grupos)
-            # print("DEBUG(ProjetilNeve): Projétil removido (fora da tela, atingiu alvo ou vida útil expirou).") # Debug
+            self.kill() # Remove o sprite de todos os grupos
+            self.alive = False # Marca como não vivo para remoção da lista manual
+            print("DEBUG(ProjetilNeve): Projétil removido.")
 
 
     def desenhar(self, surface, camera_x, camera_y):
@@ -94,5 +96,6 @@ class ProjetilNeve(pygame.sprite.Sprite):
             camera_x (int): O offset x da câmera.
             camera_y (int): O offset y da câmera.
         """
-        # Desenha o projétil com o offset da câmera
-        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        if self.alive:
+            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+

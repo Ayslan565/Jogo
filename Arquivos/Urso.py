@@ -1,0 +1,293 @@
+# Urso.py
+import pygame
+import random
+import math 
+import time 
+import os 
+
+# Importa a classe base Inimigo do ficheiro Inimigos.py
+try:
+    from Inimigos import Inimigo
+except ImportError:
+    print("DEBUG(Urso): ERRO: Módulo 'Inimigos.py' ou classe 'Inimigo' NÃO encontrado. Usando classe Inimigo placeholder.")
+    class Inimigo(pygame.sprite.Sprite): # Placeholder
+        def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
+            super().__init__()
+            self.x = x
+            self.y = y
+            self.largura = largura
+            self.altura = altura
+            self.hp = vida_maxima 
+            self.max_hp = vida_maxima 
+            self.velocidade = velocidade 
+            self.contact_damage = dano_contato
+            self.xp_value = xp_value
+            self.sprite_path_base = sprite_path 
+
+            self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (139, 69, 19), (0, 0, largura, altura)) # Placeholder castanho para Urso
+            self.rect = self.image.get_rect(topleft=(x, y))
+
+            self.last_hit_time = 0
+            self.hit_flash_duration = 150
+            self.hit_flash_color = (255, 255, 255, 128) 
+
+            self.is_attacking = False
+            self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
+            self.hit_by_player_this_attack = False
+            self.contact_cooldown = 1000 
+            self.last_contact_time = pygame.time.get_ticks()
+            self.facing_right = True 
+            
+            self.sprites = [self.image] 
+            self.sprite_index = 0
+            self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
+            self.intervalo_animacao = 200
+
+        def _carregar_sprite(self, path, tamanho): 
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            game_dir = os.path.dirname(base_dir)
+            full_path = os.path.join(game_dir, path.replace("/", os.sep))
+            if not os.path.exists(full_path):
+                print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
+                img = pygame.Surface(tamanho, pygame.SRCALPHA)
+                pygame.draw.rect(img, (139,69,19), (0, 0, tamanho[0], tamanho[1]))
+                return img
+            try:
+                img = pygame.image.load(full_path).convert_alpha()
+                img = pygame.transform.scale(img, tamanho)
+                return img
+            except pygame.error as e:
+                print(f"DEBUG(InimigoPlaceholder): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
+                img = pygame.Surface(tamanho, pygame.SRCALPHA)
+                pygame.draw.rect(img, (139,69,19), (0, 0, tamanho[0], tamanho[1]))
+                return img
+
+        def receber_dano(self, dano):
+            self.hp -= dano
+            self.last_hit_time = pygame.time.get_ticks()
+            if self.hp <= 0:
+                self.hp = 0
+
+        def esta_vivo(self):
+            return self.hp > 0
+
+        def mover_em_direcao(self, alvo_x, alvo_y):
+            if self.esta_vivo() and self.velocidade > 0:
+                dx = alvo_x - self.rect.centerx
+                dy = alvo_y - self.rect.centery
+                dist = math.hypot(dx, dy)
+                if dist > 0:
+                    dx_norm = dx / dist
+                    dy_norm = dy / dist
+                    self.rect.x += dx_norm * self.velocidade
+                    self.rect.y += dy_norm * self.velocidade
+                    if dx > 0:
+                        self.facing_right = True
+                    elif dx < 0:
+                        self.facing_right = False
+        
+        def atualizar_animacao(self): 
+            agora = pygame.time.get_ticks()
+            if self.sprites and len(self.sprites) > 1 and self.esta_vivo():
+                if agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao:
+                    self.tempo_ultimo_update_animacao = agora
+                    self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
+            
+            if self.sprites: 
+                idx = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
+                if idx < len(self.sprites): 
+                    base_image = self.sprites[idx]
+                    if hasattr(self, 'facing_right') and not self.facing_right: 
+                        self.image = pygame.transform.flip(base_image, True, False)
+                    else:
+                        self.image = base_image
+                elif len(self.sprites) > 0: 
+                     self.image = self.sprites[0]
+            elif not hasattr(self, 'image') or self.image is None: 
+                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                pygame.draw.rect(self.image, (139,69,19), (0,0,self.largura,self.altura)) 
+
+        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None):
+            if self.esta_vivo():
+                if hasattr(player, 'rect'):
+                    self.mover_em_direcao(player.rect.centerx, player.rect.centery)
+                self.atualizar_animacao() 
+                
+                current_ticks = pygame.time.get_ticks()
+                if hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                   self.rect.colliderect(player.rect) and \
+                   (current_ticks - self.last_contact_time >= self.contact_cooldown):
+                    if hasattr(player, 'receber_dano'):
+                        player.receber_dano(self.contact_damage)
+                        self.last_contact_time = current_ticks
+
+        def desenhar(self, janela, camera_x, camera_y):
+            if not hasattr(self, 'image') or self.image is None:
+                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                pygame.draw.rect(self.image, (139,69,19), (0,0,self.largura,self.altura)) 
+                if not hasattr(self, 'rect'):
+                     self.rect = self.image.get_rect(topleft=(self.x,self.y))
+
+            screen_x = self.rect.x - camera_x
+            screen_y = self.rect.y - camera_y
+            janela.blit(self.image, (screen_x, screen_y))
+
+            current_time = pygame.time.get_ticks()
+            if current_time - self.last_hit_time < self.hit_flash_duration:
+                flash_surface = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                flash_surface.fill(self.hit_flash_color)
+                janela.blit(flash_surface, (screen_x, screen_y))
+
+            if self.hp < self.max_hp and self.hp > 0:
+                bar_width = self.largura
+                bar_height = 5
+                health_percentage = self.hp / self.max_hp
+                current_bar_width = int(bar_width * health_percentage)
+                bar_x = screen_x
+                bar_y = screen_y - bar_height - 5 
+                pygame.draw.rect(janela, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height), border_radius=2)
+                pygame.draw.rect(janela, (0, 255, 0), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2)
+                pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2)
+
+class Urso(Inimigo):
+    sprites_carregados_andar = None 
+    # Adicione outras listas de sprites se necessário (ex: atacar)
+    # sprites_carregados_atacar = None
+    tamanho_sprite_definido = (120, 120) # Tamanho maior para o Urso
+
+    def __init__(self, x, y, velocidade=1.0): 
+        print(f"DEBUG(Urso): Inicializando Urso em ({x}, {y}) com velocidade {velocidade}.")
+
+        urso_hp = 200 # Mais HP para o Urso
+        urso_contact_damage = 20 # Dano de contato maior
+        urso_xp_value = 100 # Mais XP
+        sprite_path_principal = "Sprites/Inimigos/Urso/Urso.png"  # Exemplo de sprite
+
+        if Urso.sprites_carregados_andar is None:
+            caminhos_andar = [
+                "Sprites/Inimigos/Urso/Urso 2.png",
+                "Sprites/Inimigos/Urso/Urso 3.png",
+                "Sprites/Inimigos/Urso/Urso 4.png",  # Exemplo de variação
+            ]
+
+            Urso.sprites_carregados_andar = []
+            current_file_dir = os.path.dirname(os.path.abspath(__file__))
+            game_root_dir = os.path.dirname(current_file_dir) 
+
+            for path in caminhos_andar:
+                full_path = os.path.join(game_root_dir, path.replace("/", os.sep))
+                try:
+                    if os.path.exists(full_path):
+                        sprite = pygame.image.load(full_path).convert_alpha()
+                        sprite = pygame.transform.scale(sprite, Urso.tamanho_sprite_definido)
+                        Urso.sprites_carregados_andar.append(sprite)
+                    else:
+                        print(f"DEBUG(Urso): Aviso: Sprite de andar do Urso não encontrado: {full_path}. Usando placeholder.")
+                        placeholder = pygame.Surface(Urso.tamanho_sprite_definido, pygame.SRCALPHA)
+                        pygame.draw.rect(placeholder, (100, 70, 30), (0, 0, Urso.tamanho_sprite_definido[0], Urso.tamanho_sprite_definido[1])) # Marrom escuro
+                        Urso.sprites_carregados_andar.append(placeholder)
+                except pygame.error as e:
+                    print(f"DEBUG(Urso): Erro ao carregar o sprite de andar do Urso: {full_path} - {e}")
+                    placeholder = pygame.Surface(Urso.tamanho_sprite_definido, pygame.SRCALPHA)
+                    pygame.draw.rect(placeholder, (100, 70, 30), (0, 0, Urso.tamanho_sprite_definido[0], Urso.tamanho_sprite_definido[1]))
+                    Urso.sprites_carregados_andar.append(placeholder)
+            
+            if not Urso.sprites_carregados_andar: 
+                print("DEBUG(Urso): Aviso: Nenhum sprite de andar do Urso carregado. Usando placeholder padrão.")
+                placeholder = pygame.Surface(Urso.tamanho_sprite_definido, pygame.SRCALPHA)
+                pygame.draw.rect(placeholder, (100, 70, 30), (0, 0, Urso.tamanho_sprite_definido[0], Urso.tamanho_sprite_definido[1]))
+                Urso.sprites_carregados_andar.append(placeholder)
+
+        super().__init__(x, y, 
+                         Urso.tamanho_sprite_definido[0], Urso.tamanho_sprite_definido[1], 
+                         urso_hp, velocidade, urso_contact_damage,
+                         urso_xp_value, sprite_path_principal)
+
+        self.sprites = Urso.sprites_carregados_andar 
+        self.sprite_index = 0 
+        self.tempo_ultimo_update_animacao = pygame.time.get_ticks() 
+        self.intervalo_animacao = 250 # Animação mais lenta para um urso maior
+
+        self.is_attacking = False 
+        self.attack_duration = 0.8 
+        self.attack_timer = 0.0 
+        self.attack_damage = 35 # Dano da patada do urso
+        self.attack_range = 90  # Alcance um pouco maior
+        self.attack_cooldown = 2.5 
+        self.last_attack_time = time.time() - self.attack_cooldown 
+
+        self.attack_hitbox_largura = 70
+        self.attack_hitbox_altura = 60
+        
+        if self.sprites: 
+             idx = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
+             if idx < len(self.sprites): 
+                base_image = self.sprites[idx] 
+                if hasattr(self, 'facing_right') and not self.facing_right:
+                    self.image = pygame.transform.flip(base_image, True, False)
+                else:
+                    self.image = base_image
+             elif len(self.sprites) > 0: 
+                self.image = self.sprites[0]
+        
+        print(f"DEBUG(Urso): Urso inicializado. HP: {self.hp}, Vel: {self.velocidade}")
+
+    def atacar(self, player):
+        if not hasattr(player, 'rect'):
+            return
+
+        current_time = time.time()
+        if self.esta_vivo() and not self.is_attacking and (current_time - self.last_attack_time >= self.attack_cooldown):
+            distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
+                                              self.rect.centery - player.rect.centery)
+
+            if distancia_ao_jogador <= self.attack_range: 
+                self.is_attacking = True 
+                self.attack_timer = current_time 
+                self.last_attack_time = current_time 
+                self.hit_by_player_this_attack = False 
+                print(f"DEBUG(Urso): Urso iniciando ataque (patada)! Dist: {distancia_ao_jogador:.0f}")
+                
+                if self.facing_right:
+                    hitbox_x = self.rect.right 
+                else:
+                    hitbox_x = self.rect.left - self.attack_hitbox_largura 
+                
+                hitbox_y = self.rect.centery - (self.attack_hitbox_altura / 2)
+                self.attack_hitbox = pygame.Rect(hitbox_x, hitbox_y, self.attack_hitbox_largura, self.attack_hitbox_altura)
+                
+    def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None):
+        if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
+            return
+
+        super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela) 
+
+        if self.esta_vivo():
+            current_time_ataque = time.time()
+
+            if self.is_attacking:
+                if self.facing_right:
+                    hitbox_x = self.rect.right
+                else:
+                    hitbox_x = self.rect.left - self.attack_hitbox_largura
+                hitbox_y = self.rect.centery - (self.attack_hitbox_altura / 2)
+                self.attack_hitbox.topleft = (hitbox_x, hitbox_y)
+
+                if current_time_ataque - self.attack_timer >= self.attack_duration:
+                    self.is_attacking = False 
+                    self.hit_by_player_this_attack = False 
+                else:
+                    if not self.hit_by_player_this_attack and \
+                       hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0 and \
+                       self.attack_hitbox.colliderect(player.rect):
+                        if player.vida.esta_vivo(): 
+                            player.receber_dano(self.attack_damage)
+                            self.hit_by_player_this_attack = True 
+                            print(f"DEBUG(Urso): Urso acertou o jogador com patada! Dano: {self.attack_damage}")
+            
+            if not self.is_attacking: 
+                self.atacar(player)
+        
+    def desenhar(self, surface, camera_x, camera_y):
+        super().desenhar(surface, camera_x, camera_y) 

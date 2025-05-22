@@ -114,7 +114,7 @@ class Menu:
         self.opcao_creditos_texto = "Creditos"
         self.opcao_sair_texto = "Sair"
         self.titulo_parte1_texto = "A LENDA DE " # Primeira parte do título
-        self.titulo_parte2_texto = "AZRAEL" # Segunda parte do título (em vermelho)
+        self.titulo_parte2_texto = "ASHAEL" # Segunda parte do título (em vermelho)
 
 
         # >>> RENDERIZA OS TEXTOS INICIALMENTE AQUI (ANTES DE OBTER OS RETÂNGULOS) <<<

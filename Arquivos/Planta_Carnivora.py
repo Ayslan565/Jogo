@@ -7,355 +7,314 @@ import os # Importa os para verificar a existência de arquivos
 
 # Importa a classe base Inimigo do ficheiro Inimigos.py
 # Certifique-se de que o ficheiro Inimigos.py está na mesma pasta ou num caminho acessível
-from Inimigos import Inimigo
+try:
+    from Inimigos import Inimigo
+except ImportError:
+    print("DEBUG(Planta_Carnivora): ERRO: Módulo 'Inimigos.py' ou classe 'Inimigo' NÃO encontrado. Usando classe Inimigo placeholder.")
+    # Define uma classe Inimigo placeholder mais completa para evitar NameError e AttributeError
+    class Inimigo(pygame.sprite.Sprite):
+        def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
+            super().__init__()
+            self.x = x
+            self.y = y
+            self.largura = largura
+            self.altura = altura
+            self.hp = vida_maxima 
+            self.max_hp = vida_maxima 
+            self.velocidade = velocidade 
+            self.contact_damage = dano_contato
+            self.xp_value = xp_value
+            self.sprite_path_base = sprite_path # Corrigido para sprite_path_base
+
+            self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (255, 0, 255), (0, 0, largura, altura)) 
+            self.rect = self.image.get_rect(topleft=(x, y))
+
+            self.last_hit_time = 0
+            self.hit_flash_duration = 150
+            self.hit_flash_color = (255, 255, 255, 128) 
+
+            self.is_attacking = False
+            self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
+            self.hit_by_player_this_attack = False
+            self.contact_cooldown = 1000 
+            self.last_contact_time = pygame.time.get_ticks()
+            self.facing_right = True
+            
+            self.sprites = [self.image] 
+            self.sprite_index = 0
+            self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
+            self.intervalo_animacao = 200
 
 
-class Planta_Carnivora(Inimigo):
-    """
-    Representa um inimigo Planta Carnívora.
-    Persegue o jogador quando este está vivo e dentro do alcance (se aplicável).
-    Implementa lógica de desvio quando presa.
-    """
-    # Variável de classe para armazenar os sprites carregados uma única vez
-    _sprites_originais = None
-    _tamanho_sprite_desejado = (64, 64) # Tamanho padrão para sprites
-
-    def __init__(self, x, y, velocidade=1.0): # Velocidade padrão do Planta Carnivora
-        """
-        Inicializa um novo objeto Planta_Carnivora.
-
-        Args:
-            x (int): A posição inicial x da planta.
-            y (int): A posição inicial y da planta.
-            velocidade (float): A velocidade de movimento da planta.
-        """
-        # Carrega os sprites apenas uma vez para todas as instâncias de Planta_Carnivora
-        if Planta_Carnivora._sprites_originais is None: # Carrega na variável de sprites_originais
-            Planta_Carnivora._carregar_sprites()
-
-        # Inicializa a classe base Inimigo PASSANDO A PRIMEIRA SURFACE CARREGADA E A VELOCIDADE.
-        # Certifique-se de que Planta_Carnivora._sprites_originais não está vazio antes de acessar o índice [0]
-        initial_image = Planta_Carnivora._sprites_originais[0] if Planta_Carnivora._sprites_originais else self._criar_placeholder_sprite() # Usa placeholder se a lista estiver vazia
-        super().__init__(x, y, initial_image, velocidade) # >>> Passa a velocidade para a classe base <<<
-
-
-        self.hp = 25 # Pontos de vida do Planta Carnivora
-        self.max_hp = self.hp # Define HP máximo para barra de vida
-        # self.velocidade é definido na classe base agora
-        self.sprites = Planta_Carnivora._sprites_originais # Referência à lista de sprites originais carregados
-        self.sprite_index = 0 # Índice do sprite atual para animação
-        self.tempo_ultimo_update_animacao = pygame.time.get_ticks() # Tempo do último update da animação
-        self.intervalo_animacao = 200 # milissegundos entre frames de animação (ajuste para a velocidade da animação)
-
-
-        # >>> Atributos de Combate do Planta Carnivora <<<
-        self.is_attacking = False # Flag para indicar si o Planta Carnivora está atacando
-        self.attack_duration = 500 # Duração da animação de ataque (ajuste conforme a animação) em ms
-        self.attack_timer = 0 # Tempo em que o ataque começou (usando pygame.time.get_ticks())
-        self.attack_damage = 15 # Quantidade de dano causado pelo ataque (dano de ataque específico)
-        # Define o tamanho da hitbox de ataque - AJUSTE ESTES VALORES PARA REDUZIR O TAMANHO
-        self.attack_hitbox_size = (40, 40) # Exemplo: hitbox 40x40 pixels
-        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Retângulo para a hitbox de ataque (inicialmente vazio)
-        self.attack_range = 60 # Alcance para iniciar o ataque (distância do centro do inimigo ao centro do jogador)
-        self.attack_cooldown = 3000 # Tempo de espera entre ataques em milissegundos
-        self.last_attack_time = pygame.time.get_ticks() # Tempo em que o último ataque ocorreu (usando pygame.time.get_ticks())
-        # self.hit_by_player_this_attack é herdado da classe base
-
-
-        # Atributo para rastrear a direção do Planta Carnivora (para posicionar a hitbox de ataque e flipar o sprite)
-        # Inicializa com uma direção padrão, será atualizado no mover_em_direcao
-        self.direction = "down"
-        self.facing_right = True # Adiciona atributo para controlar a direção horizontal
-
-        # Atributos para detecção de estar preso e lógica de desvio (herdado da classe base)
-        # self._previous_pos = (self.rect.x, self.rect.y)
-        # self.is_stuck = False
-        # self._stuck_timer = 0
-        # self._stuck_duration_threshold = 500
-        # self._evade_direction = None
-        # self._evade_timer = 0
-        # self._evade_duration = 500
-
-
-        # >>> Atributos para Dano por Contato <<<
-        self.contact_damage = 10 # Dano de contato (ajuste)
-        self.contact_cooldown = 1000 # Cooldown de dano de contato em milissegundos (ajuste)
-        self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
-
-    @classmethod
-    def _carregar_sprites(cls):
-        """Carrega os sprites da Planta Carnívora e os armazena na variável de classe."""
-        caminhos = [
-            "Sprites/Inimigos/Planta Carnivora/Planta carnivora 1.png",
-            "Sprites/Inimigos/Planta Carnivora/Planta_Carnivora2.png", # Corrigido a barra invertida
-        ]
-        cls._sprites_originais = []
-
-        for path in caminhos:
+        def _carregar_sprite(self, path, tamanho): 
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            game_dir = os.path.dirname(base_dir)
+            full_path = os.path.join(game_dir, path.replace("/", os.sep))
+            if not os.path.exists(full_path):
+                print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
+                img = pygame.Surface(tamanho, pygame.SRCALPHA)
+                pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
+                return img
             try:
-                if os.path.exists(path):
-                    sprite = pygame.image.load(path).convert_alpha()
-                    sprite = pygame.transform.scale(sprite, cls._tamanho_sprite_desejado)
-                    cls._sprites_originais.append(sprite)
-                else:
-                   # Se o arquivo não existir, adicione um placeholder
-                   placeholder = pygame.Surface(cls._tamanho_sprite_desejado, pygame.SRCALPHA)
-                   pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, cls._tamanho_sprite_desejado[0], cls._tamanho_sprite_desejado[1])) # Cyan placeholder
-                   fonte = pygame.font.Font(None, 20)
-                   texto_erro = fonte.render("Sprite", True, (0, 0, 0))
-                   placeholder.blit(texto_erro, (5, 15))
-                   texto_erro2 = fonte.render("Erro", True, (0, 0, 0))
-                   placeholder.blit(texto_erro2, (10, 35))
-                   cls._sprites_originais.append(placeholder)
-
+                img = pygame.image.load(full_path).convert_alpha()
+                img = pygame.transform.scale(img, tamanho)
+                return img
             except pygame.error as e:
-                # Se um sprite falhar, adicione um placeholder com o tamanho correto
-                placeholder = pygame.Surface(cls._tamanho_sprite_desejado, pygame.SRCALPHA)
-                pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, cls._tamanho_sprite_desejado[0], cls._tamanho_sprite_desejado[1])) # Cyan placeholder
-                fonte = pygame.font.Font(None, 20)
-                texto_erro = fonte.render("Sprite", True, (0, 0, 0))
-                placeholder.blit(texto_erro, (5, 15))
-                texto_erro2 = fonte.render("Erro", True, (0, 0, 0))
-                placeholder.blit(texto_erro2, (10, 35))
-                cls._sprites_originais.append(placeholder)
+                print(f"DEBUG(InimigoPlaceholder): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
+                img = pygame.Surface(tamanho, pygame.SRCALPHA)
+                pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
+                return img
 
-        if not cls._sprites_originais:
-            # Certifique-se de que há pelo menos um sprite carregado, mesmo que seja um placeholder
-            placeholder = pygame.Surface(cls._tamanho_sprite_desejado, pygame.SRCALPHA)
-            pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, cls._tamanho_sprite_desejado[0], cls._tamanho_sprite_desejado[1]))
-            cls._sprites_originais.append(placeholder)
-
-    @staticmethod
-    def _criar_placeholder_sprite():
-        """Cria e retorna uma superfície de placeholder ciano."""
-        placeholder = pygame.Surface(Planta_Carnivora._tamanho_sprite_desejado, pygame.SRCALPHA)
-        pygame.draw.rect(placeholder, (0, 255, 255), (0, 0, Planta_Carnivora._tamanho_sprite_desejado[0], Planta_Carnivora._tamanho_sprite_desejado[1]))
-        fonte = pygame.font.Font(None, 20)
-        texto_erro = fonte.render("Sprite", True, (0, 0, 0))
-        placeholder.blit(texto_erro, (5, 15))
-        texto_erro2 = fonte.render("Erro", True, (0, 0, 0))
-        placeholder.blit(texto_erro2, (10, 35))
-        return placeholder
-
-
-    # O método esta_vivo() é herdado da classe base Inimigo.
-
-    def receber_dano(self, dano):
-        """
-        Reduz a vida do inimigo pela quantidade de dano especificada.
-        """
-        if self.esta_vivo(): # Chama o método esta_vivo() herdado
+        def receber_dano(self, dano):
             self.hp -= dano
+            self.last_hit_time = pygame.time.get_ticks()
             if self.hp <= 0:
                 self.hp = 0
-                # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
-                # Opcional: self.kill() pode ser chamado aqui si estiver usando grupos de sprites.
 
+        def esta_vivo(self):
+            return self.hp > 0
+
+        def mover_em_direcao(self, alvo_x, alvo_y):
+            if self.esta_vivo() and self.velocidade > 0:
+                dx = alvo_x - self.rect.centerx
+                dy = alvo_y - self.rect.centery
+                dist = math.hypot(dx, dy)
+                if dist > 0:
+                    dx_norm = dx / dist
+                    dy_norm = dy / dist
+                    self.rect.x += dx_norm * self.velocidade
+                    self.rect.y += dy_norm * self.velocidade
+                    if dx > 0:
+                        self.facing_right = True
+                    elif dx < 0:
+                        self.facing_right = False
+        
+        def atualizar_animacao(self): 
+            agora = pygame.time.get_ticks()
+            if self.sprites and len(self.sprites) > 1 and self.esta_vivo():
+                if agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao:
+                    self.tempo_ultimo_update_animacao = agora
+                    self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
+            
+            if self.sprites: 
+                idx = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
+                if idx < len(self.sprites): 
+                    base_image = self.sprites[idx]
+                    if hasattr(self, 'facing_right') and not self.facing_right:
+                        self.image = pygame.transform.flip(base_image, True, False)
+                    else:
+                        self.image = base_image
+                elif len(self.sprites) > 0: 
+                     self.image = self.sprites[0]
+            elif not hasattr(self, 'image') or self.image is None: 
+                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                pygame.draw.rect(self.image, (255,0,255), (0,0,self.largura,self.altura))
+
+
+        # CORREÇÃO APLICADA AQUI na assinatura do método update do placeholder
+        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None):
+            if self.esta_vivo():
+                if hasattr(player, 'rect'):
+                    self.mover_em_direcao(player.rect.centerx, player.rect.centery)
+                self.atualizar_animacao() 
+                
+                current_ticks = pygame.time.get_ticks()
+                if hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                   self.rect.colliderect(player.rect) and \
+                   (current_ticks - self.last_contact_time >= self.contact_cooldown):
+                    if hasattr(player, 'receber_dano'):
+                        player.receber_dano(self.contact_damage)
+                        self.last_contact_time = current_ticks
+
+        def desenhar(self, janela, camera_x, camera_y):
+            if not hasattr(self, 'image') or self.image is None:
+                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                pygame.draw.rect(self.image, (255,0,255), (0,0,self.largura,self.altura))
+                if not hasattr(self, 'rect'):
+                     self.rect = self.image.get_rect(topleft=(self.x,self.y))
+            
+            screen_x = self.rect.x - camera_x
+            screen_y = self.rect.y - camera_y
+            janela.blit(self.image, (screen_x, screen_y))
+
+            current_time = pygame.time.get_ticks()
+            if current_time - self.last_hit_time < self.hit_flash_duration:
+                flash_surface = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                flash_surface.fill(self.hit_flash_color)
+                janela.blit(flash_surface, (screen_x, screen_y))
+
+            if self.hp < self.max_hp and self.hp > 0:
+                bar_width = self.largura
+                bar_height = 5
+                health_percentage = self.hp / self.max_hp
+                current_bar_width = int(bar_width * health_percentage)
+                bar_x = screen_x
+                bar_y = screen_y - bar_height - 5 
+                pygame.draw.rect(janela, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height), border_radius=2)
+                pygame.draw.rect(janela, (0, 255, 0), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2)
+                pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2)
+
+
+"""
+Classe para o inimigo Planta Carnívora.
+Herda da classe base Inimigo.
+"""
+class Planta_Carnivora(Inimigo):
+    sprites_carregados = None
+    sprites_originais = None
+    tamanho_sprite_definido = (64, 64)
+
+    def __init__(self, x, y, velocidade=1.0): 
+        print(f"DEBUG(Planta_Carnivora): Inicializando Planta Carnivora em ({x}, {y}) com velocidade {velocidade}.")
+
+        planta_hp = 25 
+        planta_contact_damage = 10 
+        planta_xp_value = 25 
+        sprite_path_principal = "Sprites/Inimigos/Planta Carnivora/Planta carnivora 1.png" 
+
+        if Planta_Carnivora.sprites_originais is None: 
+            caminhos = [
+                sprite_path_principal,
+                "Sprites/Inimigos/Planta Carnivora/Planta_Carnivora2.png",
+            ]
+            Planta_Carnivora.sprites_originais = [] 
+            current_file_dir = os.path.dirname(os.path.abspath(__file__))
+            game_root_dir = os.path.dirname(current_file_dir) 
+
+            for path in caminhos:
+                full_path = os.path.join(game_root_dir, path.replace("/", os.sep))
+                try:
+                    if os.path.exists(full_path): 
+                        sprite = pygame.image.load(full_path).convert_alpha()
+                        sprite = pygame.transform.scale(sprite, Planta_Carnivora.tamanho_sprite_definido)
+                        Planta_Carnivora.sprites_originais.append(sprite) 
+                    else:
+                        print(f"DEBUG(Planta_Carnivora): Aviso: Sprite da Planta Carnivora não encontrado: {full_path}. Usando placeholder.")
+                        placeholder = pygame.Surface(Planta_Carnivora.tamanho_sprite_definido, pygame.SRCALPHA)
+                        pygame.draw.rect(placeholder, (0, 128, 0), (0, 0, Planta_Carnivora.tamanho_sprite_definido[0], Planta_Carnivora.tamanho_sprite_definido[1])) # Verde escuro placeholder
+                        Planta_Carnivora.sprites_originais.append(placeholder) 
+                except pygame.error as e:
+                    print(f"DEBUG(Planta_Carnivora): Erro ao carregar o sprite do Planta Carnivora: {full_path} - {e}")
+                    placeholder = pygame.Surface(Planta_Carnivora.tamanho_sprite_definido, pygame.SRCALPHA)
+                    pygame.draw.rect(placeholder, (0, 128, 0), (0, 0, Planta_Carnivora.tamanho_sprite_definido[0], Planta_Carnivora.tamanho_sprite_definido[1])) 
+                    Planta_Carnivora.sprites_originais.append(placeholder) 
+            
+            if not Planta_Carnivora.sprites_originais:
+                print("DEBUG(Planta_Carnivora): Aviso: Nenhum sprite do Planta Carnivora carregado. Usando placeholder padrão.")
+                placeholder = pygame.Surface(Planta_Carnivora.tamanho_sprite_definido, pygame.SRCALPHA)
+                pygame.draw.rect(placeholder, (0, 128, 0), (0, 0, Planta_Carnivora.tamanho_sprite_definido[0], Planta_Carnivora.tamanho_sprite_definido[1]))
+                Planta_Carnivora.sprites_originais.append(placeholder)
+
+        super().__init__(x, y, 
+                         Planta_Carnivora.tamanho_sprite_definido[0], Planta_Carnivora.tamanho_sprite_definido[1], 
+                         planta_hp, velocidade, planta_contact_damage,
+                         planta_xp_value, sprite_path_principal)
+
+        self.sprites = Planta_Carnivora.sprites_originais 
+        self.sprite_index = 0 
+        self.tempo_ultimo_update_animacao = pygame.time.get_ticks() 
+        self.intervalo_animacao = 200 
+
+        self.is_attacking = False 
+        self.attack_duration = 0.5 
+        self.attack_timer = 0.0 # Consistência com time.time()
+        self.attack_damage = 15 
+        self.attack_hitbox_size = (50, 50) # Ajustado para ser um pouco maior que o sprite base
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
+        self.attack_range = 70 # Curto alcance para mordida
+        self.attack_cooldown = 2.0 # Segundos
+        self.last_attack_time = time.time() - self.attack_cooldown # Permite atacar mais cedo
+        
+        # self.facing_right é herdado
+
+        if self.sprites: 
+             idx = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
+             if idx < len(self.sprites): 
+                self.image = self.sprites[idx]
+             elif len(self.sprites) > 0: 
+                self.image = self.sprites[0]
+        
+        print(f"DEBUG(Planta_Carnivora): Planta Carnivora inicializada. HP: {self.hp}, Vel: {self.velocidade}")
+
+    def receber_dano(self, dano):
+        super().receber_dano(dano) 
 
     def atualizar_animacao(self):
-        """Atualiza o índice do sprite para a animação e aplica o flip horizontal."""
-        agora = pygame.time.get_ticks()
-        # Verifica si self.sprites (sprites originais) não está vazio antes de calcular o módulo
-        if self.sprites and self.esta_vivo() and agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao: # Só anima si estiver vivo
-            self.tempo_ultimo_update_animacao = agora
-            # Incrementa o índice do sprite lentamente para a animação
-            self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
+        super().atualizar_animacao()
 
-        # Define a imagem atual com base no índice, usando os sprites originais
-        if self.sprites:
-            base_image = self.sprites[int(self.sprite_index % len(self.sprites))]
-            # Invertendo a lógica: aplica o flip horizontal si estiver virado para a direita
-            # Assumindo que o sprite base está virado para a esquerda.
-            if self.facing_right: # <-- Lógica invertida aqui
-                self.image = pygame.transform.flip(base_image, True, False)
-            else:
-                self.image = base_image
-        else:
-            # Fallback si não houver sprites
-            self.image = self._criar_placeholder_sprite()
-
-
-    # Sobrescreve o método mover_em_direcao para adicionar a lógica de direção horizontal
-    # CORRIGIDO: Adicionado 'arvores' como argumento para compatibilidade com a classe base
-    def mover_em_direcao(self, alvo_x, alvo_y, arvores):
-        """
-        Move a planta carnívora em direção a um alvo e atualiza a direção horizontal,
-        verificando colisão com árvores.
-
-        Args:
-            alvo_x (int): A coordenada x do alvo.
-            alvo_y (int): A coordenada y do alvo.
-            arvores (list): Uma lista de objetos Arvore para verificar colisão.
-        """
-        # Chama o método mover_em_direcao da classe base para lidar com o movimento e colisão com árvores
-        # A lógica de detecção de estar preso e atualização de self.is_stuck ocorre na classe base.
-        super().mover_em_direcao(alvo_x, alvo_y, arvores)
-
-        # Atualiza a direção horizontal com base no movimento em X, apenas se a Planta Carnívora se moveu
-        # A detecção de movimento agora está na classe base através de self.is_stuck
-        # Podemos inferir a direção horizontal do movimento se não estiver preso
-        if not self.is_stuck:
-             # Calcula a diferença de posição para determinar a direção horizontal do movimento
-             dx = self.rect.x - self._previous_pos[0]
-             if abs(dx) > 0.1: # Verifica se houve movimento horizontal significativo
-                 if dx > 0:
-                     self.facing_right = True
-                 elif dx < 0:
-                     self.facing_right = False
-
+    def mover_em_direcao(self, alvo_x, alvo_y):
+        super().mover_em_direcao(alvo_x, alvo_y)
 
     def atacar(self, player):
-        """
-        Implementa a lógica de ataque do Planta Carnivora.
-        Neste exemplo, um ataque simples de contato ou projétil (si aplicável).
-
-        Args:
-            player (Player): O objeto jogador para verificar o alcance de ataque.
-        """
-        # Adiciona verificação para garantir que o objeto player tem o atributo rect
         if not hasattr(player, 'rect'):
-            return # Sai do método para evitar o erro
+            return
 
-        current_ticks = pygame.time.get_ticks()
-        # Verifica si o cooldown passou e se o jogador está dentro do alcance de ataque
-        # E se o Planta Carnivora está vivo
-        if self.esta_vivo() and (current_ticks - self.last_attack_time >= self.attack_cooldown):
-            # Calcula a distância até o jogador
+        current_time = time.time()
+        if self.esta_vivo() and not self.is_attacking and (current_time - self.last_attack_time >= self.attack_cooldown):
             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                             self.rect.centery - player.rect.centery)
+                                              self.rect.centery - player.rect.centery)
 
             if distancia_ao_jogador <= self.attack_range:
-                # Inicia o ataque
                 self.is_attacking = True
-                self.attack_timer = current_ticks # Registra o tempo de início do ataque
-                self.last_attack_time = current_ticks # Reseta o cooldown
-                self.hit_by_player_this_attack = False # Reseta a flag de acerto para este novo ataque
-
-                # Define a hitbox de ataque (exemplo: um retângulo ao redor do Planta Carnivora para ataque de contato)
-                # Você precisará ajustar isso com base na animação ou tipo de ataque do seu Planta Carnivora
-                attack_hitbox_width = self.attack_hitbox_size[0] # Pega a largura da hitbox ou um valor padrão
-                attack_hitbox_height = self.attack_hitbox_size[1] # Pega a altura da hitbox ou um valor padrão
-
-                # Posiciona a hitbox de ataque (exemplo: centralizada no Planta Carnivora)
-                self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
-                self.attack_hitbox.center = self.rect.center # Centraliza a hitbox no Planta Carnivora
-
-                # >>> Lógica de Aplicação de Dano do Ataque Específico (PODE SER AQUI OU NO UPDATE) <<<
-                # Para um ataque instantâneo (não baseado em duração), a lógica de dano pode vir aqui.
-                # Para ataques com duração (animação), a lógica de dano geralmente fica no update,
-                # verificando a colisão da hitbox de ataque enquanto is_attacking é True.
-                # Exemplo de ataque instantâneo:
-                # if hasattr(player, 'receber_dano'):
-                #     dano_inimigo = getattr(self, 'attack_damage', 0)
-                #     player.receber_dano(dano_inimigo)
-                #     self.hit_by_player_this_attack = True # Marca como atingido para evitar múltiplos hits no mesmo ataque instantâneo
-
-
-    # O método update é herdado e sobrescrito aqui para incluir a lógica específica da Planta Carnivora
-    # CORRIGIDO: Adicionado 'arvores' como argumento
-    def update(self, player, arvores):
-        """
-        Atualiza o estado do Planta Carnivora (movimento, animação e ataque).
-        Inclui a lógica de aplicação de dano por contato e desvio.
-
-        Args:
-            player (Player): O objeto jogador para seguir, verificar o alcance de ataque e aplicar dano.
-            arvores (list): Uma lista de objetos Arvore para colisão.
-        """
-        # >>> Adiciona verificação para garantir que o objeto player tem os atributos necessários <<<
-        # Verifica si o player tem pelo menos rect e vida (para verificar si está vivo e receber dano)
-        if not (hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and hasattr(player, 'receber_dano')):
-            return # Sai do método para evitar o erro
-
-        # Só atualiza si estiver vivo
-        if self.esta_vivo():
-            current_ticks = pygame.time.get_ticks() # Usando get_ticks() para consistência com contact_cooldown
-
-            # Lógica de colisão com o jogador e dano por contato (herdado da classe base)
-            self.check_player_collision(player)
-
-            # Lógica do temporizador de ataque específico
-            if self.is_attacking:
-                 # Verifica si a duração do ataque passou
-                 if current_ticks - self.attack_timer >= self.attack_duration: # Usa pygame.time.get_ticks() para consistência com attack_timer
-                     self.is_attacking = False
-                     self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Reseta a hitbox quando o ataque termina
-                     self.hit_by_player_this_attack = False # Reseta a flag de acerto ao final do ataque específico
-                 else:
-                      # >>> Lógica de Dano do Ataque Específico (VERIFICADA DURANTE A ANIMAÇÃO DE ATAQUE) <<<
-                      # Verifica si o inimigo está atacando (ataque específico), si ainda não acertou neste ataque,
-                      # si tem hitbox de ataque e si colide com o rect do jogador.
-                      if not self.hit_by_player_this_attack and \
-                             hasattr(self, 'attack_hitbox') and \
-                             hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                             self.attack_hitbox.colliderect(player.rect): # >>> CORREÇÃO AQUI: Usa player.rect <<<
-
-                           # Verifica si o jogador tem o método receber_dano e está vivo
-                           if hasattr(player, 'receber_dano'):
-                                # Aplica dano do ataque específico ao jogador
-                                dano_inimigo = getattr(self, 'attack_damage', 0) # Pega attack_damage ou 0 si não existir
-                                player.receber_dano(dano_inimigo)
-                                self.hit_by_player_this_attack = True # Define a flag para não acertar novamente neste ataque específico
-                                # Opcional: Adicionar um som ou efeito visual quando o inimigo acerta o jogador com ataque específico
-
-
-            # >>> Lógica de Movimento e Desvio <<<
-            # O Planta Carnivora persegue o jogador si estiver vivo e o jogador estiver vivo.
-            # Implementa a lógica de desvio quando detecta que está preso.
-            player_tem_rect = hasattr(player, 'rect')
-            player_esta_vivo = hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo()
-            planta_esta_viva = self.esta_vivo()
-            planta_tem_velocidade = self.velocidade > 0
-
-            if planta_esta_viva and player_tem_rect and player_esta_vivo and planta_tem_velocidade:
-                # Verifica se está preso por tempo suficiente e não está tentando desviar
-                if self.is_stuck and current_ticks - self._stuck_timer > self._stuck_duration_threshold and self._evade_direction is None:
-                    # Inicia uma tentativa de desvio
-                    # Escolhe uma direção aleatória para tentar desviar (horizontal ou vertical)
-                    self._evade_direction = random.choice(["left", "right", "up", "down"])
-                    self._evade_timer = current_ticks
-
-                # Se estiver tentando desviar
-                if self._evade_direction is not None:
-                    # Calcula o movimento de desvio
-                    evade_speed = self.velocidade * 1.2 # Pode desviar um pouco mais rápido
-                    evade_dx, evade_dy = 0, 0
-                    if self._evade_direction == "left":
-                        evade_dx = -evade_speed
-                    elif self._evade_direction == "right":
-                        evade_dx = evade_speed
-                    elif self._evade_direction == "up":
-                        evade_dy = -evade_speed
-                    elif self._evade_direction == "down":
-                        evade_dy = evade_speed
-
-                    # Aplica o movimento de desvio (sem verificar colisão com árvores durante o desvio simples)
-                    # Uma lógica de desvio mais avançada verificaria colisões também aqui.
-                    self.rect.x += evade_dx
-                    self.rect.y += evade_dy
-
-                    # Verifica se a duração do desvio terminou
-                    if current_ticks - self._evade_timer > self._evade_duration:
-                        self._evade_direction = None # Termina a tentativa de desvio
-                        self.is_stuck = False # Considera que não está mais preso (será reavaliado no próximo frame)
+                self.attack_timer = current_time 
+                self.last_attack_time = current_time 
+                self.hit_by_player_this_attack = False 
+                print(f"DEBUG(Planta_Carnivora): Planta Carnivora iniciando ataque! Dist: {distancia_ao_jogador:.0f}")
+                
+                attack_hitbox_width, attack_hitbox_height = self.attack_hitbox_size
+                # Posiciona a hitbox à frente da planta, dependendo da direção
+                if self.facing_right:
+                    hitbox_x = self.rect.centerx 
                 else:
-                    # Se não estiver tentando desviar, move normalmente em direção ao jogador (com verificação de colisão da base)
-                    target_x, target_y = player.rect.centerx, player.rect.centery
-                    self.mover_em_direcao(target_x, target_y, arvores) # Chama o método da base com a lista de árvores
-            else:
-                 pass # Não move si o player não tiver rect ou não estiver vivo
+                    hitbox_x = self.rect.centerx - attack_hitbox_width
+                hitbox_y = self.rect.centery - attack_hitbox_height / 2
+                self.attack_hitbox = pygame.Rect(hitbox_x, hitbox_y, attack_hitbox_width, attack_hitbox_height)
+
+    # CORREÇÃO APLICADA AQUI na assinatura do método update
+    def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None):
+        if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
+            return
+
+        # Chama o update da classe base para movimento, animação base, dano de contato base.
+        super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela)
+
+        if self.esta_vivo():
+            current_time_ataque = time.time()
+
+            if self.is_attacking:
+                # Atualiza a posição da hitbox de ataque caso a planta se mova
+                attack_hitbox_width, attack_hitbox_height = self.attack_hitbox_size
+                if self.facing_right:
+                    hitbox_x = self.rect.centerx
+                else:
+                    hitbox_x = self.rect.centerx - attack_hitbox_width
+                hitbox_y = self.rect.centery - attack_hitbox_height / 2
+                self.attack_hitbox.topleft = (hitbox_x, hitbox_y)
 
 
-            # Tenta iniciar um ataque específico
-            self.atacar(player)
+                if current_time_ataque - self.attack_timer >= self.attack_duration:
+                    self.is_attacking = False
+                    self.hit_by_player_this_attack = False 
+                else:
+                    # Lógica de Dano do Ataque Específico
+                    if not self.hit_by_player_this_attack and \
+                       hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0 and \
+                       self.attack_hitbox.colliderect(player.rect):
+                        if player.vida.esta_vivo(): 
+                            player.receber_dano(self.attack_damage)
+                            self.hit_by_player_this_attack = True 
+                            print(f"DEBUG(Planta_Carnivora): Ataque específico acertou o jogador! Dano: {self.attack_damage}")
+            
+            if not self.is_attacking:
+                self.atacar(player)
+        
+        # A animação já é chamada pelo super().update()
 
-            # Posicionamento da Hitbox de Ataque Específico
-            self.attack_hitbox.center = self.rect.center
+    def desenhar(self, surface, camera_x, camera_y):
+        super().desenhar(surface, camera_x, camera_y) 
+        # Opcional: Desenhar a hitbox de ataque para debug
+        # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
+        #     debug_hitbox_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
+        #     pygame.draw.rect(surface, (0, 200, 0, 150), debug_hitbox_rect_onscreen, 1) # Verde para hitbox da planta
 
-            # Atualiza a animação
-            self.atualizar_animacao()
-
-    # O método desenhar() é herdado da classe base Inimigo.
-    # Não precisamos sobrescrever desenhar aqui, pois o flip é aplicado no atualizar_animacao
-
-    # O método receber_dano() é herdado da classe base Inimigo.

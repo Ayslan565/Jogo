@@ -33,14 +33,20 @@ class Vida:
     def desenhar(self, tela, x, y):
         """Desenha a vida dividida em sprites."""
         # Determina qual sprite usar com base na vida
-        if self.vida_atual >= self.vida_maxima * 0.75:
+        if self.vida_atual >= self.vida_maxima * 1.5:
             sprite = self.sprites[0]  # Vida cheia
+        elif self.vida_atual >= self.vida_maxima * 1.0:
+            sprite = self.sprites[1]  # Vida 1.0
+        elif self.vida_atual >= self.vida_maxima * 0.75:
+            sprite = self.sprites[2]  # Vida 0.5
         elif self.vida_atual >= self.vida_maxima * 0.5:
-            sprite = self.sprites[1]  # Vida 3/4
+            sprite = self.sprites[0]  # Vida cheia
         elif self.vida_atual >= self.vida_maxima * 0.25:
-            sprite = self.sprites[2]  # Vida 2/4
+            sprite = self.sprites[1]  # Vida 1.0
+        elif self.vida_atual >= self.vida_maxima * 0.:
+            sprite = self.sprites[2]  # Vida 0.5
         elif self.vida_atual > 0:
-            sprite = self.sprites[3]  # Vida 1/4
+            sprite = self.sprites[3]  # Vida 0.25
         else:
             sprite = self.sprites[3]  # Vida vazia
 

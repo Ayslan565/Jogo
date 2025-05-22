@@ -1,353 +1,207 @@
 # Inimigos.py
+# (Anteriormente referenciado como C:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Inimigo.py pelo usuário)
+
 import pygame
-import math # Importa math para a função hypot
-import time # Importa time para usar time.time() ou pygame.time.get_ticks()
+import os
+import time # Para usar time.time() ou pygame.time.get_ticks()
+import math # Para a função math.hypot
 
-class Inimigo(pygame.sprite.Sprite):
+class Inimigo(pygame.sprite.Sprite): # Herda de pygame.sprite.Sprite
     """
-    Classe base para inimigos no jogo.
-    Herda de pygame.sprite.Sprite para facilitar o manuseio de grupos de sprites.
-    Recebe uma Surface do Pygame já carregada.
+    Classe base para todos os inimigos no jogo.
+    Define atributos comuns como vida, velocidade, dano de contato,
+    valor de XP, carregamento de sprite, animação de flash de dano,
+    e métodos básicos de movimento e desenho.
     """
-    def __init__(self, x, y, image_surface, velocidade=1):
-        """
-        Inicializa um novo objeto Inimigo com uma Surface de imagem.
+    def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
+        super().__init__()
+        
+        self.x = x
+        self.y = y
+        self.largura = largura
+        self.altura = altura
+        self.hp = vida_maxima # Vida atual do inimigo
+        self.max_hp = vida_maxima # Vida máxima do inimigo
+        self.velocidade = velocidade
+        self.contact_damage = dano_contato
+        self.xp_value = xp_value # XP que o jogador ganha ao derrotar este inimigo
 
-        Args:
-            x (int): A posição inicial x do inimigo.
-            y (int): A posição inicial y do inimigo.
-            image_surface (pygame.Surface): A Surface do Pygame já carregada para o sprite.
-            velocidade (float): A velocidade de movimento base do inimigo.
-        """
-        super().__init__() # Inicializa a classe base Sprite
+        # Carrega o sprite do inimigo
+        self.image = self._carregar_sprite(sprite_path, (largura, altura))
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
-        self.image = image_surface # Usa a Surface passada diretamente
-        self.rect = self.image.get_rect(topleft=(x, y)) # Obtém o retângulo do sprite e define a posição inicial
-        self.velocidade = velocidade # Define a velocidade de movimento base do inimigo
+        # --- Atributos para o efeito de flash de dano ---
+        self.last_hit_time = 0 # Tempo (em milissegundos) do último hit
+        self.hit_flash_duration = 150 # Duração do flash em ms (0.15 segundos)
+        # A cor do flash. O valor alfa (último componente) controla a intensidade do flash.
+        self.hit_flash_color = (255, 255, 255, 128) # Branco com 50% de transparência (RGBA)
+        
+        self.facing_right = True 
 
-        # >>> Define a hitbox de colisão reduzida para o inimigo <<<
-        # Esta hitbox será usada para colisões com elementos do mundo, como árvores.
-        # Ajuste o tamanho e a posição conforme necessário para cada tipo de inimigo
-        # nas classes derivadas, se a hitbox padrão não for adequada.
-        collision_width = int(self.rect.width * 0.6) # Exemplo: 60% da largura do sprite
-        collision_height = int(self.rect.height * 0.3) # Exemplo: 30% da altura do sprite
+        # Atributos de animação (básicos para a classe base)
+        self.sprites = [self.image] if hasattr(self, 'image') and self.image is not None else []
+        self.sprite_index = 0
+        self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
+        self.intervalo_animacao = 200 
 
-        # Garante que a hitbox tenha um tamanho mínimo
-        collision_width = max(collision_width, 10) # Mínimo de 10 pixels de largura
-        collision_height = max(collision_height, 10) # Mínimo de 10 pixels de altura
+        self.is_attacking = False 
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
+        self.hit_by_player_this_attack = False 
+        
+        self.contact_cooldown = 1000 
+        self.last_contact_time = pygame.time.get_ticks()
 
+    def _carregar_sprite(self, path, tamanho):
+        """Carrega e escala um sprite, com um fallback para placeholder."""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        game_dir = os.path.dirname(base_dir) 
+        full_path = os.path.join(game_dir, path.replace("/", os.sep))
 
-        # Cria o retângulo de colisão
-        self.collision_rect = pygame.Rect(0, 0, collision_width, collision_height)
-        # Posiciona a hitbox no centro inferior do retângulo principal do sprite
-        self.collision_rect.centerx = self.rect.centerx
-        self.collision_rect.bottom = self.rect.bottom
+        if not os.path.exists(full_path):
+            print(f"DEBUG(Inimigo): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
+            img = pygame.Surface(tamanho, pygame.SRCALPHA)
+            pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1])) 
+            return img
+        try:
+            img = pygame.image.load(full_path).convert_alpha()
+            img = pygame.transform.scale(img, tamanho)
+            return img
+        except pygame.error as e:
+            print(f"DEBUG(Inimigo): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
+            img = pygame.Surface(tamanho, pygame.SRCALPHA)
+            pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
+            return img
 
-        # print(f"DEBUG(Inimigo Base): Inimigo criado em ({x}, {y}), rect: {self.rect}, collision_rect: {self.collision_rect}") # Debug removido
+    def receber_dano(self, dano):
+        """Reduz a vida do inimigo e ativa o efeito de flash."""
+        self.hp -= dano
+        self.last_hit_time = pygame.time.get_ticks() 
+        if self.hp <= 0:
+            self.hp = 0
 
+    def esta_vivo(self):
+        """Verifica se o inimigo ainda está vivo."""
+        return self.hp > 0
 
-        # Atributos de combate comuns (podem ser sobrescritos nas classes derivadas)
-        self.hp = 100 # Pontos de vida padrão
-        self.is_attacking = False # Flag para indicar si o inimigo está atacando
-        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Retângulo para a hitbox de ataque (inicialmente vazio)
-        self.hit_by_player_this_attack = False # Flag para controle de hit por ataque do jogador
-        self.contact_damage = 5 # Dano por contato padrão
-        self.contact_cooldown = 1000 # Cooldown de dano de contato padrão (em milissegundos)
-        self.last_contact_time = pygame.time.get_ticks() # Tempo do último contato (em milissegundos)
-
-        # Atributos para o empurrão no jogador
-        self.push_force = 10 # Força do empurrão aplicado ao jogador
-        self.push_duration = 200 # Duração do empurrão (em milissegundos)
-
-        # Atributos para detecção de estar preso e lógica de desvio
-        self._previous_pos = (self.rect.x, self.rect.y)
-        self.is_stuck = False
-        self._stuck_timer = 0 # Tempo em que ficou preso pela última vez
-        self._stuck_duration_threshold = 500 # Tempo em milissegundos para considerar que está preso
-        self._evade_direction = None # Direção de desvio (ex: "left", "right")
-        self._evade_timer = 0 # Tempo em que começou a desviar
-        self._evade_duration = 500 # Duração da tentativa de desvio em milissegundos
-
-
-    # Modificado: Adicionado 'arvores' como argumento e lógica de detecção de estar preso
-    def mover_em_direcao(self, alvo_x, alvo_y, arvores):
-        """
-        Move o inimigo na direção de um ponto alvo, verificando colisão com árvores
-        usando a hitbox de colisão reduzida do inimigo e da árvore.
-
-        Args:
-            alvo_x (int): A coordenada x do ponto alvo.
-            alvo_y (int): A coordenada y do ponto alvo.
-            arvores (list): Uma lista de objetos Arvore para verificar colisão.
-        """
-        # Armazena a posição antes de tentar mover
-        current_pos = (self.rect.x, self.rect.y)
-        self._previous_pos = current_pos # Atualiza a posição anterior
-
-        # Só move si estiver vivo e tiver velocidade
+    def mover_em_direcao(self, alvo_x, alvo_y):
+        """Move o inimigo na direção de um ponto alvo e atualiza a direção horizontal."""
         if self.esta_vivo() and self.velocidade > 0:
-            dx = alvo_x - self.rect.centerx # Diferença no eixo x
-            dy = alvo_y - self.rect.centery # Diferença no eixo y
-            distancia = math.hypot(dx, dy) # Calcula a distância usando a hipotenusa
+            dx = alvo_x - self.rect.centerx
+            dy = alvo_y - self.rect.centery
+            distancia = math.hypot(dx, dy)
 
-            # Define uma pequena margem para evitar tremer quando muito perto
-            if distancia > self.velocidade / 2: # Move apenas si a distância for maior que metade da velocidade
-                # Normaliza o vetor direção para obter apenas a direção
-                if distancia > 0: # Evita divisão por zero
-                    dx_norm = dx / distancia
-                    dy_norm = dy / distancia
-                else:
-                    dx_norm = 0
-                    dy_norm = 0
+            if distancia > 0: 
+                dx_norm = dx / distancia
+                dy_norm = dy / distancia
+                self.rect.x += dx_norm * self.velocidade
+                self.rect.y += dy_norm * self.velocidade
 
-                # Calcula a potencial nova posição
-                new_x = self.rect.x + dx_norm * self.velocidade
-                new_y = self.rect.y + dy_norm * self.velocidade
+                if dx > 0:
+                    self.facing_right = True
+                elif dx < 0:
+                    self.facing_right = False
 
-                # Cria um retângulo TEMPORÁRIO para a hitbox de colisão do inimigo na nova posição
-                # para verificar colisão com as hitboxes de colisão das árvores.
-                if hasattr(self, 'collision_rect'): # Verifica si a hitbox de colisão do inimigo existe
-                     temp_collision_rect = self.collision_rect.copy()
-                     # Atualiza a posição do centro inferior da hitbox temporária com base na nova posição do rect principal
-                     temp_collision_rect.centerx = new_x + self.rect.width // 2 # Calcula o centro X da nova posição do rect
-                     temp_collision_rect.bottom = new_y + self.rect.height # Calcula a base Y da nova posição do rect
-                else:
-                     # Se a hitbox de colisão do inimigo não existir, usa o rect principal temporário
-                     temp_collision_rect = self.rect.copy()
-                     temp_collision_rect.x = new_x
-                     temp_collision_rect.y = new_y
-                     # print("AVISO(Inimigo Base): self.collision_rect não existe. Usando self.rect para colisão com árvores.") # Debug removido
+    def atualizar_animacao(self):
+        """Atualiza o índice do sprite para a animação e aplica o flip horizontal."""
+        agora = pygame.time.get_ticks()
+        if self.sprites and len(self.sprites) > 1 and self.esta_vivo(): 
+            if agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao:
+                self.tempo_ultimo_update_animacao = agora
+                self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
+        
+        if self.sprites:
+            current_sprite_index = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
+            if current_sprite_index < len(self.sprites):
+                 base_image = self.sprites[current_sprite_index]
+            else: 
+                 base_image = self.sprites[0]
 
-
-                # Verifica colisão com cada árvore usando as hitboxes de colisão
-                can_move = True
-                if arvores is not None: # Verifica si a lista de árvores não é None
-                    for arvore in arvores:
-                         # Verifica si a árvore existe e tem a hitbox de colisão reduzida
-                         if arvore is not None and hasattr(arvore, 'collision_rect'):
-                              # >>> Usa a hitbox de colisão do inimigo (temporária) e da árvore para a detecção <<<
-                              if temp_collision_rect.colliderect(arvore.collision_rect):
-                                   can_move = False
-                                   break # Para de verificar assim que encontrar uma colisão
-                         # Si a árvore não tiver collision_rect, verifica com o rect principal como fallback
-                         elif arvore is not None and hasattr(arvore, 'rect'):
-                              if temp_collision_rect.colliderect(arvore.rect):
-                                   can_move = False
-                                   break
-                         # else:
-                              # print("AVISO(Inimigo Base): Objeto na lista de árvores é None ou não tem rect/collision_rect.") # Debug removido
-
-
-                # Si não houver colisão com árvores, aplica o movimento ao rect principal
-                if can_move:
-                    self.rect.x = new_x
-                    self.rect.y = new_y
-                    # Atualiza a posição da hitbox de colisão do inimigo para a nova posição
-                    if hasattr(self, 'collision_rect'):
-                         self.collision_rect.centerx = self.rect.centerx
-                         self.collision_rect.bottom = self.rect.bottom
-                # else:
-                    # Se não puder mover, a posição não mudará, e isso será detectado no update
-                    # print(f"DEBUG(Inimigo Base): Colisão detectada com árvore. Não moveu.") # Debug removido
-
-
+            if hasattr(self, 'facing_right') and not self.facing_right:
+                self.image = pygame.transform.flip(base_image, True, False)
             else:
-                 # Si a distância for menor ou igual à metade da velocidade, move diretamente para o alvo
-                 self.rect.centerx = alvo_x
-                 self.rect.centery = alvo_y
-                 # Atualiza a posição da hitbox de colisão do inimigo para a nova posição
-                 if hasattr(self, 'collision_rect'):
-                      self.collision_rect.centerx = self.rect.centerx
-                      self.collision_rect.bottom = self.rect.bottom
+                self.image = base_image
+        elif not hasattr(self, 'image') or self.image is None: 
+            self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (255, 0, 255), (0, 0, self.largura, self.altura))
 
-
-        # Após tentar mover, verifica se a posição mudou para detectar se está preso
-        # Compara a posição ATUAL do rect principal com a posição ANTERIOR
-        if (self.rect.x, self.rect.y) == current_pos:
-            # Se a posição não mudou, o inimigo está preso
-            if not self.is_stuck:
-                self.is_stuck = True
-                self._stuck_timer = pygame.time.get_ticks() # Inicia o temporizador de estar preso
-                # print(f"DEBUG(Inimigo Base): {type(self).__name__} ficou preso em ({self.rect.x}, {self.rect.y}).") # Debug removido
-        else:
-            # Se a posição mudou, o inimigo não está mais preso
-            self.is_stuck = False
-            self._stuck_timer = 0 # Reseta o temporizador
-
-
-    # Modificado: Adicionado 'arvores' como argumento e lógica de detecção de estar preso
-    def update(self, player, arvores):
+    def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None):
         """
-        Método placeholder para atualização do inimigo.
-        As classes derivadas devem sobrescrever este método para implementar
-        movimento, ataque, animação, etc. Deve receber o objeto player e a lista de árvores.
-
-        As classes derivadas devem implementar a lógica de IA aqui,
-        incluindo como o inimigo decide se mover (por exemplo, para desviar de árvores)
-        e então chamar self.mover_em_direcao(player.rect.centerx, player.rect.centery, arvores)
-        ou uma lógica de movimento específica.
-
-        Este método base inclui a lógica de colisão com o jogador e empurrão.
+        Atualiza o estado do inimigo (movimento, animação e comportamento de contato).
         """
-        # Lógica de colisão com o jogador e dano de contato/empurrão
-        self.check_player_collision(player)
-
-        # >>> Implemente a lógica de IA específica do inimigo nas classes derivadas aqui. <<<
-        # As classes derivadas devem chamar self.mover_em_direcao(player.rect.centerx, player.rect.centery, arvores)
-        # ou uma lógica de movimento específica.
-        # Use self.is_stuck e self._stuck_timer para implementar o desvio.
-
-        # Exemplo BÁSICO de como uma classe derivada PODE usar a detecção de estar preso:
-        # No método update da CLASSE DERIVADA:
-        # if self.esta_vivo() and player is not None and hasattr(player, 'esta_vivo') and player.esta_vivo():
-        #    current_ticks = pygame.time.get_ticks()
-        #
-        #    # Se estiver preso por tempo suficiente e não estiver tentando desviar
-        #    if self.is_stuck and current_ticks - self._stuck_timer > self._stuck_duration_threshold and self._evade_direction is None:
-        #       # Inicia uma tentativa de desvio
-        #       self._evade_direction = random.choice(["left", "right", "up", "down"]) # Escolhe uma direção aleatória para tentar desviar
-        #       self._evade_timer = current_ticks
-        #       # print(f"{type(self).__name__} preso! Tentando desviar para {self._evade_direction}") # Debug de desvio
-        #
-        #    # Se estiver tentando desviar
-        #    if self._evade_direction is not None:
-        #       # Calcula o movimento de desvio
-        #       evade_speed = self.velocidade * 1.5 # Pode desviar mais rápido
-        #       evade_dx, evade_dy = 0, 0
-        #       if self._evade_direction == "left":
-        #          evade_dx = -evade_speed
-        #       elif self._evade_direction == "right":
-        #          evade_dx = evade_speed
-        #       elif self._evade_direction == "up":
-        #          evade_dy = -evade_speed
-        #       elif self._evade_direction == "down":
-        #          evade_dy = evade_speed
-        #
-        #       # Aplica o movimento de desvio (sem verificar colisão com árvores durante o desvio simples)
-        #       # É importante atualizar a posição do rect principal aqui
-        #       self.rect.x += evade_dx
-        #       self.rect.y += evade_dy
-        #       # Atualiza a posição da hitbox de colisão do inimigo também
-        #       if hasattr(self, 'collision_rect'):
-        #            self.collision_rect.centerx = self.rect.centerx
-        #            self.collision_rect.bottom = self.rect.bottom
-        #
-        #       # Verifica se a duração do desvio terminou
-        #       if current_ticks - self._evade_timer > self._evade_duration:
-        #          self._evade_direction = None # Termina a tentativa de desvio
-        #          self.is_stuck = False # Considera que não está mais preso (pode ser reavaliado no próximo frame)
-        #          # print(f"{type(self).__name__} terminou tentativa de desvio.") # Debug de desvio
-        #
-        #    else:
-        #       # Se não estiver tentando desviar, move normalmente em direção ao jogador (com verificação de colisão da base)
-        #       target_x, target_y = player.rect.centerx, player.rect.centery
-        #       self.mover_em_direcao(target_x, target_y, arvores) # Chama o método da base com a lista de árvores
-        #
-        #    # Lógica de ataque (chame o método atacar se o inimigo tiver um)
-        #    if hasattr(self, 'atacar'):
-        #        self.atacar(player)
-        #
-        #    # Lógica de animação (chame o método atualizar_animacao se o inimigo tiver um)
-        #    if hasattr(self, 'atualizar_animacao'):
-        #        self.atualizar_animacao()
-        #
-        # else:
-        #     # print(f"DEBUG(Inimigo Base Update): {type(self).__name__} ou player não está vivo. Não atualizando IA.") # Debug removido
-        #     pass # Não atualiza a IA se o inimigo ou jogador não estiver vivo
-
-
-        pass # Implementação real da IA deve estar nas classes derivadas
-
-
-    def check_player_collision(self, player):
-        """
-        Verifica colisão com o jogador, aplica dano de contato e empurra o jogador.
-
-        Args:
-            player (Player): O objeto jogador.
-        """
-        # Verifica se o inimigo está vivo e se o jogador existe e tem um rect e vida
-        if self.esta_vivo() and player is not None and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
-            # Obtém o retângulo de colisão do jogador (preferindo rect_colisao si existir)
-            player_rect_colisao = getattr(player, 'rect_colisao', getattr(player, 'rect', None))
-
-            # Verifica colisão entre o rect principal do inimigo e o retângulo de colisão do jogador
-            # Usamos o rect principal do inimigo para colisão com o jogador,
-            # a menos que você defina uma hitbox específica para colisão inimigo-jogador.
-            if player_rect_colisao is not None and self.rect.colliderect(player_rect_colisao):
-                agora = pygame.time.get_ticks()
-                # Verifica si o cooldown de contato passou
-                if agora - self.last_contact_time >= self.contact_cooldown:
-                    # Aplica dano de contato ao jogador (se o jogador tiver o método receber_dano)
-                    if hasattr(player, 'receber_dano'):
-                         player.receber_dano(self.contact_damage)
-
-                    # Calcula o vetor de empurrão do inimigo para o jogador
-                    push_vector_x = player_rect_colisao.centerx - self.rect.centerx
-                    push_vector_y = player_rect_colisao.centery - self.rect.centery
-                    distance = math.hypot(push_vector_x, push_vector_y)
-
-                    if distance > 0: # Evita divisão por zero
-                        push_dir_x = push_vector_x / distance
-                        push_dir_y = push_vector_y / distance
-
-                        # Aplica o empurrão ao jogador (se o jogador tiver o método aplicar_empurrao)
-                        if hasattr(player, 'aplicar_empurrao'):
-                             player.aplicar_empurrao(push_dir_x * self.push_force, push_dir_y * self.push_force, self.push_duration)
-
-                    self.last_contact_time = agora # Atualiza o tempo do último contato
-            # else:
-                 # print("AVISO(Inimigo Base - Colisão Player): Objeto player_rect_colisao é None ou inimigo/player não está vivo.") # Debug removido
-
+        if self.esta_vivo():
+            if hasattr(player, 'rect'):
+                self.mover_em_direcao(player.rect.centerx, player.rect.centery)
+            
+            self.atualizar_animacao()
+            
+            current_ticks = pygame.time.get_ticks()
+            if hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
+                if self.rect.colliderect(player.rect):
+                    if (current_ticks - self.last_contact_time >= self.contact_cooldown):
+                        if hasattr(player, 'receber_dano'):
+                            player.receber_dano(self.contact_damage)
+                            self.last_contact_time = current_ticks
 
     def desenhar(self, janela, camera_x, camera_y):
         """
-        Desenha o inimigo na janela, aplicando o offset da câmera.
-        Opcional: Desenha a hitbox de colisão para debug.
-
-        Args:
-            janela (pygame.Surface): A superfície onde desenhar.
-            camera_x (int): O offset x da câmera.
-            camera_y (int): O offset y da câmera.
+        Desenha o inimigo na tela, aplicando o efeito de flash se estiver ativo,
+        e desenha a barra de vida.
         """
-        # Desenha a imagem do inimigo na posição corrigida pela câmera
-        janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        if not hasattr(self, 'image') or self.image is None: 
+            self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (255,0,255), (0,0,self.largura, self.altura))
+            if not hasattr(self, 'rect'): 
+                 self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
-        # >>> Opcional: Desenhar a hitbox de colisão reduzida para visualização <<<
-        # Verifica si a hitbox de colisão do inimigo existe
-        # if hasattr(self, 'collision_rect'):
-        #     # Cria um retângulo visual com o offset da câmera
-        #     collision_rect_on_screen = pygame.Rect(self.collision_rect.x - camera_x, self.collision_rect.y - camera_y, self.collision_rect.width, self.collision_rect.height)
-        #     # Desenha o retângulo azul (ou outra cor para distinguir)
-        #     pygame.draw.rect(janela, (0, 0, 255), collision_rect_on_screen, 1) # Desenha um retângulo azul de 1 pixel de largura
+        screen_x = self.rect.x - camera_x
+        screen_y = self.rect.y - camera_y
+
+        # Desenha o sprite normal do inimigo
+        janela.blit(self.image, (screen_x, screen_y))
+
+        # --- Lógica do flash de dano MODIFICADA ---
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_hit_time < self.hit_flash_duration:
+            # Cria uma cópia da imagem atual do inimigo para o efeito de flash
+            flash_image_overlay = self.image.copy()
+            
+            # Preenche as partes visíveis da cópia com branco.
+            # BLEND_RGB_MAX (ou BLEND_RGBA_MAX) pega o valor máximo de cor, 
+            # efetivamente tornando as partes coloridas do sprite brancas, 
+            # respeitando a transparência original.
+            flash_image_overlay.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGB_MAX) 
+            # O alfa na cor de fill é ignorado por BLEND_RGB_MAX, mas é bom ter para RGBA_MAX.
+            
+            # Define o alfa da superfície de flash para a intensidade desejada
+            # self.hit_flash_color é (R, G, B, Alpha_intensidade)
+            flash_image_overlay.set_alpha(self.hit_flash_color[3]) # Usa o alfa de hit_flash_color (ex: 128)
+            
+            # Desenha a imagem com flash sobre a posição do inimigo
+            janela.blit(flash_image_overlay, (screen_x, screen_y))
+        # --- Fim da lógica do flash ---
+
+        # Desenhar barra de vida do inimigo
+        if self.hp < self.max_hp and self.hp > 0: 
+            bar_width = self.largura
+            bar_height = 5
+            health_percentage = self.hp / self.max_hp
+            current_bar_width = int(bar_width * health_percentage)
+            
+            bar_x = screen_x
+            bar_y = screen_y - bar_height - 5 
+
+            pygame.draw.rect(janela, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height), border_radius=2) 
+            pygame.draw.rect(janela, (0, 255, 0), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2) 
+            pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2) 
 
 
-    def esta_vivo(self):
-        """Retorna True se o inimigo estiver vivo."""
-        # Verifica si o inimigo tem o atributo hp antes de verificar
-        if hasattr(self, 'hp'):
-             return self.hp > 0 # Assume que o inimigo está vivo se HP > 0
-        return False # Retorna False si o atributo hp não existir
-
-    def receber_dano(self, dano):
+    def verificar_colisao(self, outro_objeto):
         """
-        Método para receber dano.
-        As classes derivadas podem sobrescrever este método para adicionar efeitos (animação de dano, etc.).
+        Verifica a colisão entre o inimigo e outro objeto.
+        Assume que o outro objeto tem um atributo 'rect_colisao' ou 'rect'.
         """
-        if self.esta_vivo(): # Só recebe dano si estiver vivo
-            self.hp -= dano
-            # print(f"DEBUG(Inimigo Base): {type(self).__name__} recebeu {dano} de dano. HP restante: {self.hp}") # Debug removido
-            if self.hp <= 0:
-                self.hp = 0 # Garante que HP não seja negativo
-                # print(f"DEBUG(Inimigo Base): {type(self).__name__} morreu.") # Debug removido
-                self.kill() # Remove o sprite de todos os grupos (se estiver em grupos)
-                # A remoção da lista no gerenciador de inimigos é feita no GerenciadorDeInimigos.update_inimigos.
+        outro_rect = getattr(outro_objeto, 'rect_colisao', getattr(outro_objeto, 'rect', None))
+        if outro_rect:
+            return self.rect.colliderect(outro_rect)
+        return False
 
-
-# No seu loop principal do jogo (Game.py), você precisará:
-# 1. Passar a lista de árvores para o método update_inimigos do GerenciadorDeInimigos.
-# 2. No método update_inimigos, passar a lista de árvores para o método update de cada inimigo.
-# 3. Certificar-se de que a classe Player tem um método 'aplicar_empurrao(push_x, push_y, duration_ms)'.
-# 4. Implementar a lógica de desvio específica no método update de cada classe de inimigo derivada,
-#    usando os atributos self.is_stuck, self._stuck_timer, self._stuck_duration_threshold,
-#    self._evade_direction, self._evade_timer, self._evade_duration.
