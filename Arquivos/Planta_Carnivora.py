@@ -52,7 +52,6 @@ except ImportError:
             game_dir = os.path.dirname(base_dir)
             full_path = os.path.join(game_dir, path.replace("/", os.sep))
             if not os.path.exists(full_path):
-                print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -61,7 +60,6 @@ except ImportError:
                 img = pygame.transform.scale(img, tamanho)
                 return img
             except pygame.error as e:
-                print(f"DEBUG(InimigoPlaceholder): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -166,7 +164,6 @@ class Planta_Carnivora(Inimigo):
     tamanho_sprite_definido = (64, 64)
 
     def __init__(self, x, y, velocidade=1.0): 
-        print(f"DEBUG(Planta_Carnivora): Inicializando Planta Carnivora em ({x}, {y}) com velocidade {velocidade}.")
 
         planta_hp = 25 
         planta_contact_damage = 10 
@@ -190,18 +187,15 @@ class Planta_Carnivora(Inimigo):
                         sprite = pygame.transform.scale(sprite, Planta_Carnivora.tamanho_sprite_definido)
                         Planta_Carnivora.sprites_originais.append(sprite) 
                     else:
-                        print(f"DEBUG(Planta_Carnivora): Aviso: Sprite da Planta Carnivora não encontrado: {full_path}. Usando placeholder.")
                         placeholder = pygame.Surface(Planta_Carnivora.tamanho_sprite_definido, pygame.SRCALPHA)
                         pygame.draw.rect(placeholder, (0, 128, 0), (0, 0, Planta_Carnivora.tamanho_sprite_definido[0], Planta_Carnivora.tamanho_sprite_definido[1])) # Verde escuro placeholder
                         Planta_Carnivora.sprites_originais.append(placeholder) 
                 except pygame.error as e:
-                    print(f"DEBUG(Planta_Carnivora): Erro ao carregar o sprite do Planta Carnivora: {full_path} - {e}")
                     placeholder = pygame.Surface(Planta_Carnivora.tamanho_sprite_definido, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (0, 128, 0), (0, 0, Planta_Carnivora.tamanho_sprite_definido[0], Planta_Carnivora.tamanho_sprite_definido[1])) 
                     Planta_Carnivora.sprites_originais.append(placeholder) 
             
             if not Planta_Carnivora.sprites_originais:
-                print("DEBUG(Planta_Carnivora): Aviso: Nenhum sprite do Planta Carnivora carregado. Usando placeholder padrão.")
                 placeholder = pygame.Surface(Planta_Carnivora.tamanho_sprite_definido, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (0, 128, 0), (0, 0, Planta_Carnivora.tamanho_sprite_definido[0], Planta_Carnivora.tamanho_sprite_definido[1]))
                 Planta_Carnivora.sprites_originais.append(placeholder)
@@ -235,7 +229,6 @@ class Planta_Carnivora(Inimigo):
              elif len(self.sprites) > 0: 
                 self.image = self.sprites[0]
         
-        print(f"DEBUG(Planta_Carnivora): Planta Carnivora inicializada. HP: {self.hp}, Vel: {self.velocidade}")
 
     def receber_dano(self, dano):
         super().receber_dano(dano) 
@@ -260,7 +253,6 @@ class Planta_Carnivora(Inimigo):
                 self.attack_timer = current_time 
                 self.last_attack_time = current_time 
                 self.hit_by_player_this_attack = False 
-                print(f"DEBUG(Planta_Carnivora): Planta Carnivora iniciando ataque! Dist: {distancia_ao_jogador:.0f}")
                 
                 attack_hitbox_width, attack_hitbox_height = self.attack_hitbox_size
                 # Posiciona a hitbox à frente da planta, dependendo da direção
@@ -304,7 +296,6 @@ class Planta_Carnivora(Inimigo):
                         if player.vida.esta_vivo(): 
                             player.receber_dano(self.attack_damage)
                             self.hit_by_player_this_attack = True 
-                            print(f"DEBUG(Planta_Carnivora): Ataque específico acertou o jogador! Dano: {self.attack_damage}")
             
             if not self.is_attacking:
                 self.atacar(player)

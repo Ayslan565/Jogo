@@ -49,7 +49,6 @@ except ImportError:
             game_dir = os.path.dirname(base_dir)
             full_path = os.path.join(game_dir, path.replace("/", os.sep))
             if not os.path.exists(full_path):
-                print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -164,7 +163,6 @@ class Fenix(Inimigo):
     tamanho_sprite_definido = (90, 90) 
 
     def __init__(self, x, y, velocidade=3.0): 
-        print(f"DEBUG(Fenix): Inicializando Fênix em ({x}, {y}) com velocidade {velocidade}.")
 
         fenix_hp = 70 
         fenix_contact_damage = 5 
@@ -190,7 +188,7 @@ class Fenix(Inimigo):
                         sprite = pygame.transform.scale(sprite, Fenix.tamanho_sprite_definido)
                         Fenix.sprites_originais.append(sprite)
                     else:
-                        print(f"DEBUG(Fenix): Aviso: Sprite da Fênix não encontrado: {full_path}. Usando placeholder.")
+
                         placeholder = pygame.Surface(Fenix.tamanho_sprite_definido, pygame.SRCALPHA)
                         pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, Fenix.tamanho_sprite_definido[0], Fenix.tamanho_sprite_definido[1])) 
                         Fenix.sprites_originais.append(placeholder)
@@ -201,7 +199,6 @@ class Fenix(Inimigo):
                     Fenix.sprites_originais.append(placeholder)
             
             if not Fenix.sprites_originais:
-                print("DEBUG(Fenix): Aviso: Nenhum sprite da Fênix carregado. Usando placeholder padrão.")
                 placeholder = pygame.Surface(Fenix.tamanho_sprite_definido, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (255, 165, 0), (0, 0, Fenix.tamanho_sprite_definido[0], Fenix.tamanho_sprite_definido[1]))
                 Fenix.sprites_originais.append(placeholder)
@@ -235,7 +232,6 @@ class Fenix(Inimigo):
              elif len(self.sprites) > 0: 
                 self.image = self.sprites[0]
         
-        print(f"DEBUG(Fenix): Fênix inicializada. HP: {self.hp}, Vel: {self.velocidade}")
 
     def receber_dano(self, dano):
         super().receber_dano(dano) 
@@ -263,7 +259,6 @@ class Fenix(Inimigo):
                 self.attack_timer = current_time 
                 self.last_attack_time = current_time 
                 self.hit_by_player_this_attack = False 
-                print(f"DEBUG(Fenix): Fênix iniciando ataque! Dist: {distancia_ao_jogador:.0f}")
                 
                 attack_hitbox_width = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[0]
                 attack_hitbox_height = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[1]
@@ -298,9 +293,7 @@ class Fenix(Inimigo):
                        self.attack_hitbox.colliderect(player.rect):
                         if player.vida.esta_vivo(): 
                             player.receber_dano(self.attack_damage)
-                            self.hit_by_player_this_attack = True 
-                            print(f"DEBUG(Fenix): Ataque específico acertou o jogador! Dano: {self.attack_damage}")
-            
+                            self.hit_by_player_this_attack = True             
             # Tenta iniciar um novo ciclo de ataque (se não estiver já em um)
             if not self.is_attacking:
                 self.atacar(player)

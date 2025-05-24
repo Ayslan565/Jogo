@@ -74,7 +74,6 @@ class ProjetilNeve(pygame.sprite.Sprite):
                 if hasattr(player, 'receber_dano'):
                     player.receber_dano(self.dano)
                     self.atingiu = True 
-                    print(f"DEBUG(ProjetilNeve): Projétil atingiu o jogador! Causou {self.dano} de dano.") 
                 else:
                     print("DEBUG(ProjetilNeve): Objeto player não tem método 'receber_dano'.")
         
@@ -84,7 +83,6 @@ class ProjetilNeve(pygame.sprite.Sprite):
            self.atingiu or (time.time() - self.tempo_criacao > self.vida_util):
             self.kill() # Remove o sprite de todos os grupos
             self.alive = False # Marca como não vivo para remoção da lista manual
-            print("DEBUG(ProjetilNeve): Projétil removido.")
 
 
     def desenhar(self, surface, camera_x, camera_y):

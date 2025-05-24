@@ -164,7 +164,6 @@ class Mae_Natureza(Inimigo):
     tamanho_sprite_definido = (150, 150)
 
     def __init__(self, x, y, velocidade=0.8): 
-        print(f"DEBUG(Mae_Natureza): Inicializando Mãe Natureza em ({x}, {y}) com velocidade {velocidade}.")
 
         mae_natureza_hp = 200 
         mae_natureza_contact_damage = 10 
@@ -189,18 +188,15 @@ class Mae_Natureza(Inimigo):
                         sprite = pygame.transform.scale(sprite, Mae_Natureza.tamanho_sprite_definido)
                         Mae_Natureza.sprites_carregados.append(sprite)
                     else:
-                        print(f"DEBUG(Mae_Natureza): Aviso: Sprite da Mãe Natureza não encontrado: {full_path}. Usando placeholder.")
                         placeholder = pygame.Surface(Mae_Natureza.tamanho_sprite_definido, pygame.SRCALPHA)
                         pygame.draw.rect(placeholder, (50, 150, 50), (0, 0, Mae_Natureza.tamanho_sprite_definido[0], Mae_Natureza.tamanho_sprite_definido[1])) 
                         Mae_Natureza.sprites_carregados.append(placeholder)
                 except pygame.error as e:
-                    print(f"DEBUG(Mae_Natureza): Erro ao carregar o sprite da Mãe Natureza: {full_path} - {e}")
                     placeholder = pygame.Surface(Mae_Natureza.tamanho_sprite_definido, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (50, 150, 50), (0, 0, Mae_Natureza.tamanho_sprite_definido[0], Mae_Natureza.tamanho_sprite_definido[1])) 
                     Mae_Natureza.sprites_carregados.append(placeholder)
             
             if not Mae_Natureza.sprites_carregados:
-                print("DEBUG(Mae_Natureza): Aviso: Nenhum sprite da Mãe Natureza carregado. Usando placeholder padrão.")
                 placeholder = pygame.Surface(Mae_Natureza.tamanho_sprite_definido, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (50, 150, 50), (0, 0, Mae_Natureza.tamanho_sprite_definido[0], Mae_Natureza.tamanho_sprite_definido[1]))
                 Mae_Natureza.sprites_carregados.append(placeholder)
@@ -234,7 +230,6 @@ class Mae_Natureza(Inimigo):
              elif len(self.sprites) > 0: 
                 self.image = self.sprites[0]
 
-        print(f"DEBUG(Mae_Natureza): Mãe Natureza inicializada. HP: {self.hp}, Vel: {self.velocidade}")
 
 
     def receber_dano(self, dano):
@@ -270,7 +265,6 @@ class Mae_Natureza(Inimigo):
                 attack_hitbox_height = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[1]
                 self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
                 self.attack_hitbox.center = self.rect.center
-                print("DEBUG(Mae_Natureza): Mãe Natureza iniciou ataque!")
 
 
     # CORREÇÃO APLICADA AQUI na assinatura do método update
@@ -304,7 +298,6 @@ class Mae_Natureza(Inimigo):
                         if player.vida.esta_vivo(): 
                             player.receber_dano(self.attack_damage)
                             self.hit_by_player_this_attack = True
-                            print(f"DEBUG(Mae_Natureza): Ataque específico acertou o jogador! Dano: {self.attack_damage}")
             
             # Tenta iniciar um novo ciclo de ataque (se não estiver já em um)
             if not self.is_attacking:

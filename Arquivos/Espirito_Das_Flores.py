@@ -10,7 +10,6 @@ import os # Importa os para verificar a existência de arquivos
 try:
     from Inimigos import Inimigo
 except ImportError:
-    print("DEBUG(Espirito_Das_Flores): ERRO: Módulo 'Inimigos.py' ou classe 'Inimigo' NÃO encontrado. Usando classe Inimigo placeholder.")
     # Define uma classe Inimigo placeholder mais completa para evitar NameError e AttributeError
     class Inimigo(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
@@ -52,7 +51,6 @@ except ImportError:
             game_dir = os.path.dirname(base_dir)
             full_path = os.path.join(game_dir, path.replace("/", os.sep))
             if not os.path.exists(full_path):
-                print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -61,7 +59,6 @@ except ImportError:
                 img = pygame.transform.scale(img, tamanho)
                 return img
             except pygame.error as e:
-                print(f"DEBUG(InimigoPlaceholder): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -165,7 +162,6 @@ class Espirito_Das_Flores(Inimigo):
     tamanho_sprite_definido = (70, 70)
 
     def __init__(self, x, y, velocidade=1.8): 
-        print(f"DEBUG(Espirito_Das_Flores): Inicializando Espírito das Flores em ({x}, {y}) com velocidade {velocidade}.")
 
         espirito_hp = 75 
         espirito_contact_damage = 8 
@@ -194,12 +190,10 @@ class Espirito_Das_Flores(Inimigo):
                         sprite = pygame.transform.scale(sprite, Espirito_Das_Flores.tamanho_sprite_definido)
                         Espirito_Das_Flores.sprites_originais.append(sprite)
                     else:
-                        print(f"DEBUG(Espirito_Das_Flores): Aviso: Sprite do Espírito das Flores não encontrado: {full_path}. Usando placeholder.")
                         placeholder = pygame.Surface(Espirito_Das_Flores.tamanho_sprite_definido, pygame.SRCALPHA)
                         pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, Espirito_Das_Flores.tamanho_sprite_definido[0], Espirito_Das_Flores.tamanho_sprite_definido[1])) 
                         Espirito_Das_Flores.sprites_originais.append(placeholder)
                 except pygame.error as e:
-                    print(f"DEBUG(Espirito_Das_Flores): Erro ao carregar o sprite do Espírito das Flores: {full_path} - {e}")
                     placeholder = pygame.Surface(Espirito_Das_Flores.tamanho_sprite_definido, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (255, 105, 180), (0, 0, Espirito_Das_Flores.tamanho_sprite_definido[0], Espirito_Das_Flores.tamanho_sprite_definido[1])) 
                     Espirito_Das_Flores.sprites_originais.append(placeholder)
@@ -239,9 +233,6 @@ class Espirito_Das_Flores(Inimigo):
                 self.image = self.sprites[idx]
              elif len(self.sprites) > 0: 
                 self.image = self.sprites[0]
-        
-        print(f"DEBUG(Espirito_Das_Flores): Espírito das Flores inicializado. HP: {self.hp}, Vel: {self.velocidade}")
-
 
     def receber_dano(self, dano):
         super().receber_dano(dano) 
@@ -271,7 +262,6 @@ class Espirito_Das_Flores(Inimigo):
                 self.attack_timer = current_time 
                 self.last_attack_time = current_time 
                 self.hit_by_player_this_attack = False 
-                print(f"DEBUG(Espirito_Das_Flores): Espírito das Flores iniciando ataque! Dist: {distancia_ao_jogador:.0f}")
                 
                 attack_hitbox_width, attack_hitbox_height = self.attack_hitbox_size
                 self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
@@ -304,7 +294,6 @@ class Espirito_Das_Flores(Inimigo):
                         if player.vida.esta_vivo(): 
                             player.receber_dano(self.attack_damage)
                             self.hit_by_player_this_attack = True 
-                            print(f"DEBUG(Espirito_Das_Flores): Ataque específico acertou o jogador! Dano: {self.attack_damage}")
             
             if not self.is_attacking:
                 self.atacar(player)

@@ -48,7 +48,9 @@ class Inimigo(pygame.sprite.Sprite): # Herda de pygame.sprite.Sprite
         self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
         self.hit_by_player_this_attack = False 
         
-        self.contact_cooldown = 1000 
+        # AUMENTADO O COOLDOWN DE CONTATO DO INIMIGO AO ATINGIR O PLAYER
+        # De 100 milissegundos para 1000 milissegundos (1 segundo)
+        self.contact_cooldown = 1000 # Cooldown em milissegundos (1 segundo)
         self.last_contact_time = pygame.time.get_ticks()
 
     def _carregar_sprite(self, path, tamanho):
@@ -112,9 +114,9 @@ class Inimigo(pygame.sprite.Sprite): # Herda de pygame.sprite.Sprite
         if self.sprites:
             current_sprite_index = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
             if current_sprite_index < len(self.sprites):
-                 base_image = self.sprites[current_sprite_index]
+                base_image = self.sprites[current_sprite_index]
             else: 
-                 base_image = self.sprites[0]
+                base_image = self.sprites[0]
 
             if hasattr(self, 'facing_right') and not self.facing_right:
                 self.image = pygame.transform.flip(base_image, True, False)
@@ -151,7 +153,7 @@ class Inimigo(pygame.sprite.Sprite): # Herda de pygame.sprite.Sprite
             self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
             pygame.draw.rect(self.image, (255,0,255), (0,0,self.largura, self.altura))
             if not hasattr(self, 'rect'): 
-                 self.rect = self.image.get_rect(topleft=(self.x, self.y))
+                self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
         screen_x = self.rect.x - camera_x
         screen_y = self.rect.y - camera_y
@@ -204,4 +206,3 @@ class Inimigo(pygame.sprite.Sprite): # Herda de pygame.sprite.Sprite
         if outro_rect:
             return self.rect.colliderect(outro_rect)
         return False
-

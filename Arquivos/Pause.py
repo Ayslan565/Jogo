@@ -162,7 +162,7 @@ class PauseMenuManager:
         title_rect = title_text.get_rect(center=(self.largura_tela // 2, self.altura_tela // 4))
         self.pygame_janela.blit(title_text, title_rect)
 
-        options = ["Continuar", "Opções", "Voltar ao Menu Principal", "Sair"]
+        options = ["Continuar", "Opções", "Menu Principal", "Sair"]
         button_height = 60 # Altura do botão
         button_spacing = 20 # Espaçamento entre botões
         total_button_height = len(options) * button_height + (len(options) - 1) * button_spacing

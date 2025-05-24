@@ -49,7 +49,6 @@ except ImportError:
             game_dir = os.path.dirname(base_dir)
             full_path = os.path.join(game_dir, path.replace("/", os.sep))
             if not os.path.exists(full_path):
-                print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (139,69,19), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -58,7 +57,6 @@ except ImportError:
                 img = pygame.transform.scale(img, tamanho)
                 return img
             except pygame.error as e:
-                print(f"DEBUG(InimigoPlaceholder): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (139,69,19), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -157,7 +155,6 @@ class Urso(Inimigo):
     tamanho_sprite_definido = (120, 120) # Tamanho maior para o Urso
 
     def __init__(self, x, y, velocidade=1.0): 
-        print(f"DEBUG(Urso): Inicializando Urso em ({x}, {y}) com velocidade {velocidade}.")
 
         urso_hp = 200 # Mais HP para o Urso
         urso_contact_damage = 20 # Dano de contato maior
@@ -183,18 +180,15 @@ class Urso(Inimigo):
                         sprite = pygame.transform.scale(sprite, Urso.tamanho_sprite_definido)
                         Urso.sprites_carregados_andar.append(sprite)
                     else:
-                        print(f"DEBUG(Urso): Aviso: Sprite de andar do Urso não encontrado: {full_path}. Usando placeholder.")
                         placeholder = pygame.Surface(Urso.tamanho_sprite_definido, pygame.SRCALPHA)
                         pygame.draw.rect(placeholder, (100, 70, 30), (0, 0, Urso.tamanho_sprite_definido[0], Urso.tamanho_sprite_definido[1])) # Marrom escuro
                         Urso.sprites_carregados_andar.append(placeholder)
                 except pygame.error as e:
-                    print(f"DEBUG(Urso): Erro ao carregar o sprite de andar do Urso: {full_path} - {e}")
                     placeholder = pygame.Surface(Urso.tamanho_sprite_definido, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (100, 70, 30), (0, 0, Urso.tamanho_sprite_definido[0], Urso.tamanho_sprite_definido[1]))
                     Urso.sprites_carregados_andar.append(placeholder)
             
             if not Urso.sprites_carregados_andar: 
-                print("DEBUG(Urso): Aviso: Nenhum sprite de andar do Urso carregado. Usando placeholder padrão.")
                 placeholder = pygame.Surface(Urso.tamanho_sprite_definido, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (100, 70, 30), (0, 0, Urso.tamanho_sprite_definido[0], Urso.tamanho_sprite_definido[1]))
                 Urso.sprites_carregados_andar.append(placeholder)
@@ -231,8 +225,6 @@ class Urso(Inimigo):
              elif len(self.sprites) > 0: 
                 self.image = self.sprites[0]
         
-        print(f"DEBUG(Urso): Urso inicializado. HP: {self.hp}, Vel: {self.velocidade}")
-
     def atacar(self, player):
         if not hasattr(player, 'rect'):
             return
@@ -247,7 +239,6 @@ class Urso(Inimigo):
                 self.attack_timer = current_time 
                 self.last_attack_time = current_time 
                 self.hit_by_player_this_attack = False 
-                print(f"DEBUG(Urso): Urso iniciando ataque (patada)! Dist: {distancia_ao_jogador:.0f}")
                 
                 if self.facing_right:
                     hitbox_x = self.rect.right 
@@ -284,7 +275,6 @@ class Urso(Inimigo):
                         if player.vida.esta_vivo(): 
                             player.receber_dano(self.attack_damage)
                             self.hit_by_player_this_attack = True 
-                            print(f"DEBUG(Urso): Urso acertou o jogador com patada! Dano: {self.attack_damage}")
             
             if not self.is_attacking: 
                 self.atacar(player)

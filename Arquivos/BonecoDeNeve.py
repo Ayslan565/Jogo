@@ -12,7 +12,6 @@ try:
     # Tenta importar o projétil aqui também, se o BonecoDeNeve for atirar
     from Projetil_BolaNeve import ProjetilNeve 
 except ImportError:
-    print("DEBUG(BonecoDeNeve): ERRO: Módulo 'Inimigos.py' ou 'Projetil_BolaNeve.py' NÃO encontrado. Usando classes placeholder.")
     # Define uma classe Inimigo placeholder mais completa para evitar NameError e AttributeError
     class Inimigo(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
@@ -54,7 +53,6 @@ except ImportError:
             game_dir = os.path.dirname(base_dir)
             full_path = os.path.join(game_dir, path.replace("/", os.sep))
             if not os.path.exists(full_path):
-                print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -63,7 +61,6 @@ except ImportError:
                 img = pygame.transform.scale(img, tamanho)
                 return img
             except pygame.error as e:
-                print(f"DEBUG(InimigoPlaceholder): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
                 return img
@@ -196,7 +193,6 @@ class BonecoDeNeve(Inimigo):
     tamanho_sprite_definido = (80, 80) 
 
     def __init__(self, x, y, velocidade=1.0): 
-        print(f"DEBUG(BonecoDeNeve): Inicializando Boneco de Neve em ({x}, {y}) com velocidade {velocidade}.")
 
         boneco_hp = 80
         boneco_contact_damage = 7
@@ -221,18 +217,15 @@ class BonecoDeNeve(Inimigo):
                         sprite = pygame.transform.scale(sprite, BonecoDeNeve.tamanho_sprite_definido)
                         BonecoDeNeve.sprites_carregados.append(sprite)
                     else:
-                        print(f"DEBUG(BonecoDeNeve): Aviso: Sprite do Boneco de Neve não encontrado: {full_path}. Usando placeholder.")
                         placeholder = pygame.Surface(BonecoDeNeve.tamanho_sprite_definido, pygame.SRCALPHA)
                         pygame.draw.rect(placeholder, (0, 100, 200), (0, 0, BonecoDeNeve.tamanho_sprite_definido[0], BonecoDeNeve.tamanho_sprite_definido[1]))
                         BonecoDeNeve.sprites_carregados.append(placeholder)
                 except pygame.error as e:
-                    print(f"DEBUG(BonecoDeNeve): Erro ao carregar o sprite do Boneco de Neve: {full_path} - {e}")
                     placeholder = pygame.Surface(BonecoDeNeve.tamanho_sprite_definido, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (0, 100, 200), (0, 0, BonecoDeNeve.tamanho_sprite_definido[0], BonecoDeNeve.tamanho_sprite_definido[1]))
                     BonecoDeNeve.sprites_carregados.append(placeholder)
             
             if not BonecoDeNeve.sprites_carregados:
-                print("DEBUG(BonecoDeNeve): Aviso: Nenhum sprite do Boneco de Neve carregado. Usando placeholder padrão.")
                 placeholder = pygame.Surface(BonecoDeNeve.tamanho_sprite_definido, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (0, 100, 200), (0, 0, BonecoDeNeve.tamanho_sprite_definido[0], BonecoDeNeve.tamanho_sprite_definido[1]))
                 BonecoDeNeve.sprites_carregados.append(placeholder)
@@ -265,7 +258,6 @@ class BonecoDeNeve(Inimigo):
              elif len(self.sprites) > 0: 
                 self.image = self.sprites[0]
 
-        print(f"DEBUG(BonecoDeNeve): Boneco de Neve inicializado. HP: {self.hp}, Vel: {self.velocidade}")
 
 
     def receber_dano(self, dano):
@@ -295,7 +287,6 @@ class BonecoDeNeve(Inimigo):
                 self.attack_timer = current_time # Marca o início desta fase
                 self.last_attack_time = current_time # Reseta o cooldown principal para o próximo ciclo de ataque
                 self.shoot_projectile_flag = True # Sinaliza que um projétil deve ser disparado ao final da "animação"
-                print(f"DEBUG(BonecoDeNeve): Preparando para atirar. Dist: {distancia_ao_jogador:.0f}")
                 
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None):
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
@@ -327,7 +318,6 @@ class BonecoDeNeve(Inimigo):
                                                              self.velocidade_projetil) # Velocidade do projétil
                                 
                                 projeteis_inimigos_ref.append(novo_projetil)
-                                print(f"DEBUG(BonecoDeNeve): Atirou bola de neve!")
                             
                             except ImportError:
                                 print("DEBUG(BonecoDeNeve): ERRO ao atirar: Módulo 'Projetil_BolaNeve.py' não encontrado no update.")

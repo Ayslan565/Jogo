@@ -1,66 +1,47 @@
-# player.py
 import pygame
 import random
 import math
 import os
 import time
 
-from vida import Vida
-from Armas.weapon import Weapon
+from vida import Vida 
+from Armas.weapon import Weapon 
 
-# Tenta importar todas as classes de armas com seus novos nomes
-# Certifique-se de que estes imports estão corretos para a sua estrutura de pastas
-try:
-    from Armas.EspadaBrasas import EspadaBrasas
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/EspadaBrasas.py' não encontrado.")
-    EspadaBrasas = None
-try:
-    from Armas.MachadoCeruleo import MachadoCeruleo
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/MachadoCeruleo.py' não encontrado.")
-    MachadoCeruleo = None
-try:
-    from Armas.MachadoMacabro import MachadoMacabro
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/MachadoMacabro.py' não encontrado.")
-    MachadoMacabro = None
-try:
-    from Armas.MachadoMarfim import MachadoMarfim
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/MachadoMarfim.py' não encontrado.")
-    MachadoMarfim = None
-try:
-    from Armas.MachadoBarbaro import MachadoBarbaro
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/MachadoBarbaro.py' não encontrado.")
-    MachadoBarbaro = None
-try:
-    from Armas.AdagaFogo import AdagaFogo
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/AdagaFogo.py' não encontrado.")
-    AdagaFogo = None
-try:
-    from Armas.EspadaFogoAzul import EspadaFogoAzul
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/EspadaFogoAzul.py' não encontrado.")
-    EspadaFogoAzul = None
-try:
-    from Armas.EspadaLua import EspadaLua
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/EspadaLua.py' não encontrado.")
-    EspadaLua = None
-try:
-    from Armas.EspadaCaida import EspadaCaida
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/EspadaCaida.py' não encontrado.")
-    EspadaCaida = None
-try:
-    from Armas.EspadaPenitencia import EspadaPenitencia
-except ImportError:
-    print("DEBUG(Player): Aviso: Módulo 'Armas/EspadaPenitencia.py' não encontrado.")
-    EspadaPenitencia = None
+try: from Armas.EspadaBrasas import EspadaBrasas
+except ImportError: EspadaBrasas = None
+try: from Armas.MachadoCeruleo import MachadoCeruleo
+except ImportError: MachadoCeruleo = None
+try: from Armas.MachadoMacabro import MachadoMacabro
+except ImportError: MachadoMacabro = None
+try: from Armas.MachadoMarfim import MachadoMarfim
+except ImportError: MachadoMarfim = None
+try: from Armas.MachadoBarbaro import MachadoBarbaro
+except ImportError: MachadoBarbaro = None
+try: from Armas.AdagaFogo import AdagaFogo
+except ImportError: AdagaFogo = None
+try: from Armas.EspadaFogoAzul import EspadaFogoAzul
+except ImportError: EspadaFogoAzul = None
+try: from Armas.EspadaLua import EspadaLua
+except ImportError: EspadaLua = None
+try: from Armas.EspadaCaida import EspadaCaida
+except ImportError: EspadaCaida = None
+try: from Armas.EspadaPenitencia import EspadaPenitencia
+except ImportError: EspadaPenitencia = None
 
+# --- Mapeamento de nomes de itens da loja para classes de Armas (Exemplo) ---
+# Certifique-se de que este dicionário está correto e completo para sua loja
+SHOP_ITEM_TO_WEAPON_CLASS = {
+    "Adaga Básica": AdagaFogo, 
+    "Espada Média": EspadaBrasas, 
+    "Espada dos Corrompidos": EspadaCaida,
+    "Espada dos Deuses Caidos": EspadaFogoAzul, 
+    "Espada Demoniaca": EspadaPenitencia, 
+    "Machado Comum": MachadoBarbaro,
+    "Machado Dos Heréges": MachadoMacabro, 
+    "Machado de Batalha": MachadoCeruleo,
+    "Machado Duplo": MachadoMarfim,
+    # Adicione mais itens conforme necessário
+}
 
 class Player(pygame.sprite.Sprite):
     """
@@ -71,155 +52,71 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, velocidade=5, vida_maxima=150):
         super().__init__()
 
-        self.x = random.randint(0, 800)
-        self.y = random.randint(0, 600)
+        self.x = float(random.randint(0, 800))
+        self.y = float(random.randint(0, 600))
 
-        self.velocidade = velocidade
-        self.vida = Vida(vida_maxima) if Vida is not None else None
-        if self.vida is None:
-            print("DEBUG(Player): Erro: Classe Vida não disponível. Vida do jogador não funcionará corretamente.")
+        self.velocidade = float(velocidade)
+        if self.velocidade <= 0:
+            # print("DEBUG(Player): Velocidade inicial era <= 0, definida para 1.0.")
+            self.velocidade = 1.0
 
-        # --- Referência ao XPManager (será definida após a criação do Player e XPManager) ---
+        if Vida is not None:
+            self.vida = Vida(vida_maxima)
+        else:
+            self.vida = None
+            print("DEBUG(Player): Erro: Classe Vida não disponível.")
+
         self.xp_manager = None 
-        # --- Fim da Referência ao XPManager ---
+        self.dinheiro = 1000 # Exemplo de dinheiro inicial para a loja
 
-        # --- Carregamento e Escalonamento dos Sprites ---
         tamanho_sprite_desejado = (60, 60)
-
-        # Sprites de animação de movimento (Esquerda)
-        caminhos_esquerda = [
-            "Sprites/Asrahel/Esquerda/Ashael_E1.png", "Sprites/Asrahel/Esquerda/Ashael_E2.png",
-            "Sprites/Asrahel/Esquerda/Ashael_E3.png", "Sprites/Asrahel/Esquerda/Ashael_E4.png",
-            "Sprites/Asrahel/Esquerda/Ashael_E5.png", "Sprites/Asrahel/Esquerda/Ashael_E6.png",
-        ]
+        caminhos_esquerda = ["Sprites/Asrahel/Esquerda/Ashael_E1.png", "Sprites/Asrahel/Esquerda/Ashael_E2.png", "Sprites/Asrahel/Esquerda/Ashael_E3.png", "Sprites/Asrahel/Esquerda/Ashael_E4.png", "Sprites/Asrahel/Esquerda/Ashael_E5.png", "Sprites/Asrahel/Esquerda/Ashael_E6.png"]
         self.sprites_esquerda = self._carregar_sprites(caminhos_esquerda, tamanho_sprite_desejado, "Esquerda")
-
-        # Sprites de animação de idle (Esquerda)
         caminhos_idle_esquerda = ["Sprites/Asrahel/Esquerda/Ashael_E1.png"]
         self.sprites_idle_esquerda = self._carregar_sprites(caminhos_idle_esquerda, tamanho_sprite_desejado, "Idle Esquerda")
-
-        # Sprites de animação de movimento (Direita)
-        caminhos_direita = [
-            "Sprites/Asrahel/Direita/Ashael_D1.png", "Sprites/Asrahel/Direita/Ashael_D2.png",
-            "Sprites/Asrahel/Direita/Ashael_D3.png", "Sprites/Asrahel/Direita/Ashael_D4.png",
-            "Sprites/Asrahel/Direita/Ashael_D5.png", "Sprites/Asrahel/Direita/Ashael_D6.png",
-        ]
+        caminhos_direita = ["Sprites/Asrahel/Direita/Ashael_D1.png", "Sprites/Asrahel/Direita/Ashael_D2.png", "Sprites/Asrahel/Direita/Ashael_D3.png", "Sprites/Asrahel/Direita/Ashael_D4.png", "Sprites/Asrahel/Direita/Ashael_D5.png", "Sprites/Asrahel/Direita/Ashael_D6.png"]
         self.sprites_direita = self._carregar_sprites(caminhos_direita, tamanho_sprite_desejado, "Direita")
-
-        # Sprites de animação de idle (Direita)
         caminhos_idle_direita = ["Sprites/Asrahel/Direita/Ashael_D1.png"]
         self.sprites_idle_direita = self._carregar_sprites(caminhos_idle_direita, tamanho_sprite_desejado, "Idle Direita")
 
-        # NOVOS SPRITES DE ANIMAÇÃO DE ATAQUE POR NÍVEL
-        # Nível 1 (e 1.5)
-        caminhos_ataque_direita_nivel1 = [
-            "Sprites/Asrahel/Ataque/Direita/Nivel1/Ashael_AD1.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel1/Ashael_AD2.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel1/Ashael_AD3.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel1/Ashael_AD4.png",
-        ]
-        self.sprites_ataque_direita_nivel1 = self._carregar_sprites(caminhos_ataque_direita_nivel1, tamanho_sprite_desejado, "Ataque Dir Nv1")
-
-        caminhos_ataque_esquerda_nivel1 = [
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel1/Ashael_AE1.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel1/Ashael_AE2.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel1/Ashael_AE3.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel1/Ashael_AE4.png",
-        ]
-        self.sprites_ataque_esquerda_nivel1 = self._carregar_sprites(caminhos_ataque_esquerda_nivel1, tamanho_sprite_desejado, "Ataque Esq Nv1")
-
-        # Nível 2 (e 2.5)
-        caminhos_ataque_direita_nivel2 = [
-            "Sprites/Asrahel/Ataque/Direita/Nivel2/Ashael_AD2_Nv2.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel2/Ashael_AD2_Nv2_2.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel2/Ashael_AD2_Nv2_3.png",
-        ]
-        self.sprites_ataque_direita_nivel2 = self._carregar_sprites(caminhos_ataque_direita_nivel2, tamanho_sprite_desejado, "Ataque Dir Nv2")
-
-        caminhos_ataque_esquerda_nivel2 = [
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel2/Ashael_AE2_Nv2.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel2/Ashael_AE2_Nv2_2.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel2/Ashael_AE2_Nv2_3.png",
-        ]
-        self.sprites_ataque_esquerda_nivel2 = self._carregar_sprites(caminhos_ataque_esquerda_nivel2, tamanho_sprite_desejado, "Ataque Esq Nv2")
-
-        # Nível 3
-        caminhos_ataque_direita_nivel3 = [
-            "Sprites/Asrahel/Ataque/Direita/Nivel3/Ashael_AD3_Nv3.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel3/Ashael_AD3_Nv3_2.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel3/Ashael_AD3_Nv3_3.png",
-            "Sprites/Asrahel/Ataque/Direita/Nivel3/Ashael_AD3_Nv3_4.png",
-        ]
-        self.sprites_ataque_direita_nivel3 = self._carregar_sprites(caminhos_ataque_direita_nivel3, tamanho_sprite_desejado, "Ataque Dir Nv3")
-
-        caminhos_ataque_esquerda_nivel3 = [
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel3/Ashael_AE3_Nv3.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel3/Ashael_AE3_Nv3_2.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel3/Ashael_AE3_Nv3_3.png",
-            "Sprites/Asrahel/Ataque/Esquerda/Nivel3/Ashael_AE3_Nv3_4.png",
-        ]
-        self.sprites_ataque_esquerda_nivel3 = self._carregar_sprites(caminhos_ataque_esquerda_nivel3, tamanho_sprite_desejado, "Ataque Esq Nv3")
-
-
-        # Define o sprite inicial e o retângulo de colisão
         self.atual = 0
         self.frame_idle = 0
-        self.frame_ataque = 0
+        # self.frame_ataque = 0 # Não é usado pois não há sprites de animação de ataque do jogador
+        
         self.parado = True
         self.direction = "right"
 
         self.image = None
-        if self.sprites_idle_direita:
-            self.image = self.sprites_idle_direita[self.frame_idle % len(self.sprites_idle_direita)]
-        elif self.sprites_idle_esquerda:
-            self.image = self.sprites_idle_esquerda[self.frame_idle % len(self.sprites_idle_esquerda)]
-        elif self.sprites_direita:
-            self.image = self.sprites_direita[0]
-        elif self.sprites_esquerda:
-            self.image = self.sprites_esquerda[0]
+        if self.sprites_idle_direita: self.image = self.sprites_idle_direita[0]
+        elif self.sprites_idle_esquerda: self.image = self.sprites_idle_esquerda[0]
+        elif self.sprites_direita: self.image = self.sprites_direita[0]
+        elif self.sprites_esquerda: self.image = self.sprites_esquerda[0]
         else:
-            tamanho_sprite_desejado_fallback = (60, 60)
-            self.image = pygame.Surface(tamanho_sprite_desejado_fallback, pygame.SRCALPHA)
-            pygame.draw.rect(self.image, (255, 0, 255), (0, 0, tamanho_sprite_desejado_fallback[0], tamanho_sprite_desejado_fallback[1]))
+            self.image = pygame.Surface(tamanho_sprite_desejado, pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (255,0,255), self.image.get_rect())
 
-
-        if self.image is not None:
-            self.rect = self.image.get_rect()
-            self.rect.center = (self.x, self.y)
-            self.rect_colisao = self.rect.inflate(-30, -20)
-        else:
-            self.rect = pygame.Rect(self.x, self.y, 60, 60)
-            self.rect_colisao = pygame.Rect(self.x, self.y, 30, 40)
-            self.rect.center = (self.x, self.y)
-            self.rect_colisao.center = self.rect.center
-            print("DEBUG(Player): Erro: Imagem inicial do jogador não definida. Usando rects placeholders.")
-
+        self.rect = self.image.get_rect(center=(round(self.x), round(self.y)))
+        self.rect_colisao = self.rect.inflate(-30, -20)
 
         self.tempo_animacao = 100
         self.ultimo_update = pygame.time.get_ticks()
-        self.ultimo_update_ataque = pygame.time.get_ticks()
+        # self.ultimo_update_ataque = pygame.time.get_ticks() # Não é mais necessário para animação do jogador
 
         self.current_weapon: Weapon = None
         self.tempo_ultimo_ataque = 0.0
 
-        # Inicializa com a AdagaFogo por padrão (nome do arquivo encurtado)
         if AdagaFogo is not None:
             self.equip_weapon(AdagaFogo())
-        else:
-            print("DEBUG(Player): Aviso: AdagaFogo não pôde ser equipada. Verifique o import.")
+        
+        self.is_attacking = False 
+        self.is_attacking_animation_active = False # Controla o "estado" de ataque
+        self.attack_duration = 0.3 
+        self.attack_timer = 0.0
 
-        self.is_attacking = False
-        self.is_attacking_animation_active = False
-        self.attack_duration = 0.3
-        self.attack_timer = 0
-
-        self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
-        self.attack_hitbox_size = (60, 60)
-
+        self.attack_hitbox = pygame.Rect(0,0,0,0)
+        # self.attack_hitbox_size removido, vem da arma
         self.hit_enemies_this_attack = set()
-
-        # Inventário de armas (para a roda de armas)
-        self.owned_weapons = [] # Lista de instâncias de armas que o jogador possui
+        self.owned_weapons = []
 
     @property
     def dano(self) -> float:
@@ -233,284 +130,331 @@ class Player(pygame.sprite.Sprite):
     def cooldown_ataque(self) -> float:
         return self.current_weapon.cooldown if self.current_weapon else 0.0
 
-    # Adicionado para que o XPManager possa acessar o nível atual do jogador para sprites de ataque
     @property
     def level(self) -> int:
-        # Retorna o nível do XPManager se ele existir, caso contrário, retorna 1 como padrão
         return self.xp_manager.level if self.xp_manager else 1
 
     def equip_weapon(self, weapon_object: Weapon):
+        if Weapon is None: return
         if isinstance(weapon_object, Weapon):
             self.current_weapon = weapon_object
-            print(f"DEBUG(Player): Jogador equipou: {self.current_weapon.name}")
-            self.tempo_ultimo_ataque = time.time()
-        else:
-            print(f"DEBUG(Player): Erro: Tentativa de equipar um objeto que não é uma arma: {type(weapon_object)}")
+            self.tempo_ultimo_ataque = time.time() # Reseta cooldown ao equipar nova arma
 
     def add_owned_weapon(self, weapon_object: Weapon):
-        """Adiciona uma arma ao inventário do jogador, se ainda não a tiver e houver espaço."""
-        if not isinstance(weapon_object, Weapon):
-            print(f"DEBUG(Player): Erro: Tentativa de adicionar um objeto que não é uma arma ao inventário: {type(weapon_object)}")
-            return False
-
-        # Verifica se o jogador já possui uma arma com o mesmo nome
-        if any(w.name == weapon_object.name for w in self.owned_weapons):
-            print(f"DEBUG(Player): Jogador já possui a arma '{weapon_object.name}'.")
-            return False
-
-        # Limite de 3 armas no inventário
-        if len(self.owned_weapons) >= 3:
-            print(f"DEBUG(Player): Inventário de armas cheio. Não é possível adicionar '{weapon_object.name}'.")
-            return False
-
+        if Weapon is None: return False
+        if not isinstance(weapon_object, Weapon): return False
+        if any(w.name == weapon_object.name for w in self.owned_weapons): return False
+        if len(self.owned_weapons) >= 3: return False
         self.owned_weapons.append(weapon_object)
-        print(f"DEBUG(Player): Arma '{weapon_object.name}' adicionada ao inventário.")
+        if not self.current_weapon: self.equip_weapon(weapon_object)
         return True
 
     def _carregar_sprites(self, caminhos, tamanho, nome_conjunto):
         sprites = []
-        # Obtém o diretório base do script atual (Arquivos)
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        # Sobe um nível para o diretório "Jogo"
-        game_dir = os.path.dirname(base_dir)
-
+        base_dir = os.path.dirname(os.path.abspath(__file__)) 
+        game_dir = os.path.dirname(base_dir) 
         for path in caminhos:
-            # Constrói o caminho completo para o sprite
             full_path = os.path.join(game_dir, path.replace("/", os.sep))
-
             if not os.path.exists(full_path):
-                print(f"DEBUG(Player): Aviso: Arquivo de sprite não encontrado: {full_path}")
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-                pygame.draw.rect(placeholder, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
-                sprites.append(placeholder)
-                continue
-
+                pygame.draw.rect(placeholder, (255,0,255), (0,0,tamanho[0],tamanho[1]))
+                sprites.append(placeholder); continue
             try:
                 sprite = pygame.image.load(full_path).convert_alpha()
                 sprite = pygame.transform.scale(sprite, tamanho)
                 sprites.append(sprite)
             except pygame.error as e:
-                print(f"DEBUG(Player): Erro ao carregar o sprite '{full_path}': {e}")
+                print(f"DEBUG(Player): Erro ao carregar sprite '{full_path}': {e}")
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-                pygame.draw.rect(placeholder, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
+                pygame.draw.rect(placeholder, (255,0,255), (0,0,tamanho[0],tamanho[1]))
                 sprites.append(placeholder)
-
         if not sprites:
-            print(f"DEBUG(Player): Aviso: Nenhum sprite carregado para o conjunto '{nome_conjunto}'. Usando placeholder padrão.")
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-            pygame.draw.rect(placeholder, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
+            pygame.draw.rect(placeholder, (255,0,255), (0,0,tamanho[0],tamanho[1]))
             sprites.append(placeholder)
-
         return sprites
 
-    def receber_dano(self, dano):
+    def receber_dano(self, dano): 
         if self.vida is not None:
             self.vida.receber_dano(dano)
-
-    # Removido: gain_xp e level_up (agora no XPManager)
+            if not self.esta_vivo():
+                print("DEBUG(Player): Jogador morreu.")
 
     def update(self):
-        agora = pygame.time.get_ticks()
+        agora_ticks = pygame.time.get_ticks()
+        agora_time = time.time()
 
-        if self.is_attacking and time.time() - self.attack_timer >= self.attack_duration:
-            self.is_attacking = False
-            self.is_attacking_animation_active = False
+        # Lógica CRUCIAL para terminar o "estado de ataque"
+        if self.is_attacking_animation_active and (agora_time - self.attack_timer >= self.attack_duration):
+            self.is_attacking = False 
+            self.is_attacking_animation_active = False 
             self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
             self.hit_enemies_this_attack.clear()
+            # print(f"DEBUG(Player.update): ESTADO DE ATAQUE TERMINADO. is_attacking_animation_active = {self.is_attacking_animation_active}")
+            if self.current_weapon and hasattr(self.current_weapon, 'current_attack_animation_frame'):
+                self.current_weapon.current_attack_animation_frame = 0
 
-        if self.is_attacking_animation_active:
-            current_attack_sprites_right = []
-            current_attack_sprites_left = []
 
-            # Usa o nível do XPManager para determinar os sprites de ataque
-            player_level = self.level 
+        # Animação do jogador (idle/movimento)
+        if agora_ticks - self.ultimo_update > self.tempo_animacao:
+            self.ultimo_update = agora_ticks
+            if self.parado:
+                sprites_to_use_idle = []
+                if self.direction == "left" and self.sprites_idle_esquerda: sprites_to_use_idle = self.sprites_idle_esquerda
+                elif self.direction == "right" and self.sprites_idle_direita: sprites_to_use_idle = self.sprites_idle_direita
+                elif self.sprites_idle_direita: sprites_to_use_idle = self.sprites_idle_direita 
+                elif self.sprites_idle_esquerda: sprites_to_use_idle = self.sprites_idle_esquerda
+                
+                if sprites_to_use_idle:
+                    self.frame_idle = (self.frame_idle + 1) % len(sprites_to_use_idle)
+                    self.image = sprites_to_use_idle[self.frame_idle]
+                elif self.sprites_direita and len(self.sprites_direita) > 0 : self.image = self.sprites_direita[0] 
+                elif self.sprites_esquerda and len(self.sprites_esquerda) > 0: self.image = self.sprites_esquerda[0]
+            else: # Movimento
+                sprites_to_use_move = []
+                if self.direction == "left" and self.sprites_esquerda: sprites_to_use_move = self.sprites_esquerda
+                elif self.direction == "right" and self.sprites_direita: sprites_to_use_move = self.sprites_direita
+                elif self.sprites_direita: sprites_to_use_move = self.sprites_direita
+                elif self.sprites_esquerda: sprites_to_use_move = self.sprites_esquerda
 
-            if player_level >= 3:
-                current_attack_sprites_right = self.sprites_ataque_direita_nivel3
-                current_attack_sprites_left = self.sprites_ataque_esquerda_nivel3
-            elif player_level >= 2:
-                current_attack_sprites_right = self.sprites_ataque_direita_nivel2
-                current_attack_sprites_left = self.sprites_ataque_esquerda_nivel2
-            else: # Nível 1 ou inferior
-                current_attack_sprites_right = self.sprites_ataque_direita_nivel1
-                current_attack_sprites_left = self.sprites_ataque_esquerda_nivel1
+                if sprites_to_use_move:
+                    self.atual = (self.atual + 1) % len(sprites_to_use_move)
+                    self.image = sprites_to_use_move[self.atual]
+        
+        # Avança a animação da ARMA se o ataque estiver ativo
+        if self.is_attacking_animation_active and self.current_weapon and \
+           hasattr(self.current_weapon, 'attack_animation_sprites') and self.current_weapon.attack_animation_sprites and \
+           hasattr(self.current_weapon, 'attack_animation_speed') and hasattr(self.current_weapon, 'last_attack_animation_update'):
             
-            # Fallback caso os sprites específicos de nível não existam
-            if not current_attack_sprites_right and self.sprites_ataque_direita_nivel1:
-                current_attack_sprites_right = self.sprites_ataque_direita_nivel1
-            if not current_attack_sprites_left and self.sprites_ataque_esquerda_nivel1:
-                current_attack_sprites_left = self.sprites_ataque_esquerda_nivel1
+            if agora_ticks - self.current_weapon.last_attack_animation_update > self.current_weapon.attack_animation_speed:
+                self.current_weapon.last_attack_animation_update = agora_ticks
+                num_frames_arma = len(self.current_weapon.attack_animation_sprites)
+                if num_frames_arma > 0 : 
+                    self.current_weapon.current_attack_animation_frame = (self.current_weapon.current_attack_animation_frame + 1) % num_frames_arma
+        
+        if self.image is None: 
+             self.image = pygame.Surface((60,60), pygame.SRCALPHA); pygame.draw.circle(self.image, (255,0,255), (30,30), 30)
 
-
-            if agora - self.ultimo_update_ataque > self.tempo_animacao:
-                self.ultimo_update_ataque = agora
-                if self.direction == "right" and current_attack_sprites_right:
-                    self.frame_ataque = (self.frame_ataque + 1) % len(current_attack_sprites_right)
-                    self.image = current_attack_sprites_right[self.frame_ataque]
-                elif self.direction == "left" and current_attack_sprites_left:
-                    self.frame_ataque = (self.frame_ataque + 1) % len(current_attack_sprites_left)
-                    self.image = current_attack_sprites_left[self.frame_ataque]
-                else:
-                    if self.direction == "right" and self.sprites_direita:
-                        self.image = self.sprites_direita[self.atual]
-                    elif self.direction == "left" and self.sprites_esquerda:
-                        self.image = self.sprites_esquerda[self.atual]
-                    else:
-                        self.image = pygame.Surface((60, 60), pygame.SRCALPHA)
-
-        else:
-            if agora - self.ultimo_update > self.tempo_animacao:
-                self.ultimo_update = agora
-                if self.parado:
-                    if self.direction == "left" and self.sprites_idle_esquerda:
-                        self.frame_idle = (self.frame_idle + 1) % len(self.sprites_idle_esquerda)
-                        self.image = self.sprites_idle_esquerda[self.frame_idle]
-                    elif self.direction == "right" and self.sprites_idle_direita:
-                        self.frame_idle = (self.frame_idle + 1) % len(self.sprites_idle_direita)
-                        self.image = self.sprites_idle_direita[self.frame_idle]
-                    elif self.sprites_idle_esquerda:
-                        self.frame_idle = (self.frame_idle + 1) % len(self.sprites_idle_esquerda)
-                        self.image = self.sprites_idle_esquerda[self.frame_idle]
-                    elif self.sprites_idle_direita:
-                        self.frame_idle = (self.frame_idle + 1) % len(self.sprites_idle_direita)
-                        self.image = self.sprites_idle_direita[self.frame_idle]
-                    elif self.sprites_esquerda:
-                        self.image = self.sprites_esquerda[0]
-                    else:
-                        self.image = pygame.Surface((60, 60), pygame.SRCALPHA)
-
-                else:
-                    if self.direction == "left" and self.sprites_esquerda:
-                        self.atual = (self.atual + 1) % len(self.sprites_esquerda)
-                        self.image = self.sprites_esquerda[self.atual]
-                    elif self.direction == "right" and self.sprites_direita:
-                        self.atual = (self.atual + 1) % len(self.sprites_direita)
-                        self.image = self.sprites_direita[self.atual]
-                    elif self.sprites_esquerda:
-                        self.atual = (self.atual + 1) % len(self.sprites_esquerda)
-                        self.image = self.sprites_esquerda[self.atual]
-                    elif self.sprites_direita:
-                        self.atual = (self.atual + 1) % len(self.sprites_direita)
-                        self.image = self.sprites_direita[self.atual]
-                    elif self.sprites_idle_esquerda:
-                        self.image = self.sprites_idle_esquerda[0]
-                    else:
-                        self.image = pygame.Surface((60, 60), pygame.SRCALPHA)
-
-        if hasattr(self, 'rect'):
-            self.rect.center = (self.x, self.y)
-            if hasattr(self, 'rect_colisao'):
-                self.rect_colisao.center = self.rect.center
+        self.rect.center = (round(self.x), round(self.y))
+        if hasattr(self, 'rect_colisao'): 
+            self.rect_colisao.center = self.rect.center
 
     def mover(self, teclas, arvores):
-        dx = dy = 0
+        # print(f"DEBUG(Player.mover) INÍCIO - x:{self.x:.1f}, y:{self.y:.1f}, vel:{self.velocidade}, parado:{self.parado}, atacando_anim:{self.is_attacking_animation_active}")
+        # print(f"DEBUG(Player.mover) Teclas recebidas: L={teclas[pygame.K_LEFT]}, R={teclas[pygame.K_RIGHT]}, U={teclas[pygame.K_UP]}, D={teclas[pygame.K_DOWN]}, A={teclas[pygame.K_a]}, Dk={teclas[pygame.K_d]}, W={teclas[pygame.K_w]}, S={teclas[pygame.K_s]}")
 
-        original_x = self.x
-        original_y = self.y
+        if not hasattr(self, 'rect_colisao'):
+            # print("DEBUG(Player.mover): Tentativa de mover sem rect_colisao. Retornando.")
+            return
 
-        if teclas[pygame.K_LEFT]:
-            dx = -self.velocidade
+        current_dx, current_dy = 0.0, 0.0
+        
+        # O jogador SEMPRE pode tentar se mover com base nas teclas.
+        # A flag 'is_attacking_animation_active' NÃO bloqueia mais o cálculo de dx, dy aqui.
+        # Ela controla a duração do ataque e se o jogador pode iniciar um NOVO ataque.
+        move_left = teclas[pygame.K_LEFT] or teclas[pygame.K_a]
+        move_right = teclas[pygame.K_RIGHT] or teclas[pygame.K_d]
+        move_up = teclas[pygame.K_UP] or teclas[pygame.K_w]
+        move_down = teclas[pygame.K_DOWN] or teclas[pygame.K_s]
+
+        # print(f"DEBUG(Player.mover) Teclas Lidas: L={move_left}, R={move_right}, U={move_up}, D={move_down}")
+
+        if move_left and not move_right:
+            current_dx = -self.velocidade
             self.direction = "left"
-        if teclas[pygame.K_RIGHT]:
-            dx = self.velocidade
+        elif move_right and not move_left:
+            current_dx = self.velocidade
             self.direction = "right"
-        if teclas[pygame.K_UP]:
-            dy = -self.velocidade
-        if teclas[pygame.K_DOWN]:
-            dy = self.velocidade
-
-        self.x += dx
-        if hasattr(self, 'rect_colisao'):
-            self.rect_colisao.center = (self.x, self.y)
-            if arvores is not None:
+        
+        if move_up and not move_down:
+            current_dy = -self.velocidade
+        elif move_down and not move_up:
+            current_dy = self.velocidade
+        
+        if current_dx != 0.0 and current_dy != 0.0:
+            inv_sqrt2 = 1.0 / math.sqrt(2)
+            current_dx *= inv_sqrt2 
+            current_dy *= inv_sqrt2
+        
+        # Define o estado 'parado' com base no movimento calculado DESTE FRAME
+        if current_dx != 0.0 or current_dy != 0.0:
+            self.parado = False
+        else:
+            self.parado = True
+        
+        # print(f"DEBUG(Player.mover) Calculado: dx={current_dx:.2f}, dy={current_dy:.2f}, parado={self.parado}, direcao={self.direction}")
+        
+        # Aplica movimento e colisão
+        original_x_colisao = self.x 
+        self.x += current_dx
+        if hasattr(self, 'rect_colisao'): 
+            self.rect_colisao.centerx = round(self.x)
+            if arvores and current_dx != 0:
                 for arvore in arvores:
                     arvore_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
-                    if arvore is not None and arvore_rect is not None:
-                        if self.rect_colisao.colliderect(arvore_rect):
-                            self.x = original_x
-                            if hasattr(self, 'rect_colisao'):
-                                self.rect_colisao.center = (self.x, self.y)
-                            break
-
-        self.y += dy
-        if hasattr(self, 'rect_colisao'):
-            self.rect_colisao.center = (self.x, self.y)
-            if arvores is not None:
+                    if arvore_rect and self.rect_colisao.colliderect(arvore_rect):
+                        if current_dx > 0: self.rect_colisao.right = arvore_rect.left
+                        elif current_dx < 0: self.rect_colisao.left = arvore_rect.right
+                        self.x = float(self.rect_colisao.centerx) 
+                        # print(f"DEBUG(Player.mover) Colisão X! x ajustado para {self.x:.2f}")
+                        break 
+        
+        original_y_colisao = self.y 
+        self.y += current_dy
+        if hasattr(self, 'rect_colisao'): 
+            self.rect_colisao.centery = round(self.y)
+            if arvores and current_dy != 0:
                 for arvore in arvores:
                     arvore_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
-                    if arvore is not None and arvore_rect is not None:
-                        if self.rect_colisao.colliderect(arvore_rect):
-                            self.y = original_y
-                            if hasattr(self, 'rect_colisao'):
-                                self.rect_colisao.center = (self.x, self.y)
-                            break
+                    if arvore_rect and self.rect_colisao.colliderect(arvore_rect):
+                        if current_dy > 0: self.rect_colisao.bottom = arvore_rect.top
+                        elif current_dy < 0: self.rect_colisao.top = arvore_rect.bottom
+                        self.y = float(self.rect_colisao.centery) 
+                        # print(f"DEBUG(Player.mover) Colisão Y! y ajustado para {self.y:.2f}")
+                        break
+        
+        # print(f"DEBUG(Player.mover) FIM - x:{self.x:.1f}, y:{self.y:.1f}, parado:{self.parado}")
 
-        self.parado = (dx == 0 and dy == 0)
+        if hasattr(self, 'rect'): self.rect.center = (round(self.x), round(self.y))
+
 
     def atacar(self, inimigos):
         current_time = time.time()
-
-        if self.current_weapon and current_time - self.tempo_ultimo_ataque >= self.cooldown_ataque:
-            self.is_attacking = True
-            self.is_attacking_animation_active = True
-            self.frame_ataque = 0
-            self.ultimo_update_ataque = pygame.time.get_ticks()
-
-            self.attack_timer = current_time
-            self.tempo_ultimo_ataque = current_time
+        # Condição para atacar: arma existe, cooldown passou E NÃO está no meio de uma animação de ataque anterior
+        if self.current_weapon and not self.is_attacking_animation_active and \
+           current_time - self.tempo_ultimo_ataque >= self.cooldown_ataque:
+            
+            # print(f"DEBUG(Player.atacar): INICIANDO ATAQUE com {self.current_weapon.name}")
+            self.is_attacking = True # Para lógica de dano
+            self.is_attacking_animation_active = True # Para duração do estado de ataque e para bloquear novos ataques
+            
+            self.attack_timer = current_time 
+            self.tempo_ultimo_ataque = current_time 
             self.hit_enemies_this_attack.clear()
             
-            attack_hitbox_width = getattr(self, 'attack_hitbox_size', (60, 60))[0]
-            attack_hitbox_height = getattr(self, 'attack_hitbox_size', (60, 60))[1]
-            self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
+            # Configura a hitbox LÓGICA baseada nos atributos da arma
+            hitbox_w = self.current_weapon.hitbox_width
+            hitbox_h = self.current_weapon.hitbox_height
+            offset_x_arma = self.current_weapon.hitbox_offset_x 
+            offset_y_arma = self.current_weapon.hitbox_offset_y 
+            
+            self.attack_hitbox = pygame.Rect(0, 0, hitbox_w, hitbox_h)
 
-            hitbox_center_x = self.rect.centerx
-            hitbox_center_y = self.rect.centery
-
+            base_attack_point_x = self.rect.centerx
             if self.direction == "right":
-                self.attack_hitbox.midleft = (hitbox_center_x + self.alcance_ataque, hitbox_center_y)
-            elif self.direction == "left":
-                self.attack_hitbox.midright = (hitbox_center_x - self.alcance_ataque, hitbox_center_y)
+                base_attack_point_x += self.alcance_ataque 
+                hitbox_center_x = base_attack_point_x + offset_x_arma 
+            else: # "left"
+                base_attack_point_x -= self.alcance_ataque
+                hitbox_center_x = base_attack_point_x - offset_x_arma
+            
+            hitbox_center_y = self.rect.centery + offset_y_arma
+            self.attack_hitbox.center = (round(hitbox_center_x), round(hitbox_center_y))
+            # print(f"DEBUG(Player.atacar): Hitbox lógica em {self.attack_hitbox.center} com tamanho ({hitbox_w},{hitbox_h})")
 
-        if self.is_attacking:
-            if inimigos is not None:
-                for inimigo in list(inimigos): # Use list() para permitir remoção durante a iteração
-                    if inimigo is not None and hasattr(inimigo, 'esta_vivo') and inimigo.esta_vivo() and hasattr(inimigo, 'rect'):
-                        if self.attack_hitbox.colliderect(inimigo.rect) and inimigo not in self.hit_enemies_this_attack:
+
+            # Reseta a animação da ARMA (se ela tiver uma)
+            if hasattr(self.current_weapon, 'attack_animation_sprites') and self.current_weapon.attack_animation_sprites:
+                if not hasattr(self.current_weapon, 'current_attack_animation_frame'): 
+                    self.current_weapon.current_attack_animation_frame = 0
+                if not hasattr(self.current_weapon, 'last_attack_animation_update'): 
+                    self.current_weapon.last_attack_animation_update = 0
+                    
+                self.current_weapon.current_attack_animation_frame = 0
+                self.current_weapon.last_attack_animation_update = pygame.time.get_ticks()
+                # print(f"DEBUG(Player.atacar): Animação da arma '{self.current_weapon.name}' resetada para o frame 0.")
+
+
+        # Lógica de aplicar dano (ocorre enquanto self.is_attacking é True)
+        if self.is_attacking and self.attack_hitbox.width > 0: 
+            if inimigos:
+                for inimigo in list(inimigos): 
+                    if inimigo and hasattr(inimigo, 'esta_vivo') and inimigo.esta_vivo() and \
+                       hasattr(inimigo, 'rect') and inimigo.rect is not None:
+                        inimigo_colisao_rect = getattr(inimigo, 'rect_colisao', inimigo.rect)
+                        if self.attack_hitbox.colliderect(inimigo_colisao_rect) and \
+                           inimigo not in self.hit_enemies_this_attack:
                             if hasattr(inimigo, 'receber_dano'):
-                                inimigo.receber_dano(self.dano)
+                                inimigo.receber_dano(self.dano) 
                                 self.hit_enemies_this_attack.add(inimigo)
-                                # Verifica se o inimigo morreu após o ataque
                                 if not inimigo.esta_vivo():
-                                    if hasattr(inimigo, 'xp_value') and self.xp_manager: # Verifica se xp_manager existe
-                                        self.xp_manager.gain_xp(inimigo.xp_value) # Chama o método do XPManager
-                                        print(f"DEBUG(Player): Inimigo {type(inimigo).__name__} derrotado. Ganhou {inimigo.xp_value} XP.")
-                                    # Remova o inimigo da lista do gerenciador de inimigos aqui,
-                                    # ou deixe o gerenciador de inimigos fazer isso em seu próprio update.
-                                    # Por segurança, o gerenciador de inimigos deve ser o responsável por remover.
-                            else:
-                                print(f"DEBUG(Player): Aviso: Inimigo {type(inimigo).__name__} não tem método 'receber_dano'. Dano não aplicado.")
-                    elif inimigo is not None:
-                        if not hasattr(inimigo, 'esta_vivo'):
-                            print(f"DEBUG(Player): Aviso: Inimigo {type(inimigo).__name__} não tem método 'esta_vivo'. Ignorando para ataque.")
-                        if not hasattr(inimigo, 'rect'):
-                            print(f"DEBUG(Player): Aviso: Inimigo {type(inimigo).__name__} não tem atributo 'rect'. Ignorando para ataque.")
+                                    if hasattr(inimigo, 'xp_value') and self.xp_manager:
+                                        self.xp_manager.gain_xp(inimigo.xp_value)
 
-    def empurrar_jogador(self, inimigo):
-        pass
+    def empurrar_jogador(self, obstaculo_rect):
+        # Implementar lógica de empurrar se necessário
+        pass 
 
     def desenhar(self, janela, camera_x, camera_y):
+        # Desenha o jogador
         if self.image is not None and hasattr(self, 'rect'):
-            janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+            janela.blit(self.image, (round(self.rect.x - camera_x), round(self.rect.y - camera_y)))
 
-        # Removido: Desenho da barra de XP e texto de Nível (agora no XPManager)
+        # Desenha o sprite de animação de ataque da arma, se ativo
+        if self.is_attacking_animation_active and self.current_weapon and \
+           hasattr(self.current_weapon, 'get_current_attack_animation_sprite'):
+            
+            attack_sprite_visual = self.current_weapon.get_current_attack_animation_sprite()
+            
+            if attack_sprite_visual:
+                # Cria uma cópia para não modificar o original da arma
+                sprite_to_draw = attack_sprite_visual.copy()
 
-        if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0 and self.attack_hitbox.height > 0:
-            attack_hitbox_visual = pygame.Rect(self.attack_hitbox.x - camera_x, self.attack_hitbox.y - camera_y, self.attack_hitbox.width, self.attack_hitbox.height)
-            pygame.draw.rect(janela, (0, 255, 0), attack_hitbox_visual, 2)
+                # Inverte o sprite se o jogador estiver virado para a esquerda
+                if self.direction == "left":
+                    sprite_to_draw = pygame.transform.flip(sprite_to_draw, True, False)
+                
+                # Posiciona o sprite de animação da arma centrado na hitbox LÓGICA
+                # O rect da hitbox já considera a direção do jogador e o offset da arma
+                attack_sprite_rect = sprite_to_draw.get_rect(center=self.attack_hitbox.center)
+                
+                janela.blit(sprite_to_draw, (round(attack_sprite_rect.x - camera_x), 
+                                             round(attack_sprite_rect.y - camera_y)))
+                # print(f"DEBUG(Player.desenhar): Desenhando sprite de animação da arma. Direção: {self.direction}")
+        
+        # Opcional: Desenhar a hitbox LÓGICA para depuração
+        # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
+        #     debug_hitbox_rect_on_screen = pygame.Rect(
+        #         round(self.attack_hitbox.x - camera_x), 
+        #         round(self.attack_hitbox.y - camera_y),
+        #         self.attack_hitbox.width, 
+        #         self.attack_hitbox.height
+        #     )
+        #     pygame.draw.rect(janela, (255, 0, 0, 100), debug_hitbox_rect_on_screen, 1) # Vermelho para hitbox lógica
+
 
     def esta_vivo(self):
         if self.vida is not None:
             return self.vida.esta_vivo()
         return False
+    
+    # Métodos de loja e evolução de arma (mantidos para compatibilidade, ajuste se necessário)
+    def adicionar_item_inventario(self, item_da_loja_dict):
+        # Este método assume que SHOP_ITEM_TO_WEAPON_CLASS está definido neste arquivo
+        # e que as classes de armas (AdagaFogo, etc.) estão importadas.
+        nome_item = item_da_loja_dict.get("nome")
+        if not nome_item: return False
+        WeaponClass = SHOP_ITEM_TO_WEAPON_CLASS.get(nome_item)
+        if WeaponClass:
+            try:
+                nova_arma = WeaponClass() 
+                return self.add_owned_weapon(nova_arma)
+            except Exception as e: print(f"DEBUG(Player): Erro ao instanciar '{nome_item}': {e}")
+        else: print(f"DEBUG(Player): Classe não mapeada para '{nome_item}'")
+        return False
+            
+    def evoluir_arma_atual(self, mapa_evolucoes_nivel_atual) -> str | None:
+        if not self.current_weapon: return None
+        arma_atual_nome = self.current_weapon.name
+        if arma_atual_nome in mapa_evolucoes_nivel_atual:
+            NovaClasseArma = mapa_evolucoes_nivel_atual[arma_atual_nome]
+            try:
+                nova_arma = NovaClasseArma()
+                self.equip_weapon(nova_arma) 
+                for i, owned_weapon in enumerate(self.owned_weapons):
+                    if owned_weapon.name == arma_atual_nome:
+                        self.owned_weapons[i] = nova_arma; break
+                return nova_arma.name
+            except Exception as e: print(f"DEBUG(Player): Erro ao evoluir '{NovaClasseArma.__name__}': {e}")
+        return None
 
