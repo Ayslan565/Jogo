@@ -14,7 +14,7 @@ if arquivos_dir not in sys.path:
 project_root_dir = os.path.dirname(current_dir) 
 if project_root_dir not in sys.path:
     sys.path.insert(0, project_root_dir) 
-
+ 
 # --- Pré-definição de Nomes Globais como Fallback ---
 Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, BarraInventario, ItemInventario = (None,) * 15
 AdagaFogo, EspadaBrasas, MachadoCeruleo, MachadoMacabro, MachadoMarfim, MachadoBarbaro, EspadaFogoAzul, EspadaLua, EspadaCaida, EspadaPenitencia, MachadoBase = (None,) * 11

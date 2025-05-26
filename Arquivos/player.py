@@ -29,7 +29,6 @@ try: from Armas.EspadaPenitencia import EspadaPenitencia
 except ImportError: EspadaPenitencia = None
 
 # --- Mapeamento de nomes de itens da loja para classes de Armas (Exemplo) ---
-# Certifique-se de que este dicionário está correto e completo para sua loja
 SHOP_ITEM_TO_WEAPON_CLASS = {
     "Adaga Básica": AdagaFogo, 
     "Espada Média": EspadaBrasas, 
@@ -46,8 +45,7 @@ SHOP_ITEM_TO_WEAPON_CLASS = {
 class Player(pygame.sprite.Sprite):
     """
     Classe que representa o jogador no jogo.
-    Gerencia movimento, animações, vida, a arma equipada.
-    O sistema de experiência e nivelamento é gerenciado pelo XPManager.
+    Gerencia movimento, animações, vida, a arma equipada, e invencibilidade temporária.
     """
     def __init__(self, velocidade=5, vida_maxima=150):
         super().__init__()
@@ -57,7 +55,6 @@ class Player(pygame.sprite.Sprite):
 
         self.velocidade = float(velocidade)
         if self.velocidade <= 0:
-            # print("DEBUG(Player): Velocidade inicial era <= 0, definida para 1.0.")
             self.velocidade = 1.0
 
         if Vida is not None:
@@ -67,7 +64,7 @@ class Player(pygame.sprite.Sprite):
             print("DEBUG(Player): Erro: Classe Vida não disponível.")
 
         self.xp_manager = None 
-        self.dinheiro = 1000 # Exemplo de dinheiro inicial para a loja
+        self.dinheiro = 1000 
 
         tamanho_sprite_desejado = (60, 60)
         caminhos_esquerda = ["Sprites/Asrahel/Esquerda/Ashael_E1.png", "Sprites/Asrahel/Esquerda/Ashael_E2.png", "Sprites/Asrahel/Esquerda/Ashael_E3.png", "Sprites/Asrahel/Esquerda/Ashael_E4.png", "Sprites/Asrahel/Esquerda/Ashael_E5.png", "Sprites/Asrahel/Esquerda/Ashael_E6.png"]
@@ -81,7 +78,6 @@ class Player(pygame.sprite.Sprite):
 
         self.atual = 0
         self.frame_idle = 0
-        # self.frame_ataque = 0 # Não é usado pois não há sprites de animação de ataque do jogador
         
         self.parado = True
         self.direction = "right"
@@ -96,27 +92,34 @@ class Player(pygame.sprite.Sprite):
             pygame.draw.rect(self.image, (255,0,255), self.image.get_rect())
 
         self.rect = self.image.get_rect(center=(round(self.x), round(self.y)))
-        self.rect_colisao = self.rect.inflate(-30, -20)
+        self.rect_colisao = self.rect.inflate(-30, -20) # Reduzido para melhor colisão
 
         self.tempo_animacao = 100
         self.ultimo_update = pygame.time.get_ticks()
-        # self.ultimo_update_ataque = pygame.time.get_ticks() # Não é mais necessário para animação do jogador
 
         self.current_weapon: Weapon = None
         self.tempo_ultimo_ataque = 0.0
 
-        if AdagaFogo is not None:
+        if AdagaFogo is not None: # Equipar uma arma inicial
             self.equip_weapon(AdagaFogo())
         
         self.is_attacking = False 
-        self.is_attacking_animation_active = False # Controla o "estado" de ataque
+        self.is_attacking_animation_active = False
         self.attack_duration = 0.3 
         self.attack_timer = 0.0
 
         self.attack_hitbox = pygame.Rect(0,0,0,0)
-        # self.attack_hitbox_size removido, vem da arma
         self.hit_enemies_this_attack = set()
         self.owned_weapons = []
+
+        # --- Atributos para I-Frames (Invencibilidade Temporária) ---
+        self.pode_levar_dano = True
+        self.tempo_ultimo_dano_levado = 0  # Timestamp do último dano (pygame.time.get_ticks())
+        self.duracao_invencibilidade_ms = 1500  # Duração da invencibilidade em milissegundos (ex: 1.5 segundos)
+        self.is_invencivel_piscando = False # Controla se o jogador está no estado de piscar por dano
+        self.tempo_para_proximo_pisca_dano = 0 # Timestamp para o próximo toggle de visibilidade
+        self.intervalo_pisca_dano_ms = 100 # Intervalo entre os "piscas" (em ms)
+        self.visivel_durante_pisca_dano = True # Controla se o sprite é desenhado durante o piscar
 
     @property
     def dano(self) -> float:
@@ -138,13 +141,13 @@ class Player(pygame.sprite.Sprite):
         if Weapon is None: return
         if isinstance(weapon_object, Weapon):
             self.current_weapon = weapon_object
-            self.tempo_ultimo_ataque = time.time() # Reseta cooldown ao equipar nova arma
+            self.tempo_ultimo_ataque = time.time() 
 
     def add_owned_weapon(self, weapon_object: Weapon):
         if Weapon is None: return False
         if not isinstance(weapon_object, Weapon): return False
         if any(w.name == weapon_object.name for w in self.owned_weapons): return False
-        if len(self.owned_weapons) >= 3: return False
+        if len(self.owned_weapons) >= 3: return False # Limite de 3 armas possuídas
         self.owned_weapons.append(weapon_object)
         if not self.current_weapon: self.equip_weapon(weapon_object)
         return True
@@ -168,34 +171,57 @@ class Player(pygame.sprite.Sprite):
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (255,0,255), (0,0,tamanho[0],tamanho[1]))
                 sprites.append(placeholder)
-        if not sprites:
+        if not sprites: # Garante que há pelo menos um sprite (placeholder)
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
             pygame.draw.rect(placeholder, (255,0,255), (0,0,tamanho[0],tamanho[1]))
             sprites.append(placeholder)
         return sprites
 
     def receber_dano(self, dano): 
-        if self.vida is not None:
-            self.vida.receber_dano(dano)
+        if self.vida is not None and self.pode_levar_dano: # Verifica se pode levar dano
+            self.vida.receber_dano(dano) # Reduz a vida através da classe Vida
+            
+            self.pode_levar_dano = False # Ativa a invencibilidade
+            self.tempo_ultimo_dano_levado = pygame.time.get_ticks()
+            self.is_invencivel_piscando = True # Ativa o feedback visual de piscar
+            self.visivel_durante_pisca_dano = False # Começa "invisível" para o primeiro pisca
+            self.tempo_para_proximo_pisca_dano = self.tempo_ultimo_dano_levado + self.intervalo_pisca_dano_ms
+            
             if not self.esta_vivo():
                 print("DEBUG(Player): Jogador morreu.")
+            else:
+                print(f"DEBUG(Player): Jogador recebeu {dano} de dano. Invencibilidade ativada por {self.duracao_invencibilidade_ms / 1000.0}s.")
+        # else:
+            # print("DEBUG(Player): Tentativa de dano enquanto invencível ou sem vida.")
+
 
     def update(self):
         agora_ticks = pygame.time.get_ticks()
         agora_time = time.time()
 
-        # Lógica CRUCIAL para terminar o "estado de ataque"
+        # --- Lógica de Invencibilidade e Piscar ---
+        if self.is_invencivel_piscando:
+            # Controla o efeito de piscar
+            if agora_ticks >= self.tempo_para_proximo_pisca_dano:
+                self.visivel_durante_pisca_dano = not self.visivel_durante_pisca_dano # Alterna
+                self.tempo_para_proximo_pisca_dano = agora_ticks + self.intervalo_pisca_dano_ms
+            
+            # Verifica se o tempo de invencibilidade acabou
+            if agora_ticks - self.tempo_ultimo_dano_levado > self.duracao_invencibilidade_ms:
+                self.pode_levar_dano = True
+                self.is_invencivel_piscando = False
+                self.visivel_durante_pisca_dano = True # Garante que o jogador fique visível ao final
+                print("DEBUG(Player.update): Invencibilidade terminada.")
+        # --- Fim da Lógica de Invencibilidade ---
+
         if self.is_attacking_animation_active and (agora_time - self.attack_timer >= self.attack_duration):
             self.is_attacking = False 
             self.is_attacking_animation_active = False 
             self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
             self.hit_enemies_this_attack.clear()
-            # print(f"DEBUG(Player.update): ESTADO DE ATAQUE TERMINADO. is_attacking_animation_active = {self.is_attacking_animation_active}")
             if self.current_weapon and hasattr(self.current_weapon, 'current_attack_animation_frame'):
                 self.current_weapon.current_attack_animation_frame = 0
 
-
-        # Animação do jogador (idle/movimento)
         if agora_ticks - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora_ticks
             if self.parado:
@@ -210,7 +236,7 @@ class Player(pygame.sprite.Sprite):
                     self.image = sprites_to_use_idle[self.frame_idle]
                 elif self.sprites_direita and len(self.sprites_direita) > 0 : self.image = self.sprites_direita[0] 
                 elif self.sprites_esquerda and len(self.sprites_esquerda) > 0: self.image = self.sprites_esquerda[0]
-            else: # Movimento
+            else: 
                 sprites_to_use_move = []
                 if self.direction == "left" and self.sprites_esquerda: sprites_to_use_move = self.sprites_esquerda
                 elif self.direction == "right" and self.sprites_direita: sprites_to_use_move = self.sprites_direita
@@ -221,7 +247,6 @@ class Player(pygame.sprite.Sprite):
                     self.atual = (self.atual + 1) % len(sprites_to_use_move)
                     self.image = sprites_to_use_move[self.atual]
         
-        # Avança a animação da ARMA se o ataque estiver ativo
         if self.is_attacking_animation_active and self.current_weapon and \
            hasattr(self.current_weapon, 'attack_animation_sprites') and self.current_weapon.attack_animation_sprites and \
            hasattr(self.current_weapon, 'attack_animation_speed') and hasattr(self.current_weapon, 'last_attack_animation_update'):
@@ -233,31 +258,22 @@ class Player(pygame.sprite.Sprite):
                     self.current_weapon.current_attack_animation_frame = (self.current_weapon.current_attack_animation_frame + 1) % num_frames_arma
         
         if self.image is None: 
-             self.image = pygame.Surface((60,60), pygame.SRCALPHA); pygame.draw.circle(self.image, (255,0,255), (30,30), 30)
+                 self.image = pygame.Surface((60,60), pygame.SRCALPHA); pygame.draw.circle(self.image, (255,0,255), (30,30), 30)
 
         self.rect.center = (round(self.x), round(self.y))
         if hasattr(self, 'rect_colisao'): 
             self.rect_colisao.center = self.rect.center
 
     def mover(self, teclas, arvores):
-        # print(f"DEBUG(Player.mover) INÍCIO - x:{self.x:.1f}, y:{self.y:.1f}, vel:{self.velocidade}, parado:{self.parado}, atacando_anim:{self.is_attacking_animation_active}")
-        # print(f"DEBUG(Player.mover) Teclas recebidas: L={teclas[pygame.K_LEFT]}, R={teclas[pygame.K_RIGHT]}, U={teclas[pygame.K_UP]}, D={teclas[pygame.K_DOWN]}, A={teclas[pygame.K_a]}, Dk={teclas[pygame.K_d]}, W={teclas[pygame.K_w]}, S={teclas[pygame.K_s]}")
-
         if not hasattr(self, 'rect_colisao'):
-            # print("DEBUG(Player.mover): Tentativa de mover sem rect_colisao. Retornando.")
             return
 
         current_dx, current_dy = 0.0, 0.0
         
-        # O jogador SEMPRE pode tentar se mover com base nas teclas.
-        # A flag 'is_attacking_animation_active' NÃO bloqueia mais o cálculo de dx, dy aqui.
-        # Ela controla a duração do ataque e se o jogador pode iniciar um NOVO ataque.
         move_left = teclas[pygame.K_LEFT] or teclas[pygame.K_a]
         move_right = teclas[pygame.K_RIGHT] or teclas[pygame.K_d]
         move_up = teclas[pygame.K_UP] or teclas[pygame.K_w]
         move_down = teclas[pygame.K_DOWN] or teclas[pygame.K_s]
-
-        # print(f"DEBUG(Player.mover) Teclas Lidas: L={move_left}, R={move_right}, U={move_up}, D={move_down}")
 
         if move_left and not move_right:
             current_dx = -self.velocidade
@@ -276,15 +292,8 @@ class Player(pygame.sprite.Sprite):
             current_dx *= inv_sqrt2 
             current_dy *= inv_sqrt2
         
-        # Define o estado 'parado' com base no movimento calculado DESTE FRAME
-        if current_dx != 0.0 or current_dy != 0.0:
-            self.parado = False
-        else:
-            self.parado = True
+        self.parado = not (current_dx != 0.0 or current_dy != 0.0)
         
-        # print(f"DEBUG(Player.mover) Calculado: dx={current_dx:.2f}, dy={current_dy:.2f}, parado={self.parado}, direcao={self.direction}")
-        
-        # Aplica movimento e colisão
         original_x_colisao = self.x 
         self.x += current_dx
         if hasattr(self, 'rect_colisao'): 
@@ -296,7 +305,6 @@ class Player(pygame.sprite.Sprite):
                         if current_dx > 0: self.rect_colisao.right = arvore_rect.left
                         elif current_dx < 0: self.rect_colisao.left = arvore_rect.right
                         self.x = float(self.rect_colisao.centerx) 
-                        # print(f"DEBUG(Player.mover) Colisão X! x ajustado para {self.x:.2f}")
                         break 
         
         original_y_colisao = self.y 
@@ -310,29 +318,22 @@ class Player(pygame.sprite.Sprite):
                         if current_dy > 0: self.rect_colisao.bottom = arvore_rect.top
                         elif current_dy < 0: self.rect_colisao.top = arvore_rect.bottom
                         self.y = float(self.rect_colisao.centery) 
-                        # print(f"DEBUG(Player.mover) Colisão Y! y ajustado para {self.y:.2f}")
                         break
         
-        # print(f"DEBUG(Player.mover) FIM - x:{self.x:.1f}, y:{self.y:.1f}, parado:{self.parado}")
-
         if hasattr(self, 'rect'): self.rect.center = (round(self.x), round(self.y))
-
 
     def atacar(self, inimigos):
         current_time = time.time()
-        # Condição para atacar: arma existe, cooldown passou E NÃO está no meio de uma animação de ataque anterior
         if self.current_weapon and not self.is_attacking_animation_active and \
            current_time - self.tempo_ultimo_ataque >= self.cooldown_ataque:
             
-            # print(f"DEBUG(Player.atacar): INICIANDO ATAQUE com {self.current_weapon.name}")
-            self.is_attacking = True # Para lógica de dano
-            self.is_attacking_animation_active = True # Para duração do estado de ataque e para bloquear novos ataques
+            self.is_attacking = True 
+            self.is_attacking_animation_active = True 
             
             self.attack_timer = current_time 
             self.tempo_ultimo_ataque = current_time 
             self.hit_enemies_this_attack.clear()
             
-            # Configura a hitbox LÓGICA baseada nos atributos da arma
             hitbox_w = self.current_weapon.hitbox_width
             hitbox_h = self.current_weapon.hitbox_height
             offset_x_arma = self.current_weapon.hitbox_offset_x 
@@ -350,10 +351,7 @@ class Player(pygame.sprite.Sprite):
             
             hitbox_center_y = self.rect.centery + offset_y_arma
             self.attack_hitbox.center = (round(hitbox_center_x), round(hitbox_center_y))
-            # print(f"DEBUG(Player.atacar): Hitbox lógica em {self.attack_hitbox.center} com tamanho ({hitbox_w},{hitbox_h})")
 
-
-            # Reseta a animação da ARMA (se ela tiver uma)
             if hasattr(self.current_weapon, 'attack_animation_sprites') and self.current_weapon.attack_animation_sprites:
                 if not hasattr(self.current_weapon, 'current_attack_animation_frame'): 
                     self.current_weapon.current_attack_animation_frame = 0
@@ -362,10 +360,7 @@ class Player(pygame.sprite.Sprite):
                     
                 self.current_weapon.current_attack_animation_frame = 0
                 self.current_weapon.last_attack_animation_update = pygame.time.get_ticks()
-                # print(f"DEBUG(Player.atacar): Animação da arma '{self.current_weapon.name}' resetada para o frame 0.")
 
-
-        # Lógica de aplicar dano (ocorre enquanto self.is_attacking é True)
         if self.is_attacking and self.attack_hitbox.width > 0: 
             if inimigos:
                 for inimigo in list(inimigos): 
@@ -382,13 +377,16 @@ class Player(pygame.sprite.Sprite):
                                         self.xp_manager.gain_xp(inimigo.xp_value)
 
     def empurrar_jogador(self, obstaculo_rect):
-        # Implementar lógica de empurrar se necessário
         pass 
 
     def desenhar(self, janela, camera_x, camera_y):
-        # Desenha o jogador
+        # Desenha o jogador, considerando o efeito de piscar da invencibilidade
         if self.image is not None and hasattr(self, 'rect'):
-            janela.blit(self.image, (round(self.rect.x - camera_x), round(self.rect.y - camera_y)))
+            if self.is_invencivel_piscando and not self.visivel_durante_pisca_dano:
+                pass # Não desenha o jogador para criar o efeito de piscar
+            else:
+                # Se não estiver piscando ou se for para ser visível durante o pisca, desenha normal
+                janela.blit(self.image, (round(self.rect.x - camera_x), round(self.rect.y - camera_y)))
 
         # Desenha o sprite de animação de ataque da arma, se ativo
         if self.is_attacking_animation_active and self.current_weapon and \
@@ -397,20 +395,14 @@ class Player(pygame.sprite.Sprite):
             attack_sprite_visual = self.current_weapon.get_current_attack_animation_sprite()
             
             if attack_sprite_visual:
-                # Cria uma cópia para não modificar o original da arma
                 sprite_to_draw = attack_sprite_visual.copy()
-
-                # Inverte o sprite se o jogador estiver virado para a esquerda
                 if self.direction == "left":
                     sprite_to_draw = pygame.transform.flip(sprite_to_draw, True, False)
                 
-                # Posiciona o sprite de animação da arma centrado na hitbox LÓGICA
-                # O rect da hitbox já considera a direção do jogador e o offset da arma
                 attack_sprite_rect = sprite_to_draw.get_rect(center=self.attack_hitbox.center)
                 
                 janela.blit(sprite_to_draw, (round(attack_sprite_rect.x - camera_x), 
                                              round(attack_sprite_rect.y - camera_y)))
-                # print(f"DEBUG(Player.desenhar): Desenhando sprite de animação da arma. Direção: {self.direction}")
         
         # Opcional: Desenhar a hitbox LÓGICA para depuração
         # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
@@ -420,7 +412,7 @@ class Player(pygame.sprite.Sprite):
         #         self.attack_hitbox.width, 
         #         self.attack_hitbox.height
         #     )
-        #     pygame.draw.rect(janela, (255, 0, 0, 100), debug_hitbox_rect_on_screen, 1) # Vermelho para hitbox lógica
+        #     pygame.draw.rect(janela, (255, 0, 0, 100), debug_hitbox_rect_on_screen, 1) 
 
 
     def esta_vivo(self):
@@ -428,10 +420,7 @@ class Player(pygame.sprite.Sprite):
             return self.vida.esta_vivo()
         return False
     
-    # Métodos de loja e evolução de arma (mantidos para compatibilidade, ajuste se necessário)
     def adicionar_item_inventario(self, item_da_loja_dict):
-        # Este método assume que SHOP_ITEM_TO_WEAPON_CLASS está definido neste arquivo
-        # e que as classes de armas (AdagaFogo, etc.) estão importadas.
         nome_item = item_da_loja_dict.get("nome")
         if not nome_item: return False
         WeaponClass = SHOP_ITEM_TO_WEAPON_CLASS.get(nome_item)
