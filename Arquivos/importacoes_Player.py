@@ -119,7 +119,7 @@ try:
 except ImportError:
     print("DEBUG(importacoes): Aviso: Módulo 'death_screen.py' ou função 'run_death_screen' não encontrado.")
     run_death_screen = None
-
+import inventario_barra
 try:
     from Spawn_Loja import run_shop_scene # Anteriormente era loja.py, ajustado para loja_core.py como no seu último Game.py
 except ImportError:

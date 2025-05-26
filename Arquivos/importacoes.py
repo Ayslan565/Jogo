@@ -1,18 +1,17 @@
 # Arquivo: importacoes.py
 # Este arquivo centraliza as importações comuns para o jogo.
+# DEBUG: Confirmando que importacoes.py está sendo carregado
+print("DEBUG(importacoes): Módulo importacoes.py carregado.")
 
-# Bibliotecas padrão e Pygame
 import pygame
 import random
-import time
-import sys
-import os
-import threading
 import math
+import os
+import time 
+import threading # Usado por GerenciadorDeInimigos e potencialmente outras UIs
+# import tkinter as tk # Não é mais necessário se Roda_Armas (Tkinter) foi removida
 
-# --- Módulos e Classes do Jogo ---
-
-# Classes base e utilidades
+# --- Classes Base e Utilitários ---
 try:
     from vida import Vida
 except ImportError:
@@ -20,43 +19,49 @@ except ImportError:
     Vida = None
 
 try:
-    from Armas.weapon import Weapon
+    from Armas.weapon import Weapon 
 except ImportError:
     print("DEBUG(importacoes): Aviso: Módulo 'Armas/weapon.py' ou classe 'Weapon' não encontrado.")
     Weapon = None
 
-# Classes de Armas Específicas
+# --- Classes de Armas Específicas ---
 # Adicione todas as suas classes de armas aqui
-try: from Armas.EspadaBrasas import EspadaBrasas
-except ImportError: EspadaBrasas = None
-try: from Armas.MachadoCeruleo import MachadoCeruleo
-except ImportError: MachadoCeruleo = None
-try: from Armas.MachadoMacabro import MachadoMacabro
-except ImportError: MachadoMacabro = None
-try: from Armas.MachadoMarfim import MachadoMarfim
-except ImportError: MachadoMarfim = None
-try: from Armas.MachadoBarbaro import MachadoBarbaro
-except ImportError: MachadoBarbaro = None
 try: from Armas.AdagaFogo import AdagaFogo
-except ImportError: AdagaFogo = None
-try: from Armas.EspadaFogoAzul import EspadaFogoAzul
-except ImportError: EspadaFogoAzul = None
-try: from Armas.EspadaLua import EspadaLua
-except ImportError: EspadaLua = None
+except ImportError: AdagaFogo = None; print("DEBUG(importacoes): AdagaFogo não encontrada.")
+try: from Armas.EspadaBrasas import EspadaBrasas
+except ImportError: EspadaBrasas = None; print("DEBUG(importacoes): EspadaBrasas não encontrada.")
 try: from Armas.EspadaCaida import EspadaCaida
-except ImportError: EspadaCaida = None
+except ImportError: EspadaCaida = None; print("DEBUG(importacoes): EspadaCaida não encontrada.")
+try: from Armas.EspadaFogoAzul import EspadaFogoAzul
+except ImportError: EspadaFogoAzul = None; print("DEBUG(importacoes): EspadaFogoAzul não encontrada.")
+try: from Armas.EspadaLua import EspadaLua
+except ImportError: EspadaLua = None; print("DEBUG(importacoes): EspadaLua não encontrada.")
 try: from Armas.EspadaPenitencia import EspadaPenitencia
-except ImportError: EspadaPenitencia = None
-# Exemplo para futuras armas:
-# try: from Armas.NomeDaSuaArma import NomeDaSuaArma
-# except ImportError: NomeDaSuaArma = None
+except ImportError: EspadaPenitencia = None; print("DEBUG(importacoes): EspadaPenitencia não encontrada.")
+# Exemplo: from Armas.EspadaSacraDasBrasas import EspadaSacraDasBrasas
+try: from Armas.MachadoBarbaro import MachadoBarbaro
+except ImportError: MachadoBarbaro = None; print("DEBUG(importacoes): MachadoBarbaro não encontrado.")
+try: from Armas.MachadoCeruleo import MachadoCeruleo
+except ImportError: MachadoCeruleo = None; print("DEBUG(importacoes): MachadoCeruleo não encontrado.")
+try: from Armas.MachadoMacabro import MachadoMacabro
+except ImportError: MachadoMacabro = None; print("DEBUG(importacoes): MachadoMacabro não encontrado.")
+try: from Armas.MachadoMarfim import MachadoMarfim
+except ImportError: MachadoMarfim = None; print("DEBUG(importacoes): MachadoMarfim não encontrado.")
+# Exemplo: from Armas.MachadoCeruleoDaEstrelaCadente import MachadoCeruleoDaEstrelaCadente
 
-# Componentes de UI e Gerenciamento de Jogo
+# --- Módulos de UI e Jogo ---
 try:
-    from Roda_Armas import WeaponWheelUI
+    from player import Player 
 except ImportError:
-    print("DEBUG(importacoes): Aviso: Módulo 'Roda_Armas.py' ou classe 'WeaponWheelUI' não encontrado.")
-    WeaponWheelUI = None
+    print("DEBUG(importacoes): ERRO CRÍTICO: Módulo 'player.py' ou classe 'Player' não encontrado.")
+    Player = None
+
+# REMOVIDO: WeaponWheelUI (Tkinter)
+# try:
+#     from Roda_Armas import WeaponWheelUI
+# except ImportError:
+#     print("DEBUG(importacoes): Aviso: Módulo 'Roda_Armas.py' ou classe 'WeaponWheelUI' não encontrado.")
+#     WeaponWheelUI = None
 
 try:
     from Pause import PauseMenuManager
@@ -76,59 +81,72 @@ except ImportError:
     print("DEBUG(importacoes): Aviso: Módulo 'Menu.py' ou classe 'Menu' não encontrado.")
     Menu = None
 
-# Elementos do Mundo do Jogo e Gerenciadores de Entidades
 try:
     from GerenciadorDeInimigos import GerenciadorDeInimigos
 except ImportError:
-    print("DEBUG(importacoes): Aviso: Módulo 'GerenciadorDeInimigos.py' não encontrado.")
+    print("DEBUG(importacoes): Aviso: Módulo 'GerenciadorDeInimigos.py' ou classe 'GerenciadorDeInimigos' não encontrado.")
     GerenciadorDeInimigos = None
 
 try:
     from Estacoes import Estacoes
 except ImportError:
-    print("DEBUG(importacoes): Aviso: Módulo 'Estacoes.py' não encontrado.")
+    print("DEBUG(importacoes): Aviso: Módulo 'Estacoes.py' ou classe 'Estacoes' não encontrado.")
     Estacoes = None
 
 try:
     from grama import Grama
 except ImportError:
-    print("DEBUG(importacoes): Aviso: Módulo 'grama.py' não encontrado.")
+    print("DEBUG(importacoes): Aviso: Módulo 'grama.py' ou classe 'Grama' não encontrado.")
     Grama = None
 
 try:
     from arvores import Arvore
 except ImportError:
-    print("DEBUG(importacoes): Aviso: Módulo 'arvores.py' não encontrado.")
+    print("DEBUG(importacoes): Aviso: Módulo 'arvores.py' ou classe 'Arvore' não encontrado.")
     Arvore = None
 
 try:
-    from timer1 import Timer # Assumindo que timer1.py contém a classe Timer
+    from timer1 import Timer # Assumindo que o nome do arquivo é timer1.py
 except ImportError:
     print("DEBUG(importacoes): Aviso: Módulo 'timer1.py' ou classe 'Timer' não encontrado.")
     Timer = None
 
-# Módulos da Loja e Telas Especiais
 try:
-    import shop_elements # Importa o módulo inteiro para acesso às suas funções e variáveis globais
+    import shop_elements 
 except ImportError:
     print("DEBUG(importacoes): Aviso: Módulo 'shop_elements.py' não encontrado.")
     shop_elements = None
 
 try:
-    from death_screen import run_death_screen # Importa a função específica
+    from death_screen import run_death_screen
 except ImportError:
     print("DEBUG(importacoes): Aviso: Módulo 'death_screen.py' ou função 'run_death_screen' não encontrado.")
     run_death_screen = None
 
+# --- MODIFICADO: Importação da UI da Loja ---
 try:
-    import loja as loja_core # Importa o módulo da loja (loja_core.py) como um alias
+    import loja as loja_core # Importa o módulo loja.py (que você disse conter a UI da loja)
+                            # e o apelida de loja_core, para ser usado em Game.py
 except ImportError:
-    print("DEBUG(importacoes): Aviso: Módulo 'loja.py' (loja_core) não encontrado.")
+    print("DEBUG(importacoes): ERRO CRÍTICO: Módulo 'loja.py' (para loja_core) não encontrado.")
     loja_core = None
 
-# NOTA IMPORTANTE SOBRE Player:
-# A classe 'Player' não é importada aqui para evitar dependências circulares.
-# Se 'player.py' também for usar este arquivo 'importacoes.py', importar 'Player' aqui
-# criaria um problema.
-# O seu arquivo principal (ex: Game.py) deve continuar importando 'Player' diretamente:
-# from player import Player
+# A importação anterior de run_shop_scene de Spawn_Loja.py foi removida,
+# assumindo que Spawn_Loja.py é para constantes de spawn e não para a UI completa.
+# Se Spawn_Loja.py realmente tiver a função run_shop_scene da UI, esta lógica precisará ser ajustada.
+
+# --- ADICIONADO: Importação da Barra de Inventário ---
+try:
+    from inventario_barra import BarraInventario # ItemInventario não parece ser usado diretamente pelo Game.py
+except ImportError:
+    print("DEBUG(importacoes): Aviso: Módulo 'inventario_barra.py' ou classe 'BarraInventario' não encontrado.")
+    BarraInventario = None
+    # ItemInventario = None # Se ItemInventario fosse necessário externamente, manteria.
+
+# --- Classes de Inimigos Específicos (movidas para GerenciadorDeInimigos.py, mas podem ser listadas aqui se necessário em outros lugares) ---
+# Geralmente, é melhor que o GerenciadorDeInimigos lide com suas próprias importações de tipos de inimigos.
+# try: from Fantasma import Fantasma
+# except ImportError: Fantasma = None; print("DEBUG(importacoes): Fantasma não encontrado.")
+# ... e assim por diante para outros inimigos ...
+
+print("DEBUG(importacoes): Fim do carregamento do módulo importacoes.py.")

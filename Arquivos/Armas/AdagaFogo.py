@@ -34,7 +34,7 @@ class AdagaFogo(Weapon):
             element="Fogo",
             attack_effect_sprite_path=initial_stats_for_super.get("effect_sprite_base", None),
             attack_effect_scale=initial_stats_for_super.get("effect_scale_base", 1.0),
-            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites/Armas/Icones/adaga_fogo_icon.png") 
+            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Adaga E-1.png") 
         )
         
         # --- CONFIGURAÇÕES MODIFICÁVEIS POR NÍVEL ---
@@ -54,10 +54,11 @@ class AdagaFogo(Weapon):
                 "effect_scale_base": 1.0,                                            # Escala do efeito secundário
                 # CONFIGURÁVEL: Caminhos para os sprites da animação de ataque principal
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Adaga/Ataque/Corte2.png", 
-                    "Sprites/Armas/Espadas/Adaga/Ataque/Corte3.png", 
-                    "Sprites/Armas/Espadas/Adaga/Ataque/Corte4.png",
-                    "Sprites/Armas/Espadas/Adaga/Ataque/Corte5.png" 
+                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte1.png", 
+                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte2.png", 
+                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte3.png", 
+                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte4.png", 
+                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte5.png", 
                 ], 
                 "animation_speed": 60,      # CONFIGURÁVEL: Velocidade da animação visual (ms por frame)
                 "animation_display_scale":0.4, # CONFIGURÁVEL: Escala do sprite da animação visual

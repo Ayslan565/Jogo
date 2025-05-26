@@ -4,8 +4,8 @@ import random
 class Grama(pygame.sprite.Sprite):
     # Lista de caminhos dos sprites
     imagens_grama = [
-        pygame.image.load('Sprites/mato/Mato_1.png'),
-        pygame.image.load('Sprites/mato/Mato_2.png'),
+        pygame.image.load('Sprites\\mato\\Mato_1.png'),
+        pygame.image.load('Sprites\\mato\\Mato_2.png'),
     ]
 
     def __init__(self, x, y, largura=50, altura=50):

@@ -4,7 +4,7 @@ import time
 import sys
 import os
 import threading 
-import tkinter as tk # Necessário para tk.TclError no run_weapon_wheel_thread_target
+# import tkinter as tk # Não é mais necessário
 
 # --- Configuração do sys.path ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,19 +15,23 @@ project_root_dir = os.path.dirname(current_dir)
 if project_root_dir not in sys.path:
     sys.path.insert(0, project_root_dir) 
 
+# --- Pré-definição de Nomes Globais como Fallback ---
+Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, BarraInventario, ItemInventario = (None,) * 15
+AdagaFogo, EspadaBrasas, MachadoCeruleo, MachadoMacabro, MachadoMarfim, MachadoBarbaro, EspadaFogoAzul, EspadaLua, EspadaCaida, EspadaPenitencia, MachadoBase = (None,) * 11
+WeaponWheelUI = None 
+
 # --- Importações Centralizadas ---
-try:
-    from importacoes import *
-except ImportError as e:
-    print(f"DEBUG(Game): ERRO CRÍTICO ao importar 'importacoes.py'. Verifique o arquivo e o sys.path. Erro: {e}")
-    Player, WeaponWheelUI, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida = (None,) * 14
-    AdagaFogo, EspadaBrasas, MachadoCeruleo, MachadoMacabro, MachadoMarfim, MachadoBarbaro, EspadaFogoAzul, EspadaLua, EspadaCaida, EspadaPenitencia, MachadoBase = (None,) * 11
+from importacoes import * 
 
 try:
-    from player import Player 
+    from player import Player as PlayerLocal
+    if Player is None: 
+        Player = PlayerLocal
+        print("DEBUG(Game): Classe Player carregada de player.py (fallback).")
 except ImportError as e:
-    print(f"DEBUG(Game): ERRO CRÍTICO: Módulo 'player.py' ou classe 'Player' não encontrado. Erro: {e}")
-    Player = None 
+    print(f"DEBUG(Game): ERRO CRÍTICO ao importar 'player.py' diretamente. Erro: {e}")
+    if Player is None: 
+        Player = None 
 
 
 MUSICAS_JOGO = [
@@ -40,137 +44,32 @@ DEATH_SCREEN_BACKGROUND_IMAGE = "Sprites/Backgrounds/death_background.png"
 game_music_volume = 0.5 
 game_sfx_volume = 0.5  
 
-weapon_wheel_ui = None
-weapon_wheel_thread = None 
-weapon_wheel_active_event = threading.Event() 
-
-game_paused_for_wheel = False
 jogador = None 
 pause_manager = None
 xp_manager = None 
-game_is_running_flag = True # Flag global para controlar todos os loops de threads
-
-
-def on_weapon_selected_from_wheel(selected_weapon_instance: Weapon): 
-    global jogador, game_paused_for_wheel, weapon_wheel_active_event
-    
-    if jogador and hasattr(jogador, 'owned_weapons') and hasattr(jogador, 'equip_weapon') and selected_weapon_instance:
-        arma_para_equipar = None
-        for w_inv in jogador.owned_weapons:
-            if w_inv is selected_weapon_instance or (hasattr(w_inv, 'name') and w_inv.name == selected_weapon_instance.name): 
-                arma_para_equipar = w_inv
-                break
-        
-        if arma_para_equipar:
-            jogador.equip_weapon(arma_para_equipar)
-    
-    game_paused_for_wheel = False 
-    if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
-        pygame.mixer.music.unpause()
-    weapon_wheel_active_event.clear() 
-    if weapon_wheel_ui and hasattr(weapon_wheel_ui, 'hide_wheel'): 
-        weapon_wheel_ui.hide_wheel()
-
-
-def run_weapon_wheel_thread_target():
-    global weapon_wheel_ui, game_paused_for_wheel, weapon_wheel_active_event, game_is_running_flag
-    
-    # print("DEBUG(Game): Thread da roda de armas iniciado.")
-    if weapon_wheel_ui:
-        try:
-            # Garante que a janela seja criada se não existir e o evento estiver setado
-            if weapon_wheel_active_event.is_set():
-                if weapon_wheel_ui.toplevel_window is None or not weapon_wheel_ui.toplevel_window.winfo_exists():
-                    weapon_wheel_ui.create_wheel_window()
-                if weapon_wheel_ui.toplevel_window and weapon_wheel_ui.toplevel_window.winfo_exists(): # Verifica novamente
-                    weapon_wheel_ui.show_wheel()
-
-            while game_is_running_flag: # O loop principal do thread agora é controlado por game_is_running_flag
-                if weapon_wheel_active_event.is_set(): # Verifica se a roda deve estar ativa
-                    if hasattr(weapon_wheel_ui, 'tk_root') and weapon_wheel_ui.tk_root and \
-                       hasattr(weapon_wheel_ui, 'toplevel_window') and weapon_wheel_ui.toplevel_window and \
-                       weapon_wheel_ui.tk_root.winfo_exists() and weapon_wheel_ui.toplevel_window.winfo_exists():
-                        try:
-                            # Se a roda foi escondida mas o evento ainda está set (ex: reabertura rápida), mostra-a
-                            if not weapon_wheel_ui.toplevel_window.winfo_viewable():
-                                weapon_wheel_ui.show_wheel()
-                                
-                            weapon_wheel_ui.tk_root.update()
-                            weapon_wheel_ui.tk_root.update_idletasks()
-                        except tk.TclError as e: 
-                            print(f"DEBUG(Game): Erro Tcl no loop da roda (ex: janela fechada): {e}")
-                            weapon_wheel_active_event.clear() 
-                            # Não dá break aqui, deixa game_is_running_flag controlar a saída do thread
-                    else: 
-                        # Se a janela não existe mais mas o evento está setado, limpa o evento
-                        # print("DEBUG(Game): Janela da roda não existe, mas evento estava setado. Limpando evento.")
-                        weapon_wheel_active_event.clear()
-                
-                # Pequena pausa para o thread não consumir 100% CPU e ser responsivo ao game_is_running_flag
-                # e ao weapon_wheel_active_event
-                # O wait() permite que o thread "durma" até que o evento seja setado ou o timeout ocorra
-                # ou até que game_is_running_flag se torne False.
-                activated = weapon_wheel_active_event.wait(timeout=0.05) 
-                if not game_is_running_flag: # Verifica novamente após o wait
-                    break
-
-        except Exception as e:
-            print(f"DEBUG(Game): Erro EXCEPCIONAL no thread da roda de armas: {e}")
-        finally:
-            print("DEBUG(Game): Thread da roda de armas finalizando e limpando recursos Tkinter...")
-            if weapon_wheel_ui:
-                # Esconde primeiro para liberar grab, se houver
-                if hasattr(weapon_wheel_ui, 'hide_wheel'):
-                    try:
-                        weapon_wheel_ui.hide_wheel() # Isso também deve chamar active_event_ref.clear()
-                    except Exception as e_hide:
-                        print(f"DEBUG(Game): Erro ao chamar hide_wheel no finally do thread: {e_hide}")
-
-                # Destruição da janela Toplevel
-                if hasattr(weapon_wheel_ui, 'toplevel_window') and weapon_wheel_ui.toplevel_window:
-                    try:
-                        if weapon_wheel_ui.toplevel_window.winfo_exists():
-                            weapon_wheel_ui.toplevel_window.destroy()
-                        weapon_wheel_ui.toplevel_window = None
-                    except Exception as e_tl:
-                        print(f"DEBUG(Game): Erro ao destruir toplevel_window no finally do thread: {e_tl}")
-                
-                # Destruição da raiz Tkinter
-                if hasattr(weapon_wheel_ui, 'tk_root') and weapon_wheel_ui.tk_root:
-                    try:
-                        if weapon_wheel_ui.tk_root.winfo_exists():
-                            weapon_wheel_ui.tk_root.quit() 
-                            weapon_wheel_ui.tk_root.destroy()
-                        weapon_wheel_ui.tk_root = None
-                        print("DEBUG(Game): tk_root da roda de armas destruído pelo thread.")
-                    except Exception as e_root:
-                        print(f"DEBUG(Game): Erro ao destruir tk_root no finally do thread: {e_root}")
-            
-            # Garante que o estado de pausa do jogo seja resetado
-            if game_paused_for_wheel: 
-                game_paused_for_wheel = False
-                if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
-                    pygame.mixer.music.unpause()
-            weapon_wheel_active_event.clear() # Garante que o evento seja limpo
-            print("DEBUG(Game): Limpeza final do thread da roda de armas completa.")
+barra_inventario = None 
+gerenciador_inimigos = None 
+game_is_running_flag = True 
+jogo_pausado_para_inventario = False
 
 
 def inicializar_jogo(largura_tela, altura_tela):
-    global jogador, game_music_volume, pause_manager, xp_manager, weapon_wheel_ui, weapon_wheel_active_event
+    global jogador, game_music_volume, pause_manager, xp_manager, barra_inventario, gerenciador_inimigos
     print("DEBUG(Game): Initializing game components...")
     tempo_inicio = pygame.time.get_ticks()
 
     if Player is None:
         print("DEBUG(Game): CRITICAL Error: Player class not available. Aborting initialization.")
-        return None, None, None, [], [], set(), None, True, tempo_inicio, None 
+        return None, None, None, [], [], set(), None, True, tempo_inicio, None, None 
 
     jogador = Player(velocidade=5, vida_maxima=150) 
+    print(f"DEBUG(Game): Objeto jogador criado: {jogador}") 
     
     if not hasattr(jogador, 'rect_colisao') and hasattr(jogador, 'rect'): 
         jogador.rect_colisao = jogador.rect.inflate(-10,-10)
     elif not hasattr(jogador, 'rect'):
          print("DEBUG(Game): CRITICAL Player has no rect attribute after init.")
-         return None, None, None, [], [], set(), None, True, tempo_inicio, None
+         return None, None, None, [], [], set(), None, True, tempo_inicio, None, None
 
     if XPManager is not None:
         xp_manager = XPManager(player_ref=jogador, largura_tela=largura_tela, altura_tela=altura_tela)
@@ -182,16 +81,26 @@ def inicializar_jogo(largura_tela, altura_tela):
         if jogador.add_owned_weapon(initial_weapon_instance): 
              jogador.equip_weapon(initial_weapon_instance) 
 
+    if EspadaBrasas is not None and hasattr(jogador, 'add_owned_weapon'):
+        try:
+            segunda_arma = EspadaBrasas()
+            jogador.add_owned_weapon(segunda_arma)
+        except Exception as e:
+            print(f"DEBUG(Game): Erro ao adicionar segunda arma para teste: {e}")
+
     estacoes = Estacoes() if Estacoes is not None else None
     gramas, arvores, blocos_gerados = [], [], set()
-    gerenciador_inimigos = GerenciadorDeInimigos(estacoes_obj=estacoes, tela_largura=largura_tela, altura_tela=altura_tela) if GerenciadorDeInimigos is not None and estacoes is not None else None
     
-    if gerenciador_inimigos and jogador and hasattr(jogador, 'rect'): 
-        if hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'):
-             gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
-        elif hasattr(gerenciador_inimigos, 'spawn_inimigos'):
-             gerenciador_inimigos.spawn_inimigos(jogador)
-
+    if GerenciadorDeInimigos is not None and estacoes is not None:
+        gerenciador_inimigos = GerenciadorDeInimigos(estacoes_obj=estacoes, tela_largura=largura_tela, altura_tela=altura_tela)
+        if jogador and hasattr(jogador, 'rect'): 
+            if hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'):
+                 gerenciador_inimigos.spawn_inimigos_iniciais(jogador) 
+            elif hasattr(gerenciador_inimigos, 'spawn_inimigos'): 
+                 gerenciador_inimigos.spawn_inimigos(jogador)
+    else:
+        gerenciador_inimigos = None
+        print("DEBUG(Game): GerenciadorDeInimigos não pôde ser inicializado.")
 
     timer_obj = None
     if Timer is not None and pygame.font.get_init(): 
@@ -213,18 +122,39 @@ def inicializar_jogo(largura_tela, altura_tela):
                                         game_music_volume, game_sfx_volume)
     else: pause_manager = None
     
-    if WeaponWheelUI is not None and jogador and hasattr(jogador, 'owned_weapons'):
-        weapon_wheel_ui = WeaponWheelUI(
-            parent_game_instance=None, 
-            on_weapon_selected_callback=on_weapon_selected_from_wheel,
-            player_owned_weapons_ref=jogador.owned_weapons,
-            active_event_ref=weapon_wheel_active_event 
-        )
-        print("DEBUG(Game): WeaponWheelUI inicializada.")
-    else: 
-        weapon_wheel_ui = None
-        print("DEBUG(Game): Aviso: WeaponWheelUI ou jogador/inventário não disponível para inicialização.")
-    
+    if BarraInventario and jogador and hasattr(jogador, 'owned_weapons'):
+        margem_borda_x = 20
+        margem_borda_y = 20
+        slot_tamanho_barra = 55 
+        
+        barra_inv_x = margem_borda_x
+        barra_inv_y = altura_tela - slot_tamanho_barra - margem_borda_y
+        
+        barra_inventario = BarraInventario(barra_inv_x, barra_inv_y, largura_tela, altura_tela, num_slots=4, slot_tamanho=(slot_tamanho_barra, slot_tamanho_barra))
+        print("DEBUG(Game): Barra de Inventário (Armas) inicializada.")
+
+        if ItemInventario and project_root_dir: 
+            for i in range(min(len(jogador.owned_weapons), barra_inventario.num_slots)):
+                arma_para_slot = jogador.owned_weapons[i]
+                if arma_para_slot: 
+                    if hasattr(barra_inventario, 'adicionar_arma'): # Verifica se o método existe
+                        barra_inventario.adicionar_arma(arma_para_slot, slot_desejado=i)
+                    else: # Fallback se o método for adicionar_item
+                        icone_path = getattr(arma_para_slot, 'ui_icon_path', None)
+                        if icone_path and not os.path.isabs(icone_path): 
+                            icone_path_completo = os.path.join(project_root_dir, icone_path)
+                            if not os.path.exists(icone_path_completo):
+                                print(f"AVISO(Game): Ícone para {arma_para_slot.name} não encontrado em {icone_path_completo}")
+                                icone_path_completo = None 
+                        else:
+                            icone_path_completo = icone_path 
+                        item_para_barra = ItemInventario(arma_para_slot.name, 1, icone_path_completo, item_id=arma_para_slot.name)
+                        barra_inventario.adicionar_item(item_para_barra, slot_especifico=i)
+            
+    else:
+        barra_inventario = None
+        print("DEBUG(Game): Aviso: Classe BarraInventario não disponível ou jogador sem inventário.")
+
     vida_jogador_ref = jogador.vida if hasattr(jogador, 'vida') and jogador.vida is not None else None
     if vida_jogador_ref is None and Vida is not None: 
         print("DEBUG(Game): Atenção! jogador.vida é None, criando instância de Vida separada para referência.")
@@ -234,7 +164,7 @@ def inicializar_jogo(largura_tela, altura_tela):
             jogador.vida = vida_jogador_ref
 
     print("DEBUG(Game): Saindo de inicializar_jogo().") 
-    return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio, timer_obj
+    return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio, timer_obj, barra_inventario
 
 
 def gerar_elementos_ao_redor_do_jogador(Asrahel, gramas, arvores, est, blocos_gerados):
@@ -292,19 +222,21 @@ def verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador_obj):
                         except TypeError: jogador_obj.receber_dano(dano_a_aplicar)
 
 
-def desenhar_cena(janela, est, gramas, arvores, jogador_obj, gerenciador_inimigos, vida_jogador_obj, camera_x, camera_y, tempo_decorrido, timer_obj, dt_ms):
+def desenhar_cena(janela, est, gramas, arvores, jogador_obj, gerenciador_inimigos, vida_jogador_obj_param, 
+                  barra_inventario_obj, camera_x, camera_y, tempo_decorrido, timer_obj, dt_ms): 
     global xp_manager 
     janela.fill((0, 0, 0))
     if est and hasattr(est, 'desenhar'): est.desenhar(janela)
     for gr in gramas: 
         if gr and hasattr(gr, 'desenhar'): gr.desenhar(janela, camera_x, camera_y)
+    
     if gerenciador_inimigos:
         if hasattr(gerenciador_inimigos, 'desenhar_inimigos'): gerenciador_inimigos.desenhar_inimigos(janela, camera_x, camera_y)
         if hasattr(gerenciador_inimigos, 'desenhar_projeteis_inimigos'): gerenciador_inimigos.desenhar_projeteis_inimigos(janela, camera_x, camera_y)
     
     if jogador_obj and hasattr(jogador_obj, 'desenhar'): jogador_obj.desenhar(janela, camera_x, camera_y)
     
-    for a in arvores:
+    for a in arvores: 
         if a and hasattr(a, 'desenhar'): a.desenhar(janela, camera_x, camera_y)
             
     if shop_elements and hasattr(shop_elements, 'draw_shop_elements'): 
@@ -312,16 +244,18 @@ def desenhar_cena(janela, est, gramas, arvores, jogador_obj, gerenciador_inimigo
         
     if est and hasattr(est, 'desenhar_mensagem_estacao'): est.desenhar_mensagem_estacao(janela)
     
-    if vida_jogador_obj and hasattr(vida_jogador_obj, 'desenhar'): 
-        vida_jogador_obj.desenhar(janela, 20, 20)
+    if vida_jogador_obj_param and hasattr(vida_jogador_obj_param, 'desenhar'): 
+        vida_jogador_obj_param.desenhar(janela, 20, 20)
         
     if timer_obj and hasattr(timer_obj, 'desenhar'): timer_obj.desenhar(janela, tempo_decorrido)
     if xp_manager and hasattr(xp_manager, 'draw'): xp_manager.draw(janela)
 
+    if barra_inventario_obj and hasattr(barra_inventario_obj, 'desenhar') and jogador_obj:
+        barra_inventario_obj.desenhar(janela, jogador_obj)
+
 
 def main():
-    global jogador, game_paused_for_wheel, weapon_wheel_ui, weapon_wheel_thread, weapon_wheel_active_event
-    global game_music_volume, game_sfx_volume, pause_manager, game_is_running_flag, xp_manager
+    global jogador, game_music_volume, game_sfx_volume, pause_manager, game_is_running_flag, xp_manager, barra_inventario, jogo_pausado_para_inventario, gerenciador_inimigos
 
     print("DEBUG(Game): Iniciando main()...") 
     pygame.init()
@@ -363,8 +297,8 @@ def main():
         if Menu is not None and 'menu' in locals() and hasattr(menu, 'parar_musica'): menu.parar_musica()
         print("DEBUG(Game): Ação 'jogar' selecionada. Chamando inicializar_jogo()...") 
         
-        jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, jogador_morreu, tempo_inicio, timer_obj = inicializar_jogo(largura_tela, altura_tela)
-        print(f"DEBUG(Game): inicializar_jogo() retornou. Jogador: {jogador}, Vida Ref: {vida_jogador_ref}") 
+        jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, jogador_morreu, tempo_inicio, timer_obj, barra_inventario = inicializar_jogo(largura_tela, altura_tela)
+        print(f"DEBUG(Game): inicializar_jogo() retornou. Jogador: {jogador}, Vida Ref: {vida_jogador_ref}, BarraInv: {barra_inventario}") 
         
         if jogador is None: 
             print("DEBUG(Game): Falha crítica ao inicializar o jogador. Encerrando.")
@@ -373,7 +307,7 @@ def main():
 
         tocar_musica_jogo()
         game_state = "playing" 
-        game_is_running_flag = True # Define a flag para o loop de jogo e threads
+        game_is_running_flag = True
 
         running = True
         print("DEBUG(Game): Entrando no loop principal do jogo (while running)...") 
@@ -383,37 +317,51 @@ def main():
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT: running = False
                 if evento.type == pygame.KEYDOWN:
-                    # print(f"DEBUG(Game.py) KEYDOWN Event: {pygame.key.name(evento.key)}") 
+                    print(f"DEBUG(Game.py) KEYDOWN Event: {pygame.key.name(evento.key)}") # DEBUG ATIVO
                     if evento.key == pygame.K_ESCAPE:
-                        if game_paused_for_wheel: 
-                            if weapon_wheel_ui and hasattr(weapon_wheel_ui, 'hide_wheel'): weapon_wheel_ui.hide_wheel() 
-                            # A lógica de despausar o jogo é agora tratada no hide_wheel ou no callback
+                        if jogo_pausado_para_inventario and barra_inventario: 
+                            print("DEBUG(Game): ESC pressionado com inventário aberto. Fechando inventário.") # DEBUG
+                            barra_inventario.toggle_visao_inventario(jogador)
+                            jogo_pausado_para_inventario = False 
+                            if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
+                                pygame.mixer.music.unpause()
+                            print("DEBUG(Game): Inventário fechado com ESC, jogo retomado.")
                         elif game_state == "playing" and pause_manager: 
+                            print("DEBUG(Game): ESC pressionado. Abrindo menu de pausa.") # DEBUG
                             action, new_music_vol, new_sfx_vol = pause_manager.show_menu()
                             game_music_volume, game_sfx_volume = new_music_vol, new_sfx_vol
                             if action == "main_menu": running = False; acao_menu = "main_menu_from_pause"; break 
                             elif action == "quit": running = False; break
                     
-                    if evento.key == pygame.K_TAB and not game_paused_for_wheel and game_state == "playing":
-                        if weapon_wheel_ui and jogador and hasattr(jogador, 'owned_weapons'):
-                            print("DEBUG(Game): TAB pressionado. Abrindo roda de armas...") 
-                            if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
-                                pygame.mixer.music.pause()
-                            game_paused_for_wheel = True
-                            weapon_wheel_active_event.set() 
-                            
-                            weapon_wheel_ui.player_weapons_ref = jogador.owned_weapons 
-                            
-                            if weapon_wheel_thread is None or not weapon_wheel_thread.is_alive():
-                                print("DEBUG(Game): Criando e iniciando novo thread para roda de armas.") 
-                                weapon_wheel_thread = threading.Thread(target=run_weapon_wheel_thread_target, daemon=True)
-                                weapon_wheel_thread.start()
+                    elif evento.key == pygame.K_TAB and game_state == "playing": 
+                        print(f"DEBUG(Game): TAB pressionado. game_state='{game_state}'") # DEBUG
+                        if barra_inventario and jogador: 
+                            print(f"DEBUG(Game): Chamando toggle_visao_inventario. Estado atual: {barra_inventario.visao_inventario_aberta}") # DEBUG
+                            barra_inventario.toggle_visao_inventario(jogador)
+                            jogo_pausado_para_inventario = barra_inventario.visao_inventario_aberta
+                            print(f"DEBUG(Game): Novo estado visao_inventario_aberta: {barra_inventario.visao_inventario_aberta}, jogo_pausado_para_inventario: {jogo_pausado_para_inventario}") # DEBUG
+                            if jogo_pausado_para_inventario:
+                                if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
+                                    pygame.mixer.music.pause()
+                                print("DEBUG(Game): Inventário aberto com TAB, jogo pausado.")
+                            else:
+                                if pygame.mixer.get_init(): 
+                                     pygame.mixer.music.unpause()
+                                print("DEBUG(Game): Inventário fechado com TAB, jogo retomado.")
+                        # else:
+                            # print("DEBUG(Game): Barra de inventário ou jogador não disponível para TAB.") # DEBUG
+                    
+                    if barra_inventario and game_state == "playing" and jogador: 
+                        # Passa o input para a barra de inventário APENAS se não for TAB (para evitar processamento duplo)
+                        # A barra de inventário já lida com 1-4 para equipar.
+                        if evento.key != pygame.K_TAB:
+                             barra_inventario.handle_input(evento, jogador)
                 
             if not running: break 
             
             teclas = pygame.key.get_pressed() 
             
-            if game_state == "playing" and not game_paused_for_wheel:
+            if game_state == "playing" and not jogo_pausado_para_inventario: 
                 if jogador:
                     if hasattr(jogador, 'mover'):
                         jogador.mover(teclas, arvores)
@@ -433,14 +381,18 @@ def main():
                 if est and hasattr(est, 'atualizar'):
                     est_ant = est.i; est.atualizar()
                     if est.i != est_ant:
+                        print(f"DEBUG(Game): Mudança de estação para {est.nome_estacao()}")
                         if arvores:
                             for arv in arvores:
                                 if arv and hasattr(arv, 'atualizar_sprite'): arv.atualizar_sprite(est.i)
-                        if gerenciador_inimigos and jogador and hasattr(jogador, 'rect'):
-                            if hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'): 
-                                gerenciador_inimigos.spawn_inimigos_iniciais(jogador) 
-                            elif hasattr(gerenciador_inimigos, 'spawn_inimigos'):
-                                gerenciador_inimigos.spawn_inimigos(jogador)
+                        if gerenciador_inimigos:
+                            if hasattr(gerenciador_inimigos, 'resetar_temporizador_spawn_estacao'):
+                                gerenciador_inimigos.resetar_temporizador_spawn_estacao()
+                            if jogador and hasattr(jogador, 'rect'):
+                                if hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'): 
+                                    gerenciador_inimigos.spawn_inimigos_iniciais(jogador) 
+                                elif hasattr(gerenciador_inimigos, 'spawn_inimigos'):
+                                    gerenciador_inimigos.spawn_inimigos(jogador)
 
 
                 if jogador and gerenciador_inimigos and hasattr(gerenciador_inimigos, 'inimigos'):
@@ -455,7 +407,7 @@ def main():
                 if current_shop_rect_on_map and jogador and hasattr(jogador, 'rect_colisao') and \
                    jogador.rect_colisao.colliderect(current_shop_rect_on_map) and teclas[pygame.K_e]: 
                     
-                    if loja_core and hasattr(loja_core, 'run_shop_scene'): # loja_core é o módulo loja.py
+                    if loja_core and hasattr(loja_core, 'run_shop_scene'):
                         if pygame.mixer.get_init() and pygame.mixer.music.get_busy(): pygame.mixer.music.pause()
                         
                         should_continue_main_game = loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
@@ -469,34 +421,17 @@ def main():
                         if shop_elements and hasattr(shop_elements, 'reset_shop_spawn'):
                             shop_elements.reset_shop_spawn()
 
-            if game_state == "playing": 
-                camera_x = jogador.rect.centerx - largura_tela // 2 if jogador and hasattr(jogador, 'rect') else 0
-                camera_y = jogador.rect.centery - altura_tela // 2 if jogador and hasattr(jogador, 'rect') else 0
-                tempo_decorrido_segundos = (pygame.time.get_ticks() - tempo_inicio) // 1000 if tempo_inicio else 0
-                desenhar_cena(janela, est, gramas, arvores, jogador, gerenciador_inimigos, vida_jogador_ref, camera_x, camera_y, tempo_decorrido_segundos, timer_obj, dt_ms)
+            # Desenha a cena principal sempre. A barra de inventário se sobrepõe se estiver aberta.
+            camera_x = jogador.rect.centerx - largura_tela // 2 if jogador and hasattr(jogador, 'rect') else 0
+            camera_y = jogador.rect.centery - altura_tela // 2 if jogador and hasattr(jogador, 'rect') else 0
+            tempo_decorrido_segundos = (pygame.time.get_ticks() - tempo_inicio) // 1000 if tempo_inicio else 0
+            desenhar_cena(janela, est, gramas, arvores, jogador, gerenciador_inimigos, vida_jogador_ref, barra_inventario, camera_x, camera_y, tempo_decorrido_segundos, timer_obj, dt_ms)
 
             pygame.display.flip()
             clock.tick(60) 
 
-        # --- FIM DO LOOP while running ---
-        game_is_running_flag = False # Sinaliza para todos os threads pararem
+        game_is_running_flag = False 
         
-        print("DEBUG(Game): Saindo do loop principal. Esperando threads...")
-
-        if weapon_wheel_thread and weapon_wheel_thread.is_alive():
-            print("DEBUG(Game): Sinalizando e esperando thread da roda de armas terminar...")
-            weapon_wheel_active_event.set() # Garante que o thread não esteja bloqueado em wait()
-            time.sleep(0.05) # Dá uma chance para o thread processar a mudança de game_is_running_flag
-            weapon_wheel_active_event.clear() # Agora limpa para que o loop do thread termine se ainda estiver nele
-            weapon_wheel_thread.join(timeout=2.0) 
-            if weapon_wheel_thread.is_alive():
-                print("DEBUG(Game): AVISO: Thread da roda de armas não terminou a tempo.")
-            else:
-                print("DEBUG(Game): Thread da roda de armas finalizado.")
-        
-        # A limpeza dos recursos Tkinter da roda de armas agora é feita no finally do run_weapon_wheel_thread_target
-        weapon_wheel_ui = None # Limpa a referência
-
         if gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'): 
             gerenciador_inimigos.stop_threads()
 
@@ -513,11 +448,7 @@ def main():
     elif acao_menu == "sair":
         if Menu is not None and 'menu' in locals() and hasattr(menu, 'parar_musica'): menu.parar_musica()
     
-    # Finalização geral do jogo
     game_is_running_flag = False 
-    if weapon_wheel_thread and weapon_wheel_thread.is_alive(): # Segunda verificação
-        weapon_wheel_active_event.clear()
-        weapon_wheel_thread.join(timeout=1.0)
     
     if gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'): 
         gerenciador_inimigos.stop_threads()

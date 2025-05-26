@@ -22,7 +22,7 @@ FONTE_RETRO_PATH = "Fontes\Retro Gaming.ttf" # <--- VERIFIQUE ESTE CAMINHO!
 IMAGEM_FUNDO_OPCAO_PATH = "Sprites/Menu/botao_menu.png" # <--- COLOQUE O CAMINHO CORRETO PARA A IMAGEM DO SEU BOTÃO AQUI
 
 # Nome do arquivo da imagem de fundo principal do menu
-IMAGEM_FUNDO_MENU_PATH = "Sprites/Menu/Menu.png" # <--- COLOQUE O CAMINHO CORRETO PARA A IMAGEM DE FUNDO DO MENU
+IMAGEM_FUNDO_MENU_PATH = "Sprites\Menu\Menu.png" # <--- COLOQUE O CAMINHO CORRETO PARA A IMAGEM DE FUNDO DO MENU
 
 # >>> LISTA DE ARQUIVOS DE MÚSICA PARA O MENU <<<
 # Certifique-se de que esses arquivos existam e os caminhos estejam corretos!
