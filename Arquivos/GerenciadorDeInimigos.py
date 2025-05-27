@@ -3,7 +3,6 @@ import pygame
 import random
 import time
 import math 
-import os 
 import threading
 import queue # Para fila thread-safe
 

@@ -21,7 +21,7 @@ class AdagaFogo(Weapon):
             # CONFIGURÁVEL: Distância do centro do player ao CENTRO da hitbox da arma.
             # Ajuste isto para posicionar a hitbox ao lado do jogador.
             # Ex: (largura_sprite_jogador / 2) + (largura_hitbox_arma / 2)'
-            attack_range=initial_stats_for_super.get("range", 47.5), 
+            attack_range=initial_stats_for_super.get("range",80 ), 
             cooldown=initial_stats_for_super.get("cooldown", 0.35), 
             # CONFIGURÁVEL: (largura, altura) da HITBOX LÓGICA de dano.
             hitbox_dimensions=initial_stats_for_super.get("hitbox_dim", (150, 45)), 
@@ -45,7 +45,7 @@ class AdagaFogo(Weapon):
                 # CONFIGURÁVEL: (largura_sprite_jogador/2) + (hitbox_dim[0]/2)
                 # Se o jogador tem 60 de largura, sua borda está a 30 do centro.
                 # Se hitbox_dim[0] é 35, metade é 17.5. Range = 30 + 17.5 = 47.5
-                "range": 30 + (15/2), 
+                "range": 80 + (15/2), 
                 "cooldown": 0.35, 
                 "name_suffix": "", 
                 "hitbox_dim": (60, 60),     # CONFIGURÁVEL: Largura e altura da hitbox de dano

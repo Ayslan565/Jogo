@@ -1,9 +1,7 @@
 import pygame
 import random
-import time
 import sys
 import os
-import threading 
 # import tkinter as tk # Não é mais necessário
 
 # --- Configuração do sys.path ---
