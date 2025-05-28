@@ -115,7 +115,7 @@ class Player(pygame.sprite.Sprite):
         # --- Atributos para I-Frames (Invencibilidade Temporária) ---
         self.pode_levar_dano = True
         self.tempo_ultimo_dano_levado = 0  # Timestamp do último dano (pygame.time.get_ticks())
-        self.duracao_invencibilidade_ms = 1500  # Duração da invencibilidade em milissegundos (ex: 1.5 segundos)
+        self.duracao_invencibilidade_ms = 500  # Duração da invencibilidade em milissegundos (ex: 1.5 segundos)
         self.is_invencivel_piscando = False # Controla se o jogador está no estado de piscar por dano
         self.tempo_para_proximo_pisca_dano = 0 # Timestamp para o próximo toggle de visibilidade
         self.intervalo_pisca_dano_ms = 100 # Intervalo entre os "piscas" (em ms)

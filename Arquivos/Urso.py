@@ -163,6 +163,7 @@ class Urso(Inimigo):
 
         if Urso.sprites_carregados_andar is None:
             caminhos_andar = [
+                "Sprites/Inimigos/Urso/Urso.png",
                 "Sprites/Inimigos/Urso/Urso 2.png",
                 "Sprites/Inimigos/Urso/Urso 3.png",
                 "Sprites/Inimigos/Urso/Urso 4.png",  # Exemplo de variação

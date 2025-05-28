@@ -168,13 +168,13 @@ class Planta_Carnivora(Inimigo):
         planta_hp = 25 
         planta_contact_damage = 10 
         planta_xp_value = 25 
-        sprite_path_principal = "Sprites/Inimigos/Planta Carnivora/Planta carnivora 1.png" 
-
-        if Planta_Carnivora.sprites_originais is None: 
+        sprite_path_principal = "Sprites\Inimigos\Planta Carnivora\Planta carnivora 1.png" 
+        if Planta_Carnivora.sprites_originais is None:
             caminhos = [
                 sprite_path_principal,
                 "Sprites/Inimigos/Planta Carnivora/Planta_Carnivora2.png",
             ]
+            
             Planta_Carnivora.sprites_originais = [] 
             current_file_dir = os.path.dirname(os.path.abspath(__file__))
             game_root_dir = os.path.dirname(current_file_dir) 

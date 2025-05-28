@@ -1,452 +1,657 @@
-# Arquivo: loja.py
+# Arquivo: loja_modulo.py
 import pygame
 import time
 import random
-import os # Importa os para verificar a existência de arquivos
+import os
 
 # --- Configuração para o ciclo de cores da borda dourada ---
 GOLD_PALETTE = [
-    (255, 223, 0),  # Brilho máximo
-    (255, 215, 0),  # Gold
-    (230, 192, 0),  # Tom mais escuro
-    (204, 171, 0),  # Tom ainda mais escuro
-    (230, 192, 0),  # Voltando
-    (255, 215, 0),  # Voltando
+    (255, 223, 0), (255, 215, 0), (230, 192, 0),
+    (204, 171, 0), (230, 192, 0), (255, 215, 0),
 ]
 color_index = 0
-color_cycle_speed = 5 # Mudar de cor a cada 5 frames
+color_cycle_speed = 5
 frame_count = 0
-border_thickness = 5 # Espessura da borda (Aumentada)
-border_radius = 10 # Raio do canto para arredondar as bordas
+border_thickness = 5
+border_radius = 10
 
-# --- Carregar recursos (imagens, fontes) ---
-# Inicializa a fonte placeholder de forma confiável
+# --- Inicialização de variáveis globais para imagens e fontes ---
 fonte_placeholder = None
 texto_erro_placeholder = None
-try:
-    if pygame.font.get_init():
-        fonte_placeholder = pygame.font.Font(None, 20)
-        texto_erro_placeholder = fonte_placeholder.render("Erro", True, (0, 0, 0))
-    else:
-        pygame.font.init()
-        if pygame.font.get_init():
-            fonte_placeholder = pygame.font.Font(None, 20)
-            texto_erro_placeholder = fonte_placeholder.render("Erro", True, (0, 0, 0))
-        else:
-            print("DEBUG(Loja): ERRO CRÍTICO: Não foi possível inicializar pygame.font.")
-except pygame.error as e:
-    print(f"DEBUG(Loja): Erro ao inicializar fonte placeholder: {e}")
+placeholder_img_item = None
+imagem_vendedor_placeholder = None
+
+imagem_vendedor = None
+imagem_Espada_1 = imagem_Espada_2 = imagem_Espada_3 = imagem_Espada_4 = imagem_Espada_5 = None
+imagem_Espada_6 = imagem_Espada_7 = None
+imagem_Machado_1 = imagem_Machado_2 = imagem_Machado_3 = imagem_Machado_4 = imagem_Machado_5 = imagem_Machado_6 = None
+imagem_Cajado_1 = imagem_Cajado_2 = imagem_Cajado_3 = None
+imagem_Pocao_Cura = None
+
+itens_data_global = {"Machados": [], "Espadas": [], "Cajados": [], "Poções": []}
+def tocar_musica_aleatoria(diretorio_musica):
+    """Toca músicas em ordem aleatória do diretório especificado com volume 0.5."""
+    if not pygame.mixer.get_init():
+        pygame.mixer.init()
+
+    lista_musicas = [
+        os.path.join(diretorio_musica, "Musica/Loja/Faixa_1.mp3"),
+        os.path.join(diretorio_musica, "Musica/Loja/Faixa_2.mp3"),
+        os.path.join(diretorio_musica, "Musica/Loja/Faixa_3.mp3"),
+        os.path.join(diretorio_musica, "Musica/Loja/Faixa 4.mp3"),
+    ]
+    if not lista_musicas:
+        print("Nenhuma música encontrada no diretório.")
+        return
+
+    pygame.mixer.music.set_volume(0.5)
+
+    random.shuffle(lista_musicas)
+
+    for musica in lista_musicas:
+        pygame.mixer.music.load(musica)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+    random.shuffle(lista_musicas)
+
+    for musica in lista_musicas:
+        pygame.mixer.music.load(musica)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
 
 
-placeholder_img_item = pygame.Surface((100, 100), pygame.SRCALPHA) 
-pygame.draw.rect(placeholder_img_item, (255, 0, 255), (0, 0, 100, 100)) 
-if texto_erro_placeholder: 
-    placeholder_img_item.blit(texto_erro_placeholder, (25, 40)) 
+def inicializar_placeholders_globais():
+    """Inicializa os placeholders de imagem e fonte se ainda não foram."""
+    global fonte_placeholder, texto_erro_placeholder, placeholder_img_item, imagem_vendedor_placeholder
+    
+    if fonte_placeholder is None:
+        try:
+            if not pygame.font.get_init():
+                pygame.font.init()
+            if pygame.font.get_init():
+                fonte_placeholder = pygame.font.Font(None, 20)
+                texto_erro_placeholder = fonte_placeholder.render("Erro Img", True, (0, 0, 0))
+            else:
+                print("DEBUG(Loja Modulo): ERRO CRÍTICO: Não foi possível inicializar pygame.font para placeholders.")
+        except pygame.error as e:
+            print(f"DEBUG(Loja Modulo): Erro ao inicializar fonte placeholder: {e}")
+
+    if placeholder_img_item is None:
+        placeholder_img_item = pygame.Surface((100, 100), pygame.SRCALPHA)
+        pygame.draw.rect(placeholder_img_item, (255, 0, 255, 128), (0, 0, 100, 100))
+        if texto_erro_placeholder:
+            placeholder_img_item.blit(texto_erro_placeholder, (25, 40))
+        else: 
+            pygame.draw.line(placeholder_img_item, (0,0,0), (10,10), (90,90), 2)
+            pygame.draw.line(placeholder_img_item, (0,0,0), (10,90), (90,10), 2)
+
+    if imagem_vendedor_placeholder is None:
+        imagem_vendedor_placeholder = pygame.Surface((600, 400), pygame.SRCALPHA)
+        pygame.draw.rect(imagem_vendedor_placeholder, (255, 0, 255, 128), (0, 0, 600, 400))
+        if fonte_placeholder:
+            try:
+                texto_vendedor_render = fonte_placeholder.render("Vendedor Placeholder", True, (0,0,0))
+                imagem_vendedor_placeholder.blit(texto_vendedor_render,
+                                                 (imagem_vendedor_placeholder.get_width() // 2 - texto_vendedor_render.get_width() // 2,
+                                                  imagem_vendedor_placeholder.get_height() // 2 - texto_vendedor_render.get_height() // 2))
+            except pygame.error:
+                pass 
+inicializar_placeholders_globais()
 
 
-imagem_vendedor_placeholder = pygame.Surface((600, 400), pygame.SRCALPHA) 
-pygame.draw.rect(imagem_vendedor_placeholder, (255, 0, 255), (0, 0, 600, 400))
-if fonte_placeholder: 
-    try:
-        imagem_vendedor_placeholder.blit(fonte_placeholder.render("Vendedor", True, (0,0,0)), (250, 190))
-    except pygame.error:
-        pass 
-
-
-imagem_vendedor = imagem_vendedor_placeholder
-imagem_Espada_1 = imagem_Espada_2 = imagem_Espada_3 = imagem_Espada_4 = imagem_Espada_5 = placeholder_img_item
-imagem_Machado_1 = imagem_Machado_2 = imagem_Machado_3 = imagem_Machado_4 = imagem_Machado_5 = imagem_Machado_6 = placeholder_img_item
-imagem_Cajado_1 = imagem_Cajado_2 = imagem_Cajado_3 = placeholder_img_item
-
-
-def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor=(600, 400)):
-    global imagem_vendedor, imagem_Espada_1, imagem_Espada_2, imagem_Espada_3, imagem_Espada_4, imagem_Espada_5
+def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor_img=(600, 400)):
+    global imagem_vendedor, imagem_Espada_1, imagem_Espada_2, imagem_Espada_3, imagem_Espada_4, imagem_Espada_5, imagem_Espada_6, imagem_Espada_7
     global imagem_Machado_1, imagem_Machado_2, imagem_Machado_3, imagem_Machado_4, imagem_Machado_5, imagem_Machado_6
-    global imagem_Cajado_1, imagem_Cajado_2, imagem_Cajado_3 
-    global placeholder_img_item 
+    global imagem_Cajado_1, imagem_Cajado_2, imagem_Cajado_3
+    global imagem_Pocao_Cura
+    global placeholder_img_item, imagem_vendedor_placeholder
+
+    if placeholder_img_item is None or imagem_vendedor_placeholder is None:
+        inicializar_placeholders_globais()
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = base_dir
+    # Se este módulo (loja_modulo.py) estiver dentro de uma pasta como "arquivos", 
+    # e a pasta "Sprites" estiver um nível acima (na raiz do projeto), ajustamos o project_root.
+    # If this module (loja_modulo.py) is inside a folder like "arquivos",
+    # and the "Sprites" folder is one level up (at the project root), we adjust project_root.
     if os.path.basename(base_dir).lower() == "arquivos": 
-         project_root = os.path.dirname(base_dir)
+        project_root = os.path.dirname(base_dir)
+    
+    print(f"DEBUG(Loja Modulo): Raiz do projeto para recursos da loja: {project_root}")
 
     def get_full_path(relative_path):
-        if not relative_path or not isinstance(relative_path, str): 
-            return None
+        if not relative_path or not isinstance(relative_path, str): return None
         parts = relative_path.replace("\\", "/").split("/")
         return os.path.join(project_root, *parts)
 
     def load_and_scale_image(rel_path, size, default_img):
-        if not rel_path: 
-            return default_img
-        
+        if not rel_path: return default_img
         full_path = get_full_path(rel_path)
-        if full_path and os.path.exists(full_path) and os.path.isfile(full_path): 
+        if full_path and os.path.exists(full_path) and os.path.isfile(full_path):
             try:
                 img = pygame.image.load(full_path).convert_alpha()
                 return pygame.transform.scale(img, size)
             except pygame.error as e:
-                print(f"DEBUG(Loja): Erro ao carregar ou transformar imagem '{full_path}': {e}")
+                print(f"DEBUG(Loja Modulo): Erro ao carregar/transformar '{full_path}': {e}")
                 return default_img
         else:
+            print(f"DEBUG(Loja Modulo): Imagem não encontrada em '{full_path}', usando padrão.")
             return default_img
-
     try:
-        vendedor_path_rel = "Sprites/Vendedor/Vendedor1.png" 
-        imagem_vendedor = load_and_scale_image(vendedor_path_rel, tamanho_vendedor, imagem_vendedor_placeholder)
+        vendedor_path_rel = "Sprites/Vendedor/Vendedor1.png"
+        imagem_vendedor = load_and_scale_image(vendedor_path_rel, tamanho_vendedor_img, imagem_vendedor_placeholder)
 
-        espadas_paths_rel = ["", "", "", "", ""] # Mantenha vazias se não houver sprites
+        espadas_paths_rel = [
+            "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png",
+            "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png",
+            "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/E1.png",
+            "Sprites/Armas/Espadas/Espada Sacra Caida/Espada dos Corrompidos -E1.png",
+            "Sprites/Armas/Espadas/Espada Sacra das Brasas/Espada do Heroi -E1.png",
+            "Sprites/Armas/Espadas/Espada Sacra do Lua/E1.jpg", 
+            "Sprites/Armas/Espadas/Lâmina do Ceu Centilhante/E1.jpg"
+        ]
         espadas_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in espadas_paths_rel]
         
-        imagem_Espada_1 = espadas_imgs_loaded[0] if len(espadas_imgs_loaded) > 0 else placeholder_img_item
-        imagem_Espada_2 = espadas_imgs_loaded[1] if len(espadas_imgs_loaded) > 1 else placeholder_img_item
-        imagem_Espada_3 = espadas_imgs_loaded[2] if len(espadas_imgs_loaded) > 2 else placeholder_img_item
-        imagem_Espada_4 = espadas_imgs_loaded[3] if len(espadas_imgs_loaded) > 3 else placeholder_img_item
-        imagem_Espada_5 = espadas_imgs_loaded[4] if len(espadas_imgs_loaded) > 4 else placeholder_img_item
+        full_espadas_list = (espadas_imgs_loaded + [placeholder_img_item]*7)[:7]
+        imagem_Espada_1, imagem_Espada_2, imagem_Espada_3, imagem_Espada_4, imagem_Espada_5, imagem_Espada_6, imagem_Espada_7 = full_espadas_list
 
         machados_paths_rel = [
-            "Sprites/Armas/Machados/Machado Bárbaro Cravejado/E-1.png", 
-            "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/E-1.png", 
-            "Sprites/Armas/Machados/Machado do Marfim Resplendor/E1.png", 
-            "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png",
-            "", "",
+            "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-1.png", "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png",
+            "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg", "Sprites/Armas/Machados/Machado do Fogo Abrasador/E1.jpg",
+            "Sprites/Armas/Machados/Machado do Marfim Resplendor/E1.png", "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png",
         ]
         machados_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in machados_paths_rel]
-
-        imagem_Machado_1 = machados_imgs_loaded[0] if len(machados_imgs_loaded) > 0 else placeholder_img_item
-        imagem_Machado_2 = machados_imgs_loaded[1] if len(machados_imgs_loaded) > 1 else placeholder_img_item
-        imagem_Machado_3 = machados_imgs_loaded[2] if len(machados_imgs_loaded) > 2 else placeholder_img_item
-        imagem_Machado_4 = machados_imgs_loaded[3] if len(machados_imgs_loaded) > 3 else placeholder_img_item
-        imagem_Machado_5 = machados_imgs_loaded[4] if len(machados_imgs_loaded) > 4 else placeholder_img_item
-        imagem_Machado_6 = machados_imgs_loaded[5] if len(machados_imgs_loaded) > 5 else placeholder_img_item
+        full_machados_list = (machados_imgs_loaded + [placeholder_img_item]*6)[:6]
+        imagem_Machado_1, imagem_Machado_2, imagem_Machado_3, imagem_Machado_4, imagem_Machado_5, imagem_Machado_6 = full_machados_list
 
         cajados_paths_rel = [
-            "Sprites/Armas/Cajados/Cajado Comum/Cajado Comum.png", 
-            "Sprites/Armas/Cajados/Cajado Magico/Cajado Magico.png", 
-            "Sprites/Armas/Cajados/Cajado Arcana/Cajado Arcana.png", 
+            "Sprites/Armas/Armas Magicas/Cajado da Fixacao Ametista/E1.png", "Sprites/Armas/Armas Magicas/Cajado Da santa Natureza/E1.png",
+            "Sprites/Armas/Armas Magicas/Livro dos impuros/E1.jpg",
         ]
         cajados_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in cajados_paths_rel]
+        full_cajados_list = (cajados_imgs_loaded + [placeholder_img_item]*3)[:3]
+        imagem_Cajado_1, imagem_Cajado_2, imagem_Cajado_3 = full_cajados_list
 
-        imagem_Cajado_1 = cajados_imgs_loaded[0] if len(cajados_imgs_loaded) > 0 else placeholder_img_item
-        imagem_Cajado_2 = cajados_imgs_loaded[1] if len(cajados_imgs_loaded) > 1 else placeholder_img_item
-        imagem_Cajado_3 = cajados_imgs_loaded[2] if len(cajados_imgs_loaded) > 2 else placeholder_img_item
+        pocoes_paths_rel = ["Sprites/Pocao/Pocao.png"] 
+        pocoes_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in pocoes_paths_rel]
+        imagem_Pocao_Cura = pocoes_imgs_loaded[0] if len(pocoes_imgs_loaded) > 0 else placeholder_img_item
 
-    except Exception as e: 
-        print(f"DEBUG(Loja): Erro crítico durante carregar_recursos_loja: {e}")
+    except Exception as e:
+        print(f"DEBUG(Loja Modulo): Erro crítico durante carregar_recursos_loja: {e}")
         imagem_vendedor = imagem_vendedor_placeholder
         imagem_Espada_1 = imagem_Espada_2 = imagem_Espada_3 = imagem_Espada_4 = imagem_Espada_5 = placeholder_img_item
+        imagem_Espada_6 = imagem_Espada_7 = placeholder_img_item
         imagem_Machado_1 = imagem_Machado_2 = imagem_Machado_3 = imagem_Machado_4 = imagem_Machado_5 = imagem_Machado_6 = placeholder_img_item
         imagem_Cajado_1 = imagem_Cajado_2 = imagem_Cajado_3 = placeholder_img_item
+        imagem_Pocao_Cura = placeholder_img_item
+    print("DEBUG(Loja Modulo): Recursos da loja carregados.")
 
 
 class Loja:
-    def __init__(self, itens, fonte, largura, altura):
+    def __init__(self, itens, fonte, largura_inicial_tela, altura_inicial_tela):
         self.itens = itens
         self.fonte = fonte
-        self.espacamento = 120  
-        self.selecionado = 0    
-        self.scroll_y = 0      
-        self.largura = largura 
-        self.altura = altura   
-        self.blink_counter = 0 
-        self.blink_speed = 50  
+        self.espacamento = 150 
+        self.selecionado = 0
+        self.scroll_y = 0
+        self.blink_counter = 0
+        self.blink_speed = 30
 
-    def desenhar(self, tela, area_desenho_rect):
-        clip_rect = tela.get_clip() 
-        tela.set_clip(area_desenho_rect) 
+    def desenhar(self, tela, area_desenho_rect_externa): 
+        
+        borda_container_espessura = 2 
+        padding_interno_lista = 8 
+
+        inicio_x_conteudo_lista = area_desenho_rect_externa.left + borda_container_espessura + padding_interno_lista
+        inicio_y_conteudo_lista = area_desenho_rect_externa.top + borda_container_espessura + padding_interno_lista
+
+        largura_disponivel_para_itens = area_desenho_rect_externa.width - 2 * (borda_container_espessura + padding_interno_lista)
+        
+        clip_rect_original = tela.get_clip()
+        tela.set_clip(area_desenho_rect_externa) 
+
+        cor_descricao = (200, 200, 200) 
+        padding_vertical_texto_item = 15 
+        padding_horizontal_texto_item = 20 
+        espaco_entre_linhas = 5 
+
         for i, item in enumerate(self.itens):
-            x = area_desenho_rect.left + 10 
-            y = area_desenho_rect.top + i * self.espacamento + self.scroll_y
-            item_rect = pygame.Rect(x, y, area_desenho_rect.width - 20, self.espacamento - 10)
-            pygame.draw.rect(tela, (70, 70, 70), item_rect)
-            if i == self.selecionado:
-                if self.blink_counter < self.blink_speed // 2: 
-                    pygame.draw.rect(tela, (236, 00 , 00), item_rect, 3)
-            if self.fonte:
-                nome = self.fonte.render(item["nome"], True, (255, 255, 255))
-                preco = self.fonte.render(f"Preço: {item['preco']}g", True, (200, 255, 255))
-                nome_x = item_rect.left + 20; nome_y = item_rect.top + 20
-                preco_x = item_rect.left + 20; preco_y = item_rect.top + 50
-                tela.blit(nome, (nome_x, nome_y)); tela.blit(preco, (preco_x, preco_y))
-        tela.set_clip(clip_rect) 
+            y_item_relativo = i * self.espacamento
+            y_tela_item = inicio_y_conteudo_lista + y_item_relativo + self.scroll_y
+            altura_item_rect = self.espacamento - 10 
 
-    def mover_selecao(self, direcao, area_loja_rect): 
+            item_rect = pygame.Rect(
+                inicio_x_conteudo_lista, 
+                y_tela_item, 
+                largura_disponivel_para_itens, 
+                altura_item_rect 
+            )
+            
+            pygame.draw.rect(tela, (70, 70, 70), item_rect, border_radius=5)
+            if i == self.selecionado:
+                if self.blink_counter < self.blink_speed // 2:
+                    pygame.draw.rect(tela, (236, 0, 0), item_rect, 3, border_radius=5)
+            
+            if self.fonte:
+                pos_x_texto_no_item = item_rect.left + padding_horizontal_texto_item
+                current_y_no_item = item_rect.top + padding_vertical_texto_item
+
+                try:
+                    nome_surf = self.fonte.render(item["nome"], True, (255, 255, 255))
+                    tela.blit(nome_surf, (pos_x_texto_no_item, current_y_no_item))
+                    current_y_no_item += nome_surf.get_height() + espaco_entre_linhas
+
+                    preco_render_temp = self.fonte.render(f"Preço: {item['preco']}g", True, (200, 255, 255)) 
+                    altura_preco = preco_render_temp.get_height()
+                    preco_y_final_no_item = item_rect.bottom - altura_preco - padding_vertical_texto_item
+                    
+                    limite_y_descricao_no_item = preco_y_final_no_item - espaco_entre_linhas 
+
+                    if "descricao" in item and item["descricao"]: 
+                        palavras_descricao = item["descricao"].split(' ')
+                        linha_atual_desc_str = "" 
+                        largura_max_desc_no_item = item_rect.width - (2 * padding_horizontal_texto_item) 
+                        altura_linha_fonte = self.fonte.get_height()
+
+                        for palavra in palavras_descricao:
+                            teste_linha_str = linha_atual_desc_str + palavra + " "
+                            
+                            if self.fonte.size(teste_linha_str.strip())[0] < largura_max_desc_no_item:
+                                linha_atual_desc_str = teste_linha_str
+                            else: 
+                                if current_y_no_item + altura_linha_fonte <= limite_y_descricao_no_item:
+                                    desc_surf_linha = self.fonte.render(linha_atual_desc_str.strip(), True, cor_descricao)
+                                    tela.blit(desc_surf_linha, (pos_x_texto_no_item, current_y_no_item))
+                                    current_y_no_item += altura_linha_fonte + espaco_entre_linhas 
+                                    linha_atual_desc_str = palavra + " " 
+                                else: 
+                                    linha_atual_desc_str = "" 
+                                    break 
+                        
+                        if linha_atual_desc_str.strip(): 
+                            if current_y_no_item + altura_linha_fonte <= limite_y_descricao_no_item:
+                                desc_surf_linha = self.fonte.render(linha_atual_desc_str.strip(), True, cor_descricao)
+                                tela.blit(desc_surf_linha, (pos_x_texto_no_item, current_y_no_item))
+                    
+                    preco_surf = preco_render_temp 
+                    preco_x_pos_no_item = item_rect.right - preco_surf.get_width() - padding_horizontal_texto_item
+                    
+                    tela.blit(preco_surf, (preco_x_pos_no_item, preco_y_final_no_item))
+
+                except pygame.error as e: print(f"DEBUG(Loja Modulo-DesenharItem): Erro render: {e}")
+                except KeyError as e: print(f"DEBUG(Loja Modulo-DesenharItem): Chave ausente: {e} - Item: {item}")
+        tela.set_clip(clip_rect_original)
+
+    def mover_selecao(self, direcao, area_loja_rect):
         if not self.itens: return
         if direcao == "cima" and self.selecionado > 0: self.selecionado -= 1
         elif direcao == "baixo" and self.selecionado < len(self.itens) - 1: self.selecionado += 1
-        top_item_y_in_list = self.selecionado * self.espacamento
-        bottom_item_y_in_list = top_item_y_in_list + self.espacamento
-        altura_visivel = area_loja_rect.height
-        if top_item_y_in_list + self.scroll_y < 0: self.scroll_y = -top_item_y_in_list
-        elif bottom_item_y_in_list + self.scroll_y > altura_visivel: self.scroll_y = altura_visivel - bottom_item_y_in_list
-        max_scroll_y = 0
-        if len(self.itens) * self.espacamento > altura_visivel: max_scroll_y = altura_visivel - len(self.itens) * self.espacamento
-        self.scroll_y = max(self.scroll_y, max_scroll_y); self.scroll_y = min(self.scroll_y, 0) 
+        self.ajustar_scroll(area_loja_rect)
 
-    def comprar_item(self, jogador): 
-        if not self.itens: return None, False, "Nenhum item na loja!"
+    def ajustar_scroll(self, area_loja_rect): 
+        if not self.itens:
+            self.scroll_y = 0
+            return
+        if not hasattr(area_loja_rect, 'height') or area_loja_rect.height <= 0:
+            return 
+
+        borda_container_espessura = 2 
+        padding_interno_lista = 8 
+        altura_visivel_interna = area_loja_rect.height - 2 * (borda_container_espessura + padding_interno_lista)
+        altura_visivel_interna = max(1, altura_visivel_interna) 
+
+        pos_y_item_selecionado_topo_na_lista = self.selecionado * self.espacamento
+        pos_y_item_selecionado_base_na_lista = pos_y_item_selecionado_topo_na_lista + self.espacamento
+        
+        if pos_y_item_selecionado_topo_na_lista + self.scroll_y < 0: 
+            self.scroll_y = -pos_y_item_selecionado_topo_na_lista
+        elif pos_y_item_selecionado_base_na_lista + self.scroll_y > altura_visivel_interna: 
+            self.scroll_y = altura_visivel_interna - pos_y_item_selecionado_base_na_lista
+        
+        altura_total_itens = len(self.itens) * self.espacamento
+        if altura_total_itens <= altura_visivel_interna: self.scroll_y = 0
+        else:
+            max_scroll_y_negativo = altura_visivel_interna - altura_total_itens
+            self.scroll_y = max(self.scroll_y, max_scroll_y_negativo)
+            self.scroll_y = min(self.scroll_y, 0)
+
+
+    def comprar_item(self, jogador):
+        if not self.itens or not (0 <= self.selecionado < len(self.itens)):
+            return None, False, "Nenhum item selecionado!"
         if not hasattr(jogador, 'dinheiro') or not hasattr(jogador, 'adicionar_item_inventario'):
-            return None, False, "Erro interno: Objeto jogador inválido."
-        item = self.itens[self.selecionado]
-        if jogador.dinheiro >= item["preco"]:
-            if hasattr(jogador, 'adicionar_item_inventario'):
-                sucesso_adicionar = jogador.adicionar_item_inventario(item) 
-                if sucesso_adicionar:
-                    jogador.dinheiro -= item["preco"]
-                    return item, True, f"Comprou: {item['nome']}. Dinheiro restante: {jogador.dinheiro}g"
-                else: return None, False, "Inventário cheio ou item já existe!" 
-            else: return None, False, "Erro interno: Jogador sem método de inventário."
-        else: return None, False, "Dinheiro insuficiente!"
+            return None, False, "Erro: Jogador inválido."
+        item_a_comprar = self.itens[self.selecionado]
+        try:
+            if jogador.dinheiro >= item_a_comprar["preco"]:
+                if jogador.adicionar_item_inventario(item_a_comprar):
+                    jogador.dinheiro -= item_a_comprar["preco"]
+                    return item_a_comprar, True, f"Comprou: {item_a_comprar['nome']}! Aurums: {jogador.dinheiro}g"
+                else: return None, False, "Inventário cheio!"
+            else: return None, False, "Dinheiro insuficiente!"
+        except KeyError: return None, False, "Erro nos dados do item."
+        except Exception as e: return None, False, f"Erro inesperado: {e}"
 
-    def selecionar_item_por_posicao(self, mouse_pos, area_desenho_rect):
-        if not area_desenho_rect.collidepoint(mouse_pos): return -1 
-        mouse_y_relativo = mouse_pos[1] - area_desenho_rect.top - self.scroll_y
-        if mouse_y_relativo < 0: return -1
-        indice_clicado = int(mouse_y_relativo // self.espacamento)
-        if 0 <= indice_clicado < len(self.itens): self.selecionado = indice_clicado; return indice_clicado
-        return -1 
+    def selecionar_item_por_posicao(self, mouse_pos, area_desenho_rect_externa):
+        if not self.itens: return -1
+
+        borda_container_espessura = 2 
+        padding_interno_lista = 8 
+        
+        area_clicavel_interna = area_desenho_rect_externa.inflate(
+            -2 * (borda_container_espessura + padding_interno_lista), 
+            -2 * (borda_container_espessura + padding_interno_lista)  
+        )
+        area_clicavel_interna.width = max(0, area_clicavel_interna.width)
+        area_clicavel_interna.height = max(0, area_clicavel_interna.height)
+
+
+        if not area_clicavel_interna.collidepoint(mouse_pos): return -1
+        
+        mouse_y_relativo_a_conteudo = mouse_pos[1] - area_clicavel_interna.top - self.scroll_y
+        
+        if mouse_y_relativo_a_conteudo < 0: return -1
+        indice_clicado = int(mouse_y_relativo_a_conteudo // self.espacamento)
+        if 0 <= indice_clicado < len(self.itens):
+            self.selecionado = indice_clicado
+            return indice_clicado
+        return -1
 
     def selecionar_item(self, indice, area_loja_rect): 
         if 0 <= indice < len(self.itens):
-            self.selecionado = indice; self.scroll_y = -indice * self.espacamento
-            max_scroll_y = 0
-            if len(self.itens) * self.espacamento > area_loja_rect.height: max_scroll_y = area_loja_rect.height - len(self.itens) * self.espacamento
-            self.scroll_y = max(self.scroll_y, max_scroll_y); self.scroll_y = min(self.scroll_y, 0) 
+            self.selecionado = indice
+            self.ajustar_scroll(area_loja_rect) 
+        elif not self.itens:
+            self.selecionado = 0
+            self.scroll_y = 0
 
     def update_blink(self): self.blink_counter = (self.blink_counter + 1) % self.blink_speed
     def update_gold_border(self):
         global frame_count, color_index, color_cycle_speed, GOLD_PALETTE
         frame_count += 1
-        if frame_count % color_cycle_speed == 0: color_index = (color_index + 1) % len(GOLD_PALETTE); frame_count = 0 
+        if frame_count >= color_cycle_speed:
+            color_index = (color_index + 1) % len(GOLD_PALETTE)
+            frame_count = 0
 
-def desenhar_menu_superior(tela, abas, aba_atual, largura, fonte, pos_y=0): # Adicionado pos_y
-    """Desenha as abas de seleção de categoria de itens."""
-    altura_aba = 50
-    pygame.draw.rect(tela, (50, 50, 50), (0, pos_y, largura, altura_aba)) 
-    for i, aba in enumerate(abas):
-        cor_fundo = (204, 17, 0) if i == aba_atual else (100, 100, 100)
-        # Ajusta o rect da aba para usar pos_y
-        aba_rect = pygame.Rect(i * (largura // len(abas)), pos_y, largura // len(abas), altura_aba)
-        pygame.draw.rect(tela, cor_fundo, aba_rect)
+def desenhar_menu_superior(tela, abas_nomes, aba_idx_atual, largura_tela_atual, fonte, y_pos_tabs, altura_tabs):
+    if not abas_nomes: return
+    if len(abas_nomes) == 0:
+        largura_aba_individual = largura_tela_atual
+    else:
+        largura_aba_individual = largura_tela_atual // len(abas_nomes)
+
+    pygame.draw.rect(tela, (50, 50, 50), (0, y_pos_tabs, largura_tela_atual, altura_tabs))
+    for i, nome_aba in enumerate(abas_nomes):
+        cor_fundo_aba = (204, 17, 0) if i == aba_idx_atual else (100, 100, 100)
+        aba_rect = pygame.Rect(i * largura_aba_individual, y_pos_tabs, largura_aba_individual, altura_tabs)
+        pygame.draw.rect(tela, cor_fundo_aba, aba_rect, border_top_left_radius=8, border_top_right_radius=8)
+        pygame.draw.line(tela, (30,30,30), (aba_rect.right -1, y_pos_tabs), (aba_rect.right -1, y_pos_tabs + altura_tabs), 2)
         if fonte:
-            texto = fonte.render(aba, True, (255, 255, 255))
-            texto_rect = texto.get_rect(center=aba_rect.center)
-            tela.blit(texto, texto_rect)
-
-def desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect, itens_machados, itens_espadas, itens_cajados): 
-    if aba_atual == 0: loja.itens = itens_machados
-    elif aba_atual == 1: loja.itens = itens_espadas
-    elif aba_atual == 2: loja.itens = itens_cajados
-    if loja.selecionado >= len(loja.itens) and loja.itens: loja.selecionado = 0; loja.scroll_y = 0 
-    elif not loja.itens: loja.selecionado = 0; loja.scroll_y = 0
-    loja.desenhar(tela, area_loja_rect)
-
-def desenhar_dinheiro(tela, dinheiro, fonte, altura_tela_total): # Renomeado para clareza
-    if fonte:
-        texto_dinheiro = fonte.render(f"Quantidade de Aurums: {dinheiro}", True, (255, 255, 255))
-        tela.blit(texto_dinheiro, (10, altura_tela_total - 40)) # Posicionado relativo à altura total da tela
-
-def desenhar_mensagem(tela, mensagem, fonte, largura_tela_total, altura_tela_total): # Renomeado para clareza
-    if mensagem and fonte: 
-        texto_mensagem = fonte.render(mensagem, True, (255, 0, 0))
-        tela.blit(texto_mensagem, (largura_tela_total // 2 - texto_mensagem.get_width() // 2, altura_tela_total - 80))
-
-def verificar_clique_mouse_aba(mouse_pos, largura, abas, pos_y_abas=0): # Adicionado pos_y_abas
-    """Verifica se o clique do mouse ocorreu em uma das abas, considerando sua nova posição Y."""
-    altura_aba = 50
-    for i in range(len(abas)):
-        # Ajusta o rect da aba para usar pos_y_abas
-        aba_rect = pygame.Rect(i * (largura // len(abas)), pos_y_abas, largura // len(abas), altura_aba)
-        if aba_rect.collidepoint(mouse_pos):
-            return i 
-    return -1 
-
-def desenhar_item_selecionado_detalhes(tela, loja, largura_tela_total, altura_tela_total, fonte, vendedor_rect_ref):
-    """Desenha o fundo cinza, a borda dourada animada e a imagem do item selecionado,
-       posicionado relativo à imagem do vendedor."""
-    global color_index, border_thickness, border_radius, GOLD_PALETTE
-
-    if loja.itens and 0 <= loja.selecionado < len(loja.itens):
-        item_selecionado = loja.itens[loja.selecionado]
-        if item_selecionado and "imagem" in item_selecionado and item_selecionado["imagem"]:
-            fundo_item_largura = 150
-            fundo_item_altura = 150
-            
-            # Posiciona o painel de detalhes no canto superior esquerdo da área do vendedor
-            # com um pequeno padding.
-            padding_detalhes = 20
-            fundo_item_x = vendedor_rect_ref.left + padding_detalhes
-            fundo_item_y = vendedor_rect_ref.top + padding_detalhes
-            
-            # Garante que o painel de detalhes não saia da área do vendedor
-            if fundo_item_x + fundo_item_largura > vendedor_rect_ref.right - padding_detalhes:
-                fundo_item_x = vendedor_rect_ref.right - padding_detalhes - fundo_item_largura
-            if fundo_item_y + fundo_item_altura > vendedor_rect_ref.bottom - padding_detalhes:
-                fundo_item_y = vendedor_rect_ref.bottom - padding_detalhes - fundo_item_altura
-
-
-            pygame.draw.rect(tela, (0, 0, 0), (fundo_item_x, fundo_item_y, fundo_item_largura, fundo_item_altura), border_radius=border_radius)
-
-            border_color = GOLD_PALETTE[color_index] 
-            border_rect_obj = pygame.Rect(fundo_item_x - border_thickness,
-                                       fundo_item_y - border_thickness,
-                                       fundo_item_largura + 2 * border_thickness,
-                                       fundo_item_altura + 2 * border_thickness)
-            pygame.draw.rect(tela, border_color, border_rect_obj, border_thickness, border_radius=border_radius + 2) 
-            
-            img_item_surface = item_selecionado["imagem"]
-            img_width, img_height = img_item_surface.get_size()
-            
-            if img_width == 0: img_width = 1
-            if img_height == 0: img_height = 1
-
-            # Escala para caber dentro do fundo_item_largura/altura com margem
-            max_w_icone = fundo_item_largura - 20 
-            max_h_icone = fundo_item_altura - 20
-            scale_factor = min(max_w_icone / img_width, max_h_icone / img_height)
-            
-            if scale_factor > 0 : # Evita erro se a imagem for maior que o espaço e scale_factor for 0 ou negativo
-                imagem_item_redimensionada = pygame.transform.scale(img_item_surface, (int(img_width * scale_factor), int(img_height * scale_factor))) 
-                imagem_item_x = fundo_item_x + (fundo_item_largura - imagem_item_redimensionada.get_width()) // 2
-                imagem_item_y = fundo_item_y + (fundo_item_altura - imagem_item_redimensionada.get_height()) // 2
-                tela.blit(imagem_item_redimensionada, (imagem_item_x, imagem_item_y))
-
-itens_machados = []
-itens_espadas = []
-itens_cajados = []
-
-def run_shop_scene(tela, jogador, largura_tela, altura_tela):
-    global imagem_vendedor, imagem_Espada_1, imagem_Espada_2, imagem_Espada_3, imagem_Espada_4, imagem_Espada_5
-    global imagem_Machado_1, imagem_Machado_2, imagem_Machado_3, imagem_Machado_4, imagem_Machado_5, imagem_Machado_6
-    global imagem_Cajado_1, imagem_Cajado_2, imagem_Cajado_3 
-    global itens_machados, itens_espadas, itens_cajados
-    global frame_count, color_index 
-    global fonte_placeholder, texto_erro_placeholder 
-
-    if not pygame.font.get_init():
-        pygame.font.init()
-        if fonte_placeholder is None:
             try:
-                fonte_placeholder = pygame.font.Font(None, 20)
-                texto_erro_placeholder = fonte_placeholder.render("Erro", True, (0, 0, 0))
-            except pygame.error: texto_erro_placeholder = None
+                texto_aba_surf = fonte.render(nome_aba, True, (255, 255, 255))
+                tela.blit(texto_aba_surf, texto_aba_surf.get_rect(center=aba_rect.center))
+            except pygame.error as e: print(f"DEBUG(Loja Modulo-MenuSup): Erro render aba: {e}")
 
-    carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor=(1080, 720)) 
+def desenhar_conteudo_loja(loja_obj, aba_idx_atual, area_loja_rect_atual, todos_itens_por_cat):
+    nomes_abas = list(todos_itens_por_cat.keys())
+    if 0 <= aba_idx_atual < len(nomes_abas):
+        nome_categoria_atual = nomes_abas[aba_idx_atual]
+        loja_obj.itens = todos_itens_por_cat[nome_categoria_atual]
+    else:
+        loja_obj.itens = []
+    if loja_obj.itens:
+        if loja_obj.selecionado >= len(loja_obj.itens): loja_obj.selecionado = len(loja_obj.itens) -1
+        if loja_obj.selecionado < 0: loja_obj.selecionado = 0
+    else:
+        loja_obj.selecionado = 0; loja_obj.scroll_y = 0
+    loja_obj.ajustar_scroll(area_loja_rect_atual)
 
-    itens_machados = [
-        {"nome": "Machado Comum", "preco": 120, "imagem": imagem_Machado_1},
-        {"nome": "Machado Dos Heréges", "preco": 250, "imagem": imagem_Machado_2},
-        {"nome": "Machado de Batalha", "preco": 300, "imagem": imagem_Machado_3},
-        {"nome": "Machado Duplo", "preco": 400, "imagem": imagem_Machado_4},
-        {"nome": "Machado de Gelo", "preco": 550, "imagem": imagem_Machado_5}, 
-        {"nome": "Machado do Caos", "preco": 700, "imagem": imagem_Machado_6}, 
+def desenhar_dinheiro(tela, dinheiro_jog, fonte, largura_tela_atual, altura_tela_atual):
+    if fonte:
+        try:
+            texto_dinheiro_surf = fonte.render(f"Aurums: {dinheiro_jog}", True, (255, 223, 0))
+            tela.blit(texto_dinheiro_surf, (largura_tela_atual - texto_dinheiro_surf.get_width() - 10,
+                                           altura_tela_atual - texto_dinheiro_surf.get_height() - 10))
+        except pygame.error as e: print(f"DEBUG(Loja Modulo-Dinheiro): Erro render dinheiro: {e}")
+
+def desenhar_mensagem(tela, texto_msg_atual, fonte, largura_tela_atual, altura_tela_atual):
+    if texto_msg_atual and fonte:
+        try:
+            cor_texto = (0, 255, 0) if "Comprou" in texto_msg_atual else (255, 100, 100)
+            texto_msg_surf = fonte.render(texto_msg_atual, True, cor_texto)
+            fundo_msg_rect = texto_msg_surf.get_rect(centerx=largura_tela_atual // 2,
+                                                    centery=altura_tela_atual - 60) 
+            
+            padding_msg = 10 
+            s_width = texto_msg_surf.get_width() + 2 * padding_msg
+            s_height = texto_msg_surf.get_height() + 2 * padding_msg
+            s = pygame.Surface((s_width, s_height), pygame.SRCALPHA)
+            s.fill((0,0,0,180)) 
+            s.blit(texto_msg_surf, (padding_msg, padding_msg)) 
+            
+            s_rect = s.get_rect(center=fundo_msg_rect.center) 
+            tela.blit(s, s_rect.topleft)
+
+        except pygame.error as e: print(f"DEBUG(Loja Modulo-Mensagem): Erro render msg: {e}")
+
+def verificar_clique_mouse_aba(mouse_pos, largura_tela_atual, num_abas_total, altura_tabs, y_pos_tabs):
+    if num_abas_total == 0: return -1
+    largura_aba_individual = largura_tela_atual // num_abas_total
+    for i in range(num_abas_total):
+        aba_rect = pygame.Rect(i * largura_aba_individual, y_pos_tabs, largura_aba_individual, altura_tabs)
+        if aba_rect.collidepoint(mouse_pos): return i
+    return -1
+
+def desenhar_item_selecionado_detalhes(tela, loja_obj, fonte_usada, rect_referencia_vendedor): 
+    global color_index, border_thickness, border_radius, GOLD_PALETTE
+    if loja_obj.itens and 0 <= loja_obj.selecionado < len(loja_obj.itens):
+        item_sel = loja_obj.itens[loja_obj.selecionado]
+        if item_sel and "imagem" in item_sel and item_sel["imagem"]:
+            fundo_w, fundo_h = 200, 200
+            padding_horizontal_detalhes = 20
+            padding_vertical_detalhes = 120 
+
+            fundo_x = rect_referencia_vendedor.left + padding_horizontal_detalhes
+            fundo_y = rect_referencia_vendedor.top + padding_vertical_detalhes 
+            
+            if fundo_x + fundo_w > rect_referencia_vendedor.right - padding_horizontal_detalhes:
+                fundo_x = max(rect_referencia_vendedor.left, rect_referencia_vendedor.right - padding_horizontal_detalhes - fundo_w)
+            if fundo_y + fundo_h > rect_referencia_vendedor.bottom - padding_vertical_detalhes: 
+                fundo_y = max(rect_referencia_vendedor.top, rect_referencia_vendedor.bottom - padding_vertical_detalhes - fundo_h)
+            
+            fundo_w = max(0, fundo_w)
+            fundo_h = max(0, fundo_h)
+
+            pygame.draw.rect(tela, (20, 20, 20), (fundo_x, fundo_y, fundo_w, fundo_h), border_radius=border_radius)
+            cor_borda = GOLD_PALETTE[color_index]
+            borda_rect = pygame.Rect(fundo_x - border_thickness // 2, fundo_y - border_thickness // 2,
+                                     fundo_w + border_thickness, fundo_h + border_thickness)
+            pygame.draw.rect(tela, cor_borda, borda_rect, border_thickness, border_radius=border_radius + (border_thickness // 2))
+            img_surf = item_sel["imagem"]
+            if img_surf:
+                img_orig_w, img_orig_h = img_surf.get_size()
+                if img_orig_w == 0 or img_orig_h == 0: return
+                margem_int = 10; max_w, max_h = fundo_w - 2*margem_int, fundo_h - 2*margem_int
+                if max_w <=0 or max_h <=0: return
+                escala = min(max_w / img_orig_w, max_h / img_orig_h)
+                if escala > 0:
+                    nova_w, nova_h = int(img_orig_w * escala), int(img_orig_h * escala)
+                    if nova_w > 0 and nova_h > 0:
+                        img_redim = pygame.transform.scale(img_surf, (nova_w, nova_h))
+                        tela.blit(img_redim, (fundo_x + (fundo_w - nova_w)//2, fundo_y + (fundo_h - nova_h)//2))
+
+# --- Função de Recalcular Layout ---
+def recalcular_layout_loja(largura_tela_atual, altura_tela_atual, img_vendedor_surf, margem_padrao, altura_barra_tabs_fixa):
+    """Recalcula as posições e tamanhos dos elementos da UI da loja."""
+    vendedor_rect = img_vendedor_surf.get_rect(
+        centerx=largura_tela_atual // 2,
+        top=margem_padrao
+    )
+    y_pos_abas = vendedor_rect.bottom + margem_padrao // 2
+    _y_start_item_list = y_pos_abas + altura_barra_tabs_fixa + int(margem_padrao * 1.5) 
+    
+    altura_area_info_inf = 80 
+    altura_lista = altura_tela_atual - _y_start_item_list - altura_area_info_inf - margem_padrao
+    altura_lista = max(100, altura_lista) 
+    largura_lista = largura_tela_atual - 2 * margem_padrao
+    largura_lista = max(200, largura_lista) 
+    area_lista_rect = pygame.Rect(margem_padrao, _y_start_item_list, largura_lista, altura_lista)
+    return vendedor_rect, y_pos_abas, area_lista_rect
+
+
+def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
+    global imagem_vendedor, itens_data_global, fonte_placeholder
+    global imagem_Pocao_Cura, imagem_Espada_6, imagem_Espada_7 
+
+    largura_tela_atual = largura_inicial
+    altura_tela_atual = altura_inicial
+    tela = tela_surface 
+
+    if not pygame.font.get_init(): pygame.font.init()
+    if not pygame.font.get_init():
+        print("ERRO FATAL (Loja Modulo): pygame.font não pôde ser inicializado.")
+        return False
+
+    tamanho_vendedor_para_carregar = (max(100, int(largura_inicial * 0.45)), max(100, int(altura_inicial * 0.50))) 
+    carregar_recursos_loja(tamanho_item=(80, 80), tamanho_vendedor_img=tamanho_vendedor_para_carregar)
+
+    desc_padrao = "Um item com propriedades misteriosas." 
+    
+    itens_data_global["Cajados"] = [
+        {"nome": "Cajado da Fixacao Ametista", "preco": 80, "imagem": imagem_Cajado_1, "descricao": "Canaliza energia arcana instável."},
+        {"nome": "Cajado Da santa Natureza", "preco": 200, "imagem": imagem_Cajado_2, "descricao": "Imbuído com o poder da floresta."},
+        {"nome": "Livro dos impuros", "preco": 350, "imagem": imagem_Cajado_3, "descricao": "Contém conhecimento proibido."},
     ]
-    itens_espadas = [
-        {"nome": "Adaga Básica", "preco": 100, "imagem": imagem_Espada_1}, 
-        {"nome": "Espada Média", "preco": 150, "imagem": imagem_Espada_2}, 
-        {"nome": "Espada dos Corrompidos", "preco": 200, "imagem": imagem_Espada_3}, 
-        {"nome": "Espada dos Deuses Caidos", "preco": 300, "imagem": imagem_Espada_4}, 
-        {"nome": "Espada Demoniaca", "preco": 500, "imagem": imagem_Espada_5} 
+    itens_data_global["Espadas"] = [
+        {"nome": "Adaga do Fogo Contudente", "preco": 100, "imagem": imagem_Espada_1, "descricao": "Lâmina curta que queima ao toque."},
+        {"nome": "Espada de Fogo azul Sacra Cerulea", "preco": 150, "imagem": imagem_Espada_2, "descricao": "Chamas azuis dançam nesta espada."},
+        {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Revela os pecados de quem a encara."},
+        {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Uma relíquia de tempos esquecidos."},
+        {"nome": "Espada Sacra das Brasas", "preco": 500, "imagem": imagem_Espada_5, "descricao": "Forjada no coração de um vulcão."},
+        {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_6, "descricao": "Brilha com a luz pálida da lua."},
+        {"nome": "Lâmina do Ceu Centilhante", "preco": 600, "imagem": imagem_Espada_7, "descricao": "Rápida como um raio, afiada como uma estrela."}
     ]
-    itens_cajados = [
-        {"nome": "Cajado Comum", "preco": 80, "imagem": imagem_Cajado_1},
-        {"nome": "Cajado Mágico", "preco": 200, "imagem": imagem_Cajado_2},
-        {"nome": "Cajado Arcana", "preco": 350, "imagem": imagem_Cajado_3},
+    itens_data_global["Machados"] = [
+        {"nome": "Machado Bárbaro Cravejado", "preco": 120, "imagem": imagem_Machado_1, "descricao": "Bruto e eficaz para golpes pesados."},
+        {"nome": "Machado Cerúleo da Estrela Cadente", "preco": 250, "imagem": imagem_Machado_2, "descricao": "Forjado com metal celestial."},
+        {"nome": "Machado da Descida Santa", "preco": 300, "imagem": imagem_Machado_3, "descricao": "Abençoado para purificar o mal."},
+        {"nome": "Machado do Fogo Abrasador", "preco": 400, "imagem": imagem_Machado_4, "descricao": "Deixa um rastro de cinzas."},
+        {"nome": "Machado do Marfim Resplendor", "preco": 550, "imagem": imagem_Machado_5, "descricao": "Elegante, mas mortalmente afiado."},
+        {"nome": "Machado Macabro da Gula Infinita", "preco": 700, "imagem": imagem_Machado_6, "descricao": "Dizem que devora a alma de suas vítimas."},
+    ]
+    itens_data_global["Poções"] = [
+        {"nome": "Poção de Cura", "preco": 50, "imagem": imagem_Pocao_Cura, "descricao": "Restaura uma pequena quantidade de vida."},
     ]
 
-    fonte = None
+    fonte_loja = None
+    tamanho_fonte_loja = 40 
     try:
-        if pygame.font.get_init(): fonte = pygame.font.SysFont(None, 36) 
-    except pygame.error as e: print(f"DEBUG(Loja): Erro ao inicializar SysFont: {e}")
-    if fonte is None: 
-        try: fonte = pygame.font.Font(None, 36) 
-        except pygame.error: print("DEBUG(Loja): Falha ao criar fonte de fallback Font(None, 36).")
-             
-    loja = Loja(itens_machados, fonte, largura_tela, altura_tela) 
+        print(f"DEBUG(Loja Modulo-Run): Tentando carregar fonte 'Arcade' com tamanho {tamanho_fonte_loja}.")
+        fonte_loja = pygame.font.SysFont("Arcade", tamanho_fonte_loja)
+        print("DEBUG(Loja Modulo-Run): Fonte 'Arcade' carregada com sucesso.")
+    except pygame.error as e_arcade:
+        print(f"DEBUG(Loja Modulo-Run): Falha ao carregar fonte 'Arcade': {e_arcade}. Tentando fallback.")
+        try:
+            fonte_loja = pygame.font.Font(None, tamanho_fonte_loja + 2) 
+            print(f"DEBUG(Loja Modulo-Run): Fonte padrão (None) carregada com tamanho {tamanho_fonte_loja + 2}.")
+        except pygame.error as e_fallback:
+            print(f"DEBUG(Loja Modulo-Run): Falha crítica ao carregar fontes de fallback: {e_fallback}")
+            fonte_loja = fonte_placeholder or pygame.font.Font(None, 24) 
+            print("DEBUG(Loja Modulo-Run): Usando fonte placeholder ou Font(None, 24) como último recurso.")
 
-    abas = ["Machados", "Espadas", "Cajados"]
-    aba_atual = 0
-    altura_aba = 50 # Definido para uso consistente
 
-    mensagem = ""; tempo_mensagem = 0; duracao_mensagem = 180 
+    primeira_categoria = list(itens_data_global.keys())[0] if itens_data_global else ""
+    loja_inst = Loja(itens_data_global.get(primeira_categoria, []), fonte_loja, largura_tela_atual, altura_tela_atual)
 
-    # Definições de layout
-    margem_topo_tela = 10
-    margem_entre_elementos = 10
+    nomes_abas = list(itens_data_global.keys())
+    aba_atual_indice = 0
+    ALTURA_BARRA_ABAS_FIXA = 50 
+    MARGEM_GERAL_FIXA = 20     
 
-    # Posição do Vendedor
-    vendedor_x = (largura_tela - imagem_vendedor.get_width()) // 2
-    vendedor_y = margem_topo_tela
-    vendedor_rect = imagem_vendedor.get_rect(topleft=(vendedor_x, vendedor_y))
+    mensagem_atual = ""; tempo_exibicao_msg = 0; DURACAO_MSG_FRAMES = 180
 
-    # Posição das Abas (abaixo do vendedor)
-    y_posicao_abas = vendedor_rect.bottom + margem_entre_elementos
+    vendedor_rect_atual, y_pos_barra_abas_atual, area_lista_itens_atual = \
+        recalcular_layout_loja(largura_tela_atual, altura_tela_atual, imagem_vendedor, MARGEM_GERAL_FIXA, ALTURA_BARRA_ABAS_FIXA)
 
-    # Área da lista de itens (abaixo das abas)
-    y_inicio_area_loja = y_posicao_abas + altura_aba + margem_entre_elementos
-    altura_area_loja = altura_tela - y_inicio_area_loja - 80 # Espaço para dinheiro/mensagem
-    area_loja_rect = pygame.Rect(50, y_inicio_area_loja, largura_tela - 100, altura_area_loja)
+    if nomes_abas: 
+        desenhar_conteudo_loja(loja_inst, aba_atual_indice, area_lista_itens_atual, itens_data_global)
+        loja_inst.selecionar_item(0, area_lista_itens_atual)
 
-    rodando_cena_loja = True
-    clock = pygame.time.Clock() 
-
-    while rodando_cena_loja:
-        dt = clock.tick(60) 
-        mouse_pos = pygame.mouse.get_pos() 
+    rodando_cena = True; clock = pygame.time.Clock()
+    while rodando_cena:
+        dt = clock.tick(60) / 1000.0
+        mouse_pos_atual = pygame.mouse.get_pos()
 
         for evento in pygame.event.get():
-            if evento.type == pygame.QUIT: return False 
+            if evento.type == pygame.QUIT: return False
+            elif evento.type == pygame.VIDEORESIZE: 
+                largura_tela_atual = evento.w
+                altura_tela_atual = evento.h
+                tela = pygame.display.set_mode((largura_tela_atual, altura_tela_atual), pygame.FULLSCREEN)
+                print(f"DEBUG: Janela redimensionada para {largura_tela_atual}x{altura_tela_atual}")
+                vendedor_rect_atual, y_pos_barra_abas_atual, area_lista_itens_atual = \
+                    recalcular_layout_loja(largura_tela_atual, altura_tela_atual, imagem_vendedor, MARGEM_GERAL_FIXA, ALTURA_BARRA_ABAS_FIXA)
+                loja_inst.ajustar_scroll(area_lista_itens_atual)
+
             elif evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_ESCAPE: return True 
-                elif evento.key == pygame.K_UP: loja.mover_selecao("cima", area_loja_rect) 
-                elif evento.key == pygame.K_DOWN: loja.mover_selecao("baixo", area_loja_rect) 
-                elif evento.key == pygame.K_RETURN:
-                    item, sucesso, msg = loja.comprar_item(jogador) 
-                    mensagem = msg; tempo_mensagem = duracao_mensagem 
+                if evento.key == pygame.K_ESCAPE: return True
+                elif evento.key == pygame.K_UP: loja_inst.mover_selecao("cima", area_lista_itens_atual)
+                elif evento.key == pygame.K_DOWN: loja_inst.mover_selecao("baixo", area_lista_itens_atual)
+                elif evento.key == pygame.K_RETURN or evento.key == pygame.K_SPACE:
+                    if loja_inst.itens:
+                        _, _, msg_retorno = loja_inst.comprar_item(jogador_obj)
+                        mensagem_atual = msg_retorno; tempo_exibicao_msg = DURACAO_MSG_FRAMES
                 elif evento.key == pygame.K_LEFT:
-                    aba_atual = (aba_atual - 1) % len(abas)
-                    loja.selecionar_item(0, area_loja_rect) 
+                    if nomes_abas:
+                        aba_atual_indice = (aba_atual_indice - 1 + len(nomes_abas)) % len(nomes_abas)
+                        desenhar_conteudo_loja(loja_inst, aba_atual_indice, area_lista_itens_atual, itens_data_global)
+                        loja_inst.selecionar_item(0, area_lista_itens_atual)
                 elif evento.key == pygame.K_RIGHT:
-                    aba_atual = (aba_atual + 1) % len(abas)
-                    loja.selecionar_item(0, area_loja_rect) 
-            elif evento.type == pygame.MOUSEBUTTONDOWN:
-                # Passa y_posicao_abas para verificar_clique_mouse_aba
-                aba_selecionada = verificar_clique_mouse_aba(mouse_pos, largura_tela, abas, y_posicao_abas)
-                if aba_selecionada != -1:
-                    aba_atual = aba_selecionada
-                    loja.selecionar_item(0, area_loja_rect) 
-                else:
-                    item_selecionado_indice = loja.selecionar_item_por_posicao(mouse_pos, area_loja_rect)
-                    if item_selecionado_indice != -1:
-                        item, sucesso, msg = loja.comprar_item(jogador) 
-                        mensagem = msg; tempo_mensagem = duracao_mensagem 
+                    if nomes_abas:
+                        aba_atual_indice = (aba_atual_indice + 1) % len(nomes_abas)
+                        desenhar_conteudo_loja(loja_inst, aba_atual_indice, area_lista_itens_atual, itens_data_global)
+                        loja_inst.selecionar_item(0, area_lista_itens_atual)
+            elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+                if nomes_abas:
+                    idx_aba_clicada = verificar_clique_mouse_aba(mouse_pos_atual, largura_tela_atual, len(nomes_abas), ALTURA_BARRA_ABAS_FIXA, y_pos_barra_abas_atual)
+                    if idx_aba_clicada != -1:
+                        if aba_atual_indice != idx_aba_clicada:
+                            aba_atual_indice = idx_aba_clicada
+                            desenhar_conteudo_loja(loja_inst, aba_atual_indice, area_lista_itens_atual, itens_data_global)
+                            loja_inst.selecionar_item(0, area_lista_itens_atual)
+                    else: 
+                        item_idx = loja_inst.selecionar_item_por_posicao(mouse_pos_atual, area_lista_itens_atual)
+                        if item_idx != -1:
+                            _, _, msg_retorno = loja_inst.comprar_item(jogador_obj)
+                            mensagem_atual = msg_retorno; tempo_exibicao_msg = DURACAO_MSG_FRAMES
+            elif evento.type == pygame.MOUSEWHEEL:
+                if area_lista_itens_atual.collidepoint(mouse_pos_atual):
+                    if evento.y > 0: loja_inst.mover_selecao("cima", area_lista_itens_atual)
+                    elif evento.y < 0: loja_inst.mover_selecao("baixo", area_lista_itens_atual)
 
-        if tempo_mensagem > 0: tempo_mensagem -= 1
-        else: mensagem = "" 
+        if tempo_exibicao_msg > 0: tempo_exibicao_msg -= 1
+        else: mensagem_atual = ""
+        loja_inst.update_blink(); loja_inst.update_gold_border()
 
-        loja.update_blink()
-        loja.update_gold_border()
-
-        tela.fill((0, 0, 0)) 
+        tela.fill((30, 30, 30))
+        tela.blit(imagem_vendedor, vendedor_rect_atual.topleft)
+        if fonte_loja and nomes_abas:
+            desenhar_menu_superior(tela, nomes_abas, aba_atual_indice, largura_tela_atual, fonte_loja, y_pos_barra_abas_atual, ALTURA_BARRA_ABAS_FIXA)
+        if fonte_loja:
+            desenhar_item_selecionado_detalhes(tela, loja_inst, fonte_loja, vendedor_rect_atual)
         
-        # Desenha o Vendedor primeiro
-        tela.blit(imagem_vendedor, vendedor_rect.topleft)
+        pygame.draw.rect(tela, (20, 20, 20), area_lista_itens_atual, border_radius=8)
+        pygame.draw.rect(tela, (150, 150, 150), area_lista_itens_atual, 2, border_radius=8) 
         
-        # Desenha as Abas abaixo do vendedor
-        desenhar_menu_superior(tela, abas, aba_atual, largura_tela, loja.fonte, y_posicao_abas) 
-        
-        # Desenha detalhes do item selecionado (agora precisa do vendedor_rect para posicionamento)
-        desenhar_item_selecionado_detalhes(tela, loja, largura_tela, altura_tela, loja.fonte, vendedor_rect) 
-        
-        # Desenha fundo da área da lista de itens
-        pygame.draw.rect(tela, (20, 20, 20), area_loja_rect)
-        pygame.draw.rect(tela, (150, 150, 150), area_loja_rect, 2) 
-        
-        # Desenha conteúdo da loja
-        desenhar_conteudo_loja(tela, aba_atual, loja, area_loja_rect, itens_machados, itens_espadas, itens_cajados) 
-
-        if hasattr(jogador, 'dinheiro'): desenhar_dinheiro(tela, jogador.dinheiro, loja.fonte, altura_tela) 
-        desenhar_mensagem(tela, mensagem, loja.fonte, largura_tela, altura_tela) 
-        
+        if fonte_loja: 
+             desenhar_conteudo_loja(loja_inst, aba_atual_indice, area_lista_itens_atual, itens_data_global) 
+             loja_inst.desenhar(tela, area_lista_itens_atual) 
+        if hasattr(jogador_obj, 'dinheiro') and fonte_loja:
+            desenhar_dinheiro(tela, jogador_obj.dinheiro, fonte_loja, largura_tela_atual, altura_tela_atual)
+        if fonte_loja:
+            desenhar_mensagem(tela, mensagem_atual, fonte_loja, largura_tela_atual, altura_tela_atual)
         pygame.display.flip()
     return True

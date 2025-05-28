@@ -54,15 +54,16 @@ class AdagaFogo(Weapon):
                 "effect_scale_base": 1.0,                                            # Escala do efeito secundário
                 # CONFIGURÁVEL: Caminhos para os sprites da animação de ataque principal
                 "animation_sprites": [
-                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte1.png", 
-                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte2.png", 
-                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte3.png", 
-                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte4.png", 
-                    "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Ataque\Corte5.png", 
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT0.png", 
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/Corte1.png", 
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/Corte2.png", 
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/Corte3.png", 
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/Corte4.png", 
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/Corte5.png",
                 ], 
                 "animation_speed": 60,      # CONFIGURÁVEL: Velocidade da animação visual (ms por frame)
                 "animation_display_scale":0.4, # CONFIGURÁVEL: Escala do sprite da animação visual
-                "ui_icon": "Sprites/Armas/Icones/adaga_fogo_icon_nv1.png" 
+                "ui_icon": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png" 
             },
             1.5: {
                 "damage": 18.0, "range": 30 + (37/2), "cooldown": 0.33, "name_suffix": "+1", 
@@ -70,7 +71,7 @@ class AdagaFogo(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/Adaga/Ataque/Corte1.png", "effect_scale_base": 1.1,
                 "animation_sprites": ["Sprites/Armas/Espadas/Adaga/Ataque/Corte2.png", "Sprites/Armas/Espadas/Adaga/Ataque/Corte3.png", "Sprites/Armas/Espadas/Adaga/Ataque/Corte4.png","Sprites/Armas/Espadas/Adaga/Ataque/Corte5.png"], 
                 "animation_speed": 55, "animation_display_scale": 2.1,
-                "ui_icon": "Sprites/Armas/Icones/adaga_fogo_icon_nv1.png"
+                "ui_icon": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png" 
             },
             2.0: {
                 "damage": 22.0, "range": 30 + (40/2), "cooldown": 0.30, "name_suffix": " Reforjada", 
@@ -78,20 +79,24 @@ class AdagaFogo(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/Adaga/Ataque/CorteForte1.png", "effect_scale_base": 1.2,
                 "animation_sprites": ["Sprites/Armas/Espadas/Adaga/Ataque/CorteForte1.png", "Sprites/Armas/Espadas/Adaga/Ataque/CorteForte2.png", "Sprites/Armas/Espadas/Adaga/Ataque/CorteForte3.png","Sprites/Armas/Espadas/Adaga/Ataque/CorteForte4.png","Sprites/Armas/Espadas/Adaga/Ataque/CorteForte5.png"], 
                 "animation_speed": 50, "animation_display_scale": 2.3,
-                "ui_icon": "Sprites/Armas/Icones/adaga_fogo_icon_nv2.png"
+                "ui_icon": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-2.png"
             },
              2.5: {"damage": 26.0, "range": 30 + (42/2), "cooldown": 0.28, "name_suffix": " Reforjada +1", 
                   "hitbox_dim": (42, 52), "hitbox_off": (0, 0),
                   "effect_sprite_base": "Sprites/Armas/Espadas/Adaga/Ataque/CorteForte1.png", "effect_scale_base": 1.3, 
                   "animation_sprites": ["Sprites/Armas/Espadas/Adaga/Ataque/CorteForte1.png", "Sprites/Armas/Espadas/Adaga/Ataque/CorteForte2.png", "Sprites/Armas/Espadas/Adaga/Ataque/CorteForte3.png","Sprites/Armas/Espadas/Adaga/Ataque/CorteForte4.png","Sprites/Armas/Espadas/Adaga/Ataque/CorteForte5.png"], 
                   "animation_speed": 55, "animation_display_scale": 2.1,
-                  "ui_icon": "Sprites/Armas/Icones/adaga_fogo_icon_nv2.png"},
+                  "ui_icon": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-2.png",
+},
+
+
+
             3.0: {"damage": 30.0, "range": 30 + (45/2), "cooldown": 0.25, "name_suffix": " Magistral", 
                   "hitbox_dim": (45, 55), "hitbox_off": (0, 0),
                   "effect_sprite_base": "Sprites/Armas/Espadas/Adaga/Ataque/CorteSupremo.png", "effect_scale_base": 1.4, 
                   "animation_sprites": ["Sprites/Armas/Espadas/Adaga/Ataque/CorteSupremo1.png", "Sprites/Armas/Espadas/Adaga/Ataque/CorteSupremo2.png", "Sprites/Armas/Espadas/Adaga/Ataque/CorteSupremo3.png","Sprites/Armas/Espadas/Adaga/Ataque/CorteSupremo4.png","Sprites/Armas/Espadas/Adaga/Ataque/CorteSupremo5.png"], 
                   "animation_speed": 50, "animation_display_scale": 2.2,
-                  "ui_icon": "Sprites/Armas/Icones/adaga_fogo_icon_nv3.png"}
+                  "ui_icon": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-3.png"}
         }
 
         self.attack_animation_sprites = [] 
