@@ -26,7 +26,6 @@ except ImportError:
             self.sprite_path_base = sprite_path 
 
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
-            # Placeholder para Golem de Neve (branco/azul claro)
             pygame.draw.rect(self.image, (200, 220, 255), (0, 0, largura, altura)) 
             self.rect = self.image.get_rect(topleft=(x, y))
 
@@ -44,16 +43,17 @@ except ImportError:
             self.sprites = [self.image] 
             self.sprite_index = 0
             self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
-            self.intervalo_animacao = 200 # Intervalo de animação padrão para placeholder
+            self.intervalo_animacao = 200
 
         def _carregar_sprite(self, path, tamanho): 
-            # Pathing para o placeholder
-            base_dir = os.path.dirname(os.path.abspath(__file__)) # Diretório do Golem_Neve.py
-            game_root_dir = base_dir # Assume que a pasta 'Sprites' está na raiz ou o path é completo/relativo daqui
-            # Se Golem_Neve.py estiver numa subpasta e 'Sprites' na raiz:
-            # game_root_dir = os.path.dirname(base_dir) 
-
-            full_path = os.path.join(game_root_dir, path.replace("/", os.sep))
+            base_dir = os.path.dirname(os.path.abspath(__file__)) 
+            # CORRIGIDO: Assume que a pasta 'Sprites' está um nível acima do diretório deste script
+            game_root_dir = os.path.dirname(base_dir) 
+            # Se Golem_Neve.py e a pasta 'Sprites' estiverem na mesma pasta (raiz do projeto), use:
+            # game_root_dir = base_dir
+            
+            full_path = os.path.join(game_root_dir, path.replace("\\", "/")) 
+            print(f"--- DEBUG PLACEHOLDER TENTANDO CARREGAR: {full_path}")
             if not os.path.exists(full_path):
                 print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
@@ -106,15 +106,22 @@ except ImportError:
             
             if self.sprites: 
                 idx = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
-                if idx < len(self.sprites): 
+                # Verifica se o sprite no índice é uma Surface válida
+                if idx < len(self.sprites) and isinstance(self.sprites[idx], pygame.Surface): 
                     base_image = self.sprites[idx]
                     if hasattr(self, 'facing_right') and not self.facing_right: 
                         self.image = pygame.transform.flip(base_image, True, False)
                     else:
                         self.image = base_image
-                elif len(self.sprites) > 0: 
+                # Fallback se o sprite na lista for inválido, mas a lista não estiver vazia
+                elif len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface): 
                     self.image = self.sprites[0]
-            elif not hasattr(self, 'image') or self.image is None: 
+                else: # Fallback final se a lista de sprites estiver vazia ou contiver itens inválidos
+                    if not hasattr(self, 'image') or self.image is None or not isinstance(self.image, pygame.Surface):
+                        self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                        pygame.draw.rect(self.image, (200,220,255), (0,0,self.largura,self.altura))
+            # Fallback se self.sprites for None ou vazio
+            elif not hasattr(self, 'image') or self.image is None or not isinstance(self.image, pygame.Surface): 
                 self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
                 pygame.draw.rect(self.image, (200,220,255), (0,0,self.largura,self.altura))
 
@@ -134,7 +141,7 @@ except ImportError:
                         self.last_contact_time = current_ticks
 
         def desenhar(self, janela, camera_x, camera_y):
-            if not hasattr(self, 'image') or self.image is None:
+            if not hasattr(self, 'image') or self.image is None or not isinstance(self.image, pygame.Surface):
                 self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
                 pygame.draw.rect(self.image, (200,220,255), (0,0,self.largura,self.altura))
             if not hasattr(self, 'rect'):
@@ -153,32 +160,35 @@ except ImportError:
 
             if self.hp < self.max_hp and self.hp > 0:
                 bar_width = self.largura
-                bar_height = 8 # Barra de vida mais robusta para Golem
+                bar_height = 8 
                 health_percentage = self.hp / self.max_hp
                 current_bar_width = int(bar_width * health_percentage)
                 bar_x = screen_x
                 bar_y = screen_y - bar_height - 8 
-                pygame.draw.rect(janela, (100, 100, 130), (bar_x, bar_y, bar_width, bar_height), border_radius=3) # Fundo azul escuro
-                pygame.draw.rect(janela, (173, 216, 230), (bar_x, bar_y, current_bar_width, bar_height), border_radius=3) # Vida azul claro
-                pygame.draw.rect(janela, (220, 220, 250), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=3) # Borda
+                pygame.draw.rect(janela, (100, 100, 130), (bar_x, bar_y, bar_width, bar_height), border_radius=3) 
+                pygame.draw.rect(janela, (173, 216, 230), (bar_x, bar_y, current_bar_width, bar_height), border_radius=3) 
+                pygame.draw.rect(janela, (220, 220, 250), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=3) 
 
 class Golem_Neve(Inimigo):
     sprites_andar_carregados = None
     sprites_atacar_carregados = None 
-    tamanho_sprite_definido = (140, 160) # Golems são grandes e imponentes
+    tamanho_sprite_definido = (140, 160) 
 
-    # Sons
     som_ataque_golem = None
     som_dano_golem = None
     som_morte_golem = None
-    som_spawn_golem = None # Som de passos pesados ou formação de neve
+    som_spawn_golem = None 
     sons_carregados = False
 
     @staticmethod
     def _carregar_som_golem_neve(caminho_relativo):
         current_file_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = current_file_dir 
-        full_path = os.path.join(project_root, caminho_relativo.replace("/", os.sep))
+        # CORRIGIDO: Assumindo que a pasta 'Sons' está um nível acima do diretório deste script
+        project_root = os.path.dirname(current_file_dir)
+        # Se Golem_Neve.py e a pasta 'Sons' estiverem na mesma pasta (raiz do projeto), use:
+        # project_root = current_file_dir 
+        
+        full_path = os.path.join(project_root, caminho_relativo.replace("\\", "/"))
         if not os.path.exists(full_path):
             print(f"DEBUG(Golem_Neve): Arquivo de som não encontrado: {full_path}")
             return None
@@ -193,34 +203,36 @@ class Golem_Neve(Inimigo):
     def carregar_recursos_golem_neve():
         if Golem_Neve.sprites_andar_carregados is None:
             caminhos_andar = [
-                "Sprites/Inimigos/Golem_Neve/GolemNeve_Andar1.png", # CRIE ESTES ARQUIVOS
-                "Sprites/Inimigos/Golem_Neve/GolemNeve_Andar2.png",
-                "Sprites/Inimigos/Golem_Neve/GolemNeve_Andar3.png",
-                "Sprites/Inimigos/Golem_Neve/GolemNeve_Andar4.png",
+                "Sprites/Inimigos/Golem Neve/GN1.png", 
+                "Sprites/Inimigos/Golem Neve/GN2.png",
+                "Sprites/Inimigos/Golem Neve/GN3.png",
+                # "Sprites/Inimigos/Golem Neve/GN4.png", # Se tiver 4 frames
             ]
             Golem_Neve.sprites_andar_carregados = []
             Golem_Neve._carregar_lista_sprites_estatico(caminhos_andar, Golem_Neve.sprites_andar_carregados, Golem_Neve.tamanho_sprite_definido, "Andar")
 
         if Golem_Neve.sprites_atacar_carregados is None:
-            caminhos_atacar = [
-                "Sprites/Inimigos/Golem_Neve/GolemNeve_Atacar1.png", # CRIE ESTES ARQUIVOS
-                "Sprites/Inimigos/Golem_Neve/GolemNeve_Atacar2.png",
-                "Sprites/Inimigos/Golem_Neve/GolemNeve_Atacar3.png",
+            caminhos_atacar = [ # Use nomes diferentes para sprites de ataque se os tiver
+                "Sprites/Inimigos/Golem Neve/GN_Atacar1.png", 
+                "Sprites/Inimigos/Golem Neve/GN_Atacar2.png",
+                "Sprites/Inimigos/Golem Neve/GN_Atacar3.png",
             ]
             Golem_Neve.sprites_atacar_carregados = []
-            if caminhos_atacar: 
+            if any(caminhos_atacar) and os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", caminhos_atacar[0].replace("\\", "/"))): # Verifica se o primeiro sprite de ataque existe
                 Golem_Neve._carregar_lista_sprites_estatico(caminhos_atacar, Golem_Neve.sprites_atacar_carregados, Golem_Neve.tamanho_sprite_definido, "Atacar")
             
             if not Golem_Neve.sprites_atacar_carregados: 
-                if Golem_Neve.sprites_andar_carregados:
+                if Golem_Neve.sprites_andar_carregados and len(Golem_Neve.sprites_andar_carregados) > 0: 
                     Golem_Neve.sprites_atacar_carregados = [Golem_Neve.sprites_andar_carregados[0]] 
+                    print("DEBUG(Golem_Neve): Usando primeiro sprite de andar como placeholder para ataque.")
                 else: 
                     placeholder_ataque = pygame.Surface(Golem_Neve.tamanho_sprite_definido, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder_ataque, (180,200,230), placeholder_ataque.get_rect())
                     Golem_Neve.sprites_atacar_carregados = [placeholder_ataque]
+                    print("DEBUG(Golem_Neve): Usando placeholder de cor para ataque (sprites de andar também falharam ou estão vazios).")
         
         if not Golem_Neve.sons_carregados:
-            Golem_Neve.som_ataque_golem = Golem_Neve._carregar_som_golem_neve("Sons/Golem_Neve/ataque_impacto_neve.wav") # CRIE ESTES ARQUIVOS
+            Golem_Neve.som_ataque_golem = Golem_Neve._carregar_som_golem_neve("Sons/Golem_Neve/ataque_impacto_neve.wav") 
             Golem_Neve.som_dano_golem = Golem_Neve._carregar_som_golem_neve("Sons/Golem_Neve/dano_quebrar_gelo.wav")
             Golem_Neve.som_morte_golem = Golem_Neve._carregar_som_golem_neve("Sons/Golem_Neve/morte_desmoronar.wav")
             Golem_Neve.som_spawn_golem = Golem_Neve._carregar_som_golem_neve("Sons/Golem_Neve/spawn_passos_pesados.wav") 
@@ -229,85 +241,107 @@ class Golem_Neve(Inimigo):
     @staticmethod
     def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, tipo_animacao):
         current_file_dir = os.path.dirname(os.path.abspath(__file__))
-        game_root_dir = current_file_dir 
+        # CORREÇÃO: Assumindo que a pasta 'Sprites' está um nível acima do diretório deste script
+        game_root_dir = os.path.dirname(current_file_dir)
+        # Se Golem_Neve.py e a pasta 'Sprites' estiverem na mesma pasta (raiz do projeto), use:
+        # game_root_dir = current_file_dir 
+        
+        print(f"--- Carregando sprites de {tipo_animacao} para Golem_Neve. Raiz para assets: {game_root_dir} ---")
         
         for path_relativo in caminhos:
-            full_path = os.path.join(game_root_dir, path_relativo.replace("/", os.sep))
+            path_corrigido = path_relativo.replace("\\", "/")
+            full_path = os.path.join(game_root_dir, path_corrigido)
+            print(f"--- TENTANDO CARREGAR GOLEM SPRITE ({tipo_animacao}): {full_path}")
             try:
                 if os.path.exists(full_path):
                     sprite = pygame.image.load(full_path).convert_alpha()
                     sprite = pygame.transform.scale(sprite, tamanho)
                     lista_destino.append(sprite)
+                    print(f"--- SUCESSO: Sprite '{full_path}' carregado.")
                 else:
-                    print(f"DEBUG(Golem_Neve): Sprite {tipo_animacao} não encontrado: {full_path}. Usando placeholder.")
+                    print(f"!!! ARQUIVO NÃO EXISTE (Golem_Neve - {tipo_animacao}): {full_path}. Usando placeholder.")
                     placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder, (200, 220, 255), placeholder.get_rect()) 
                     lista_destino.append(placeholder)
             except pygame.error as e:
-                print(f"DEBUG(Golem_Neve): Erro ao carregar sprite {tipo_animacao} '{full_path}': {e}")
+                print(f"!!! ERRO PYGAME (Golem_Neve - {tipo_animacao}) ao carregar '{full_path}': {e}. Usando placeholder.")
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (200, 220, 255), placeholder.get_rect())
                 lista_destino.append(placeholder)
         
-        if not lista_destino:
-            print(f"DEBUG(Golem_Neve): Nenhum sprite de {tipo_animacao} carregado. Usando placeholder final.")
+        if not lista_destino: 
+            print(f"!!! FALHA TOTAL (Golem_Neve - {tipo_animacao}): Nenhum sprite carregado. Usando placeholder final.")
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
             pygame.draw.rect(placeholder, (180, 200, 230), placeholder.get_rect()) 
             lista_destino.append(placeholder)
 
 
-    def __init__(self, x, y, velocidade=0.8): # Golems são lentos mas fortes
+    def __init__(self, x, y, velocidade=0.8): 
         Golem_Neve.carregar_recursos_golem_neve() 
+        # print(f"DEBUG(Golem_Neve): Iniciando __init__ para Golem_Neve em ({x}, {y}).")
+        # print(f"DEBUG(Golem_Neve): Sprites de andar carregados: {len(Golem_Neve.sprites_andar_carregados) if Golem_Neve.sprites_andar_carregados else 'Nenhum'}")
+        # print(f"DEBUG(Golem_Neve): Sprites de atacar carregados: {len(Golem_Neve.sprites_atacar_carregados) if Golem_Neve.sprites_atacar_carregados else 'Nenhum'}")
 
         golem_hp = 250
         golem_contact_damage = 20
         golem_xp_value = 120
-        sprite_path_ref = "Sprites/Inimigos/Golem_Neve/GolemNeve_Andar1.png" if Golem_Neve.sprites_andar_carregados else "placeholder_golem.png"
+        sprite_path_ref = "Sprites/Inimigos/Golem Neve/GN1.png" 
 
         super().__init__(x, y,
                          Golem_Neve.tamanho_sprite_definido[0], Golem_Neve.tamanho_sprite_definido[1],
                          golem_hp, velocidade, golem_contact_damage,
                          golem_xp_value, sprite_path_ref)
 
-        self.sprites = Golem_Neve.sprites_andar_carregados
+        # Define os sprites de acordo com o que foi carregado
+        if Golem_Neve.sprites_andar_carregados and len(Golem_Neve.sprites_andar_carregados) > 0 and isinstance(Golem_Neve.sprites_andar_carregados[0], pygame.Surface):
+            self.sprites = Golem_Neve.sprites_andar_carregados
+        else: # Fallback se sprites de andar não carregaram corretamente
+            print("!!! ALERTA(Golem_Neve): sprites_andar_carregados inválido ou vazio no __init__! Usando placeholder para self.sprites.")
+            placeholder_img = pygame.Surface(Golem_Neve.tamanho_sprite_definido, pygame.SRCALPHA)
+            pygame.draw.rect(placeholder_img, (180,200,230), placeholder_img.get_rect())
+            self.sprites = [placeholder_img]
+
+
         self.sprite_index = 0
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
-        self.intervalo_animacao_andar = 350 # Animação bem lenta para Golem
+        self.intervalo_animacao_andar = 350 
         self.intervalo_animacao_atacar = 250 
         self.intervalo_animacao = self.intervalo_animacao_andar
 
         self.is_attacking = False
-        self.attack_duration = 1.2 # Ataque lento e poderoso
+        self.attack_duration = 1.2 
         self.attack_timer = 0.0
         self.attack_damage = 40 
-        self.attack_range = 100  # Alcance maior para um golpe de área ou soco
+        self.attack_range = 100  
         self.attack_cooldown = 3.5 
-        self.last_attack_time = time.time() - self.attack_cooldown
+        self.last_attack_time = time.time() - self.attack_cooldown 
 
         self.attack_hitbox_largura = 80
         self.attack_hitbox_altura = 100
-        self.attack_hitbox_offset_x = 30 # Ajustar conforme a animação de ataque
+        self.attack_hitbox_offset_x = 30 
 
-        if self.sprites and len(self.sprites) > 0:
-            idx = int(self.sprite_index % len(self.sprites))
-            self.image = self.sprites[idx]
-        elif hasattr(super(), 'image') and super().image is not None:
+        # Define a imagem inicial corretamente
+        if self.sprites and len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface):
+            self.image = self.sprites[0] # Começa com o primeiro frame da animação de andar
+        elif hasattr(super(), 'image') and isinstance(super().image, pygame.Surface):
             self.image = super().image
+            print("DEBUG(Golem_Neve): Usando imagem da classe base Inimigo como fallback inicial para self.image.")
         else:
+            print("!!! ALERTA(Golem_Neve): Nenhuma imagem válida. Usando placeholder final para self.image.")
             self.image = pygame.Surface(Golem_Neve.tamanho_sprite_definido, pygame.SRCALPHA)
-            pygame.draw.rect(self.image, (200,220,255), self.image.get_rect())
-            if not hasattr(self, 'rect'):
-                 self.rect = self.image.get_rect(topleft=(self.x, self.y))
+            pygame.draw.rect(self.image, (150,180,210), self.image.get_rect()) 
+        
+        # Garante que self.rect seja definido com as dimensões corretas da imagem inicial
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
         
         if Golem_Neve.som_spawn_golem:
             Golem_Neve.som_spawn_golem.play()
         
-        print(f"DEBUG(Golem_Neve): Golem de Neve inicializado. HP: {self.hp}, Vel: {self.velocidade}")
+        print(f"DEBUG(Golem_Neve): Golem de Neve inicializado. HP: {self.hp}, Vel: {self.velocidade}, Imagem: {self.image.get_size() if self.image else 'None'}")
 
 
     def receber_dano(self, dano):
         vida_antes = self.hp
-        # Golems podem ter resistência a certos tipos de dano (não implementado aqui)
         super().receber_dano(dano) 
         if self.esta_vivo():
             if vida_antes > self.hp and Golem_Neve.som_dano_golem:
@@ -333,7 +367,11 @@ class Golem_Neve(Inimigo):
                 self.last_attack_time = current_time
                 self.hit_by_player_this_attack = False
                 
-                self.sprites = Golem_Neve.sprites_atacar_carregados 
+                if Golem_Neve.sprites_atacar_carregados and len(Golem_Neve.sprites_atacar_carregados) > 0 and isinstance(Golem_Neve.sprites_atacar_carregados[0], pygame.Surface):
+                    self.sprites = Golem_Neve.sprites_atacar_carregados 
+                else: 
+                    self.sprites = Golem_Neve.sprites_andar_carregados # Fallback para sprites de andar se os de ataque não carregaram
+                
                 self.intervalo_animacao = self.intervalo_animacao_atacar
                 self.sprite_index = 0 
                 
@@ -355,7 +393,6 @@ class Golem_Neve(Inimigo):
             return
 
         if not self.is_attacking:
-            # Chama super().update() com tratamento de TypeError para dt_ms
             try:
                 super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
             except TypeError:
@@ -402,5 +439,6 @@ class Golem_Neve(Inimigo):
         # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
         #     debug_hitbox_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
         #     s = pygame.Surface((self.attack_hitbox.width, self.attack_hitbox.height), pygame.SRCALPHA)
-        #     s.fill((180, 200, 230, 100))  # Cor azul claro para hitbox do Golem
+        #     s.fill((180, 200, 230, 100))  
         #     surface.blit(s, (debug_hitbox_rect_onscreen.x, debug_hitbox_rect_onscreen.y))
+

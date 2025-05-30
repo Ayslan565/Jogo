@@ -5,7 +5,7 @@ class Estacoes:
     def __init__(self):
         self.i = random.randint(0, 3)
         self.cor = self.definir_cor()
-        self.tempo_troca = 8  # segundos
+        self.tempo_troca = 120  # segundos
         self.ultimo_tempo = time.time()
         self.mensagem_estacao = self.nome_estacao()
         self.tempo_mensagem = self.ultimo_tempo

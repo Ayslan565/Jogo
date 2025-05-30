@@ -46,11 +46,14 @@ except ImportError:
             self.intervalo_animacao = 200
 
         def _carregar_sprite(self, path, tamanho): 
-            # Corrigido: Assume que Goblin.py está na raiz do projeto ou os caminhos são relativos a ele.
-            base_dir = os.path.dirname(os.path.abspath(__file__)) # Diretório do Goblin.py
-            game_root_dir = base_dir # Assume que a pasta 'Sprites' está na raiz ou o path é completo/relativo daqui
+            base_dir = os.path.dirname(os.path.abspath(__file__)) # Diretório do script atual (ex: Goblin.py)
+            # CORRIGIDO: Assumindo que a pasta 'Sprites' está um nível ACIMA do diretório deste script
+            game_root_dir = os.path.dirname(base_dir) 
+            # Se este script e a pasta 'Sprites' estiverem na mesma pasta (raiz do projeto), use:
+            # game_root_dir = base_dir
             
-            full_path = os.path.join(game_root_dir, path.replace("/", os.sep))
+            full_path = os.path.join(game_root_dir, path.replace("\\", "/"))
+            # print(f"--- DEBUG PLACEHOLDER TENTANDO CARREGAR: {full_path}")
             if not os.path.exists(full_path):
                 print(f"DEBUG(InimigoPlaceholder): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
                 img = pygame.Surface(tamanho, pygame.SRCALPHA)
@@ -66,7 +69,7 @@ except ImportError:
                 pygame.draw.rect(img, (0,100,0), (0, 0, tamanho[0], tamanho[1]))
                 return img
 
-        def receber_dano(self, dano):
+        def receber_dano(self, dano, fonte_dano_rect=None): # Adicionado fonte_dano_rect para consistência
             self.hp -= dano
             self.last_hit_time = pygame.time.get_ticks()
             if self.hp <= 0:
@@ -76,15 +79,13 @@ except ImportError:
             return self.hp > 0
 
         def mover_em_direcao(self, alvo_x, alvo_y, dt_ms=None): 
-            # Este placeholder Inimigo.mover_em_direcao USA dt_ms se fornecido.
-            # Se o Inimigos.py real não usar, o movimento será diferente.
             if self.esta_vivo() and self.velocidade > 0:
                 dx = alvo_x - self.rect.centerx
                 dy = alvo_y - self.rect.centery
                 dist = math.hypot(dx, dy)
                 fator_tempo = 1.0
                 if dt_ms is not None and dt_ms > 0:
-                     fator_tempo = (dt_ms / (1000.0 / 60.0)) # Assume velocidade em px/frame @60FPS
+                     fator_tempo = (dt_ms / (1000.0 / 60.0)) 
 
                 if dist > 0:
                     dx_norm = dx / dist
@@ -103,23 +104,20 @@ except ImportError:
                     self.tempo_ultimo_update_animacao = agora
                     self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
             
-            if self.sprites: 
-                idx = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
-                if idx < len(self.sprites): 
+            if self.sprites and len(self.sprites) > 0: 
+                idx = int(self.sprite_index % len(self.sprites))
+                if idx < len(self.sprites) and isinstance(self.sprites[idx], pygame.Surface): 
                     base_image = self.sprites[idx]
-                    if hasattr(self, 'facing_right') and not self.facing_right: 
-                        self.image = pygame.transform.flip(base_image, True, False)
-                    else:
-                        self.image = base_image
-                elif len(self.sprites) > 0: 
-                    self.image = self.sprites[0]
-            elif not hasattr(self, 'image') or self.image is None: 
+                    self.image = pygame.transform.flip(base_image, not self.facing_right, False)
+                elif len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface): 
+                    self.image = pygame.transform.flip(self.sprites[0], not self.facing_right, False)
+                # Se self.image não for uma Surface válida, será tratado no desenhar
+            elif not hasattr(self, 'image') or not isinstance(self.image, pygame.Surface): 
                 self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
                 pygame.draw.rect(self.image, (0,100,0), (0,0,self.largura,self.altura))
 
 
         def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): 
-            # Este placeholder Inimigo.update USA dt_ms.
             if self.esta_vivo():
                 if hasattr(player, 'rect'):
                     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
@@ -134,20 +132,18 @@ except ImportError:
                         self.last_contact_time = current_ticks
 
         def desenhar(self, janela, camera_x, camera_y):
-            if not hasattr(self, 'image') or self.image is None:
+            if not hasattr(self, 'image') or self.image is None or not isinstance(self.image, pygame.Surface):
                 self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
                 pygame.draw.rect(self.image, (0,100,0), (0,0,self.largura,self.altura))
-            if not hasattr(self, 'rect'):
-                   self.rect = self.image.get_rect(topleft=(self.x,self.y))
+                if not hasattr(self, 'rect'): self.rect = self.image.get_rect(topleft=(self.x,self.y))
 
             screen_x = self.rect.x - camera_x
             screen_y = self.rect.y - camera_y
             janela.blit(self.image, (screen_x, screen_y))
 
             current_time = pygame.time.get_ticks()
-            if current_time - self.last_hit_time < self.hit_flash_duration:
+            if current_time - self.last_hit_time < self.hit_flash_duration and hasattr(self, 'image') and self.image:
                 flash_image_overlay = self.image.copy()
-                # Usando BLEND_RGB_ADD para um efeito de clareamento mais sutil que BLEND_RGB_MAX
                 flash_image_overlay.fill(self.hit_flash_color[:3] + (0,), special_flags=pygame.BLEND_RGB_ADD) 
                 flash_image_overlay.set_alpha(self.hit_flash_color[3]) 
                 janela.blit(flash_image_overlay, (screen_x, screen_y))
@@ -177,8 +173,12 @@ class Goblin(Inimigo):
     @staticmethod
     def _carregar_som_goblin(caminho_relativo):
         current_file_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = current_file_dir 
-        full_path = os.path.join(project_root, caminho_relativo.replace("/", os.sep))
+        # CORRIGIDO: Assumindo que a pasta 'Sons' está um nível ACIMA do diretório deste script
+        project_root = os.path.dirname(current_file_dir)
+        # Se Goblin.py e 'Sons' estiverem na mesma pasta (raiz do projeto):
+        # project_root = current_file_dir 
+        
+        full_path = os.path.join(project_root, caminho_relativo.replace("\\", "/"))
         if not os.path.exists(full_path):
             print(f"DEBUG(Goblin): Arquivo de som não encontrado: {full_path}")
             return None
@@ -190,34 +190,83 @@ class Goblin(Inimigo):
             return None
 
     @staticmethod
+    def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, tipo_animacao):
+        current_file_dir = os.path.dirname(os.path.abspath(__file__))
+        # CORRIGIDO: Assumindo que a pasta 'Sprites' está um nível ACIMA do diretório deste script
+        game_root_dir = os.path.dirname(current_file_dir)
+        # Se Goblin.py e 'Sprites' estiverem na mesma pasta (raiz do projeto):
+        # game_root_dir = current_file_dir
+        
+        print(f"--- Carregando sprites de {tipo_animacao} para Goblin. Raiz para assets: {game_root_dir} ---")
+        for path_relativo in caminhos:
+            path_corrigido = path_relativo.replace("\\", "/") # Usa / para consistência
+            full_path = os.path.join(game_root_dir, path_corrigido)
+            print(f"--- TENTANDO CARREGAR GOBLIN SPRITE ({tipo_animacao}): {full_path}")
+            try:
+                if os.path.exists(full_path):
+                    sprite = pygame.image.load(full_path).convert_alpha()
+                    sprite = pygame.transform.scale(sprite, tamanho)
+                    lista_destino.append(sprite)
+                    print(f"--- SUCESSO: Sprite '{full_path}' carregado.")
+                else:
+                    print(f"!!! ARQUIVO NÃO EXISTE (Goblin - {tipo_animacao}): {full_path}. Usando placeholder.")
+                    placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
+                    pygame.draw.rect(placeholder, (0, 100, 0), placeholder.get_rect()) 
+                    lista_destino.append(placeholder)
+            except pygame.error as e:
+                print(f"!!! ERRO PYGAME (Goblin - {tipo_animacao}) ao carregar '{full_path}': {e}. Usando placeholder.")
+                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
+                pygame.draw.rect(placeholder, (0, 100, 0), placeholder.get_rect())
+                lista_destino.append(placeholder)
+        
+        if not lista_destino:
+            print(f"!!! FALHA TOTAL (Goblin - {tipo_animacao}): Nenhum sprite carregado. Usando placeholder final.")
+            placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
+            pygame.draw.rect(placeholder, (0, 70, 0), placeholder.get_rect()) 
+            lista_destino.append(placeholder)
+
+    @staticmethod
     def carregar_recursos_goblin():
         if Goblin.sprites_andar_carregados is None:
             caminhos_andar = [
-                "Sprites/Inimigos/Goblin/Goblin_Andar1.png", 
-                "Sprites/Inimigos/Goblin/Goblin_Andar2.png",
-                "Sprites/Inimigos/Goblin/Goblin_Andar3.png",
-                "Sprites/Inimigos/Goblin/Goblin_Andar4.png",
+                "Sprites/Inimigos/Goblin/goblin1.png", 
+                "Sprites/Inimigos/Goblin/goblin2.png",
+                "Sprites/Inimigos/Goblin/goblin3.png",
+                "Sprites/Inimigos/Goblin/goblin4.png",
             ]
+
+            
             Goblin.sprites_andar_carregados = []
             Goblin._carregar_lista_sprites_estatico(caminhos_andar, Goblin.sprites_andar_carregados, Goblin.tamanho_sprite_definido, "Andar")
 
         if Goblin.sprites_atacar_carregados is None:
-            caminhos_atacar = [
-                "Sprites/Inimigos/Goblin/Goblin_Atacar1.png", 
-                "Sprites/Inimigos/Goblin/Goblin_Atacar2.png",
-                "Sprites/Inimigos/Goblin/Goblin_Atacar3.png",
+            caminhos_atacar = [ # Use nomes diferentes se tiver sprites de ataque específicos
+                "Sprites/Inimigos/Goblin/goblin_atacar1.png", 
+                "Sprites/Inimigos/Goblin/goblin_atacar2.png",
+                "Sprites/Inimigos/Goblin/goblin_atacar3.png",
             ]
             Goblin.sprites_atacar_carregados = []
-            if caminhos_atacar: 
+            # Verifica se realmente existem caminhos para sprites de ataque antes de tentar carregar
+            # E se o primeiro arquivo da lista de ataque realmente existe (para evitar carregar placeholders desnecessariamente)
+            # Esta verificação de existência do primeiro arquivo é uma heurística.
+            primeiro_sprite_ataque_path = ""
+            if caminhos_atacar:
+                current_file_dir_temp = os.path.dirname(os.path.abspath(__file__))
+                game_root_dir_temp = os.path.dirname(current_file_dir_temp) # Assume subpasta
+                primeiro_sprite_ataque_path = os.path.join(game_root_dir_temp, caminhos_atacar[0].replace("\\", "/"))
+
+            if caminhos_atacar and os.path.exists(primeiro_sprite_ataque_path): 
                 Goblin._carregar_lista_sprites_estatico(caminhos_atacar, Goblin.sprites_atacar_carregados, Goblin.tamanho_sprite_definido, "Atacar")
             
             if not Goblin.sprites_atacar_carregados: 
-                if Goblin.sprites_andar_carregados:
+                if Goblin.sprites_andar_carregados and len(Goblin.sprites_andar_carregados) > 0 :
                     Goblin.sprites_atacar_carregados = [Goblin.sprites_andar_carregados[0]] 
+                    print("DEBUG(Goblin): Usando primeiro sprite de andar como placeholder para ataque.")
                 else: 
                     placeholder_ataque = pygame.Surface(Goblin.tamanho_sprite_definido, pygame.SRCALPHA)
                     pygame.draw.rect(placeholder_ataque, (0,80,0), placeholder_ataque.get_rect())
                     Goblin.sprites_atacar_carregados = [placeholder_ataque]
+                    print("DEBUG(Goblin): Usando placeholder de cor para ataque (sprites de andar também falharam ou estão vazios).")
         
         if not Goblin.sons_carregados:
             Goblin.som_ataque_goblin = Goblin._carregar_som_goblin("Sons/Goblin/ataque_adaga.wav") 
@@ -226,35 +275,6 @@ class Goblin(Inimigo):
             Goblin.som_spawn_goblin = Goblin._carregar_som_goblin("Sons/Goblin/spawn_risada_curta.wav") 
             Goblin.sons_carregados = True
     
-    @staticmethod
-    def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, tipo_animacao):
-        current_file_dir = os.path.dirname(os.path.abspath(__file__))
-        game_root_dir = current_file_dir # Assumindo que Goblin.py está na raiz do projeto
-        
-        for path_relativo in caminhos:
-            full_path = os.path.join(game_root_dir, path_relativo.replace("/", os.sep))
-            try:
-                if os.path.exists(full_path):
-                    sprite = pygame.image.load(full_path).convert_alpha()
-                    sprite = pygame.transform.scale(sprite, tamanho)
-                    lista_destino.append(sprite)
-                else:
-                    print(f"DEBUG(Goblin): Sprite {tipo_animacao} não encontrado: {full_path}. Usando placeholder.")
-                    placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-                    pygame.draw.rect(placeholder, (0, 100, 0), placeholder.get_rect()) 
-                    lista_destino.append(placeholder)
-            except pygame.error as e:
-                print(f"DEBUG(Goblin): Erro ao carregar sprite {tipo_animacao} '{full_path}': {e}")
-                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-                pygame.draw.rect(placeholder, (0, 100, 0), placeholder.get_rect())
-                lista_destino.append(placeholder)
-        
-        if not lista_destino:
-            print(f"DEBUG(Goblin): Nenhum sprite de {tipo_animacao} carregado. Usando placeholder final.")
-            placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-            pygame.draw.rect(placeholder, (0, 70, 0), placeholder.get_rect()) 
-            lista_destino.append(placeholder)
-
 
     def __init__(self, x, y, velocidade=2.0): 
         Goblin.carregar_recursos_goblin() 
@@ -262,7 +282,7 @@ class Goblin(Inimigo):
         goblin_hp = 40
         goblin_contact_damage = 6
         goblin_xp_value = 15
-        sprite_path_ref = "Sprites/Inimigos/Goblin/Goblin_Andar1.png" if Goblin.sprites_andar_carregados else "placeholder_goblin.png"
+        sprite_path_ref = "Sprites/Inimigos/Goblin/goblin1.png" # Referência para super()
 
         super().__init__(x, y,
                          Goblin.tamanho_sprite_definido[0], Goblin.tamanho_sprite_definido[1],
@@ -270,6 +290,11 @@ class Goblin(Inimigo):
                          goblin_xp_value, sprite_path_ref)
 
         self.sprites = Goblin.sprites_andar_carregados
+        if not self.sprites: # Fallback extremo
+             placeholder_img = pygame.Surface(Goblin.tamanho_sprite_definido, pygame.SRCALPHA)
+             pygame.draw.rect(placeholder_img, (0,100,0), placeholder_img.get_rect())
+             self.sprites = [placeholder_img]
+
         self.sprite_index = 0
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
         self.intervalo_animacao_andar = 150 
@@ -288,16 +313,16 @@ class Goblin(Inimigo):
         self.attack_hitbox_altura = 40
         self.attack_hitbox_offset_x = 5 
 
-        if self.sprites and len(self.sprites) > 0:
-            idx = int(self.sprite_index % len(self.sprites))
-            self.image = self.sprites[idx]
-        elif hasattr(super(), 'image') and super().image is not None:
+        # Define a imagem inicial corretamente
+        if self.sprites and len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface):
+            self.image = self.sprites[0]
+        elif hasattr(super(), 'image') and isinstance(super().image, pygame.Surface):
             self.image = super().image
         else:
             self.image = pygame.Surface(Goblin.tamanho_sprite_definido, pygame.SRCALPHA)
             pygame.draw.rect(self.image, (0,100,0), self.image.get_rect())
-            if not hasattr(self, 'rect'):
-                 self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        
+        self.rect = self.image.get_rect(topleft=(self.x, self.y)) # Garante que o rect corresponda à imagem
         
         if Goblin.som_spawn_goblin:
             Goblin.som_spawn_goblin.play()
@@ -305,9 +330,9 @@ class Goblin(Inimigo):
         # print(f"DEBUG(Goblin): Goblin inicializado. HP: {self.hp}, Vel: {self.velocidade}")
 
 
-    def receber_dano(self, dano):
+    def receber_dano(self, dano, fonte_dano_rect=None): # Adicionado fonte_dano_rect
         vida_antes = self.hp
-        super().receber_dano(dano)
+        super().receber_dano(dano) # Chama o método da classe base
         if self.esta_vivo():
             if vida_antes > self.hp and Goblin.som_dano_goblin:
                 Goblin.som_dano_goblin.play()
@@ -332,7 +357,11 @@ class Goblin(Inimigo):
                 self.last_attack_time = current_time
                 self.hit_by_player_this_attack = False
                 
-                self.sprites = Goblin.sprites_atacar_carregados 
+                if Goblin.sprites_atacar_carregados and len(Goblin.sprites_atacar_carregados) > 0:
+                    self.sprites = Goblin.sprites_atacar_carregados 
+                else: # Fallback se sprites de ataque não carregaram
+                    self.sprites = Goblin.sprites_andar_carregados
+                
                 self.intervalo_animacao = self.intervalo_animacao_atacar
                 self.sprite_index = 0 
                 
@@ -354,19 +383,9 @@ class Goblin(Inimigo):
             return
 
         if not self.is_attacking:
-            # --- CORREÇÃO PRINCIPAL ---
-            # Chama super().update() sem dt_ms para ser compatível com a assinatura de Inimigos.py
-            # que você forneceu (ID: inimigo_base_py), que não aceita dt_ms em seu update.
-            # Se o seu Inimigos.py REAL aceitar dt_ms no update, você pode passar dt_ms aqui.
-            # Se o seu Inimigos.py REAL NÃO usar dt_ms para mover, então o movimento será frame-dependente.
-            # O placeholder Inimigo DENTRO DESTE ARQUIVO Goblin.py USA dt_ms,
-            # então se Inimigos.py falhar ao importar, o movimento será ajustado por dt_ms.
             try:
-                # Tenta chamar com dt_ms primeiro, caso o Inimigo base real o suporte
                 super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
             except TypeError:
-                # Se der TypeError (provavelmente porque o Inimigo.update não aceita dt_ms),
-                # chama sem dt_ms.
                 super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela)
         else: 
             self.atualizar_animacao()
@@ -397,7 +416,7 @@ class Goblin(Inimigo):
                             self.hit_by_player_this_attack = True 
             
             if not self.is_attacking:
-                if self.sprites != Goblin.sprites_andar_carregados:
+                if self.sprites != Goblin.sprites_andar_carregados and Goblin.sprites_andar_carregados:
                     self.sprites = Goblin.sprites_andar_carregados
                     self.intervalo_animacao = self.intervalo_animacao_andar
                     self.sprite_index = 0 
@@ -410,5 +429,5 @@ class Goblin(Inimigo):
         # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
         #     debug_hitbox_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
         #     s = pygame.Surface((self.attack_hitbox.width, self.attack_hitbox.height), pygame.SRCALPHA)
-        #     s.fill((0, 150, 0, 100)) 
+        #     s.fill((0, 150, 0, 100))  
         #     surface.blit(s, (debug_hitbox_rect_onscreen.x, debug_hitbox_rect_onscreen.y))

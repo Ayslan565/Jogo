@@ -7,68 +7,73 @@ class ProjetilNeve(pygame.sprite.Sprite):
     """
     Representa um projétil de bola de neve atirado pelo Boneco de Neve.
     """
-    def __init__(self, x_origem, y_origem, x_alvo, y_alvo, dano, velocidade=5, tamanho=10, cor=(200, 200, 255)):
+    def __init__(self, x_origem, y_origem, x_alvo, y_alvo, dano, velocidade=5, tamanho=10, cor=(200, 200, 255), cor_contorno=(0,0,0), largura_contorno=1):
         """
         Inicializa um novo projétil de neve.
 
         Args:
-            x_origem (int): A posição x inicial do projétil (geralmente a posição do inimigo).
-            y_origem (int): A posição y inicial do projétil (geralmente a posição do inimigo).
-            x_alvo (int): A posição x do alvo (geralmente a posição do jogador) no momento do disparo.
-            y_alvo (int): A posição y do alvo (geralmente a posição do jogador) no momento do disparo.
+            x_origem (int): A posição x inicial do projétil.
+            y_origem (int): A posição y inicial do projétil.
+            x_alvo (int): A posição x do alvo.
+            y_alvo (int): A posição y do alvo.
             dano (int): O dano que o projétil causará.
             velocidade (float): A velocidade de movimento do projétil.
             tamanho (int): O raio do círculo que representa o projétil.
             cor (tuple): A cor do projétil (R, G, B).
+            cor_contorno (tuple): A cor do contorno do projétil (R, G, B).
+            largura_contorno (int): A largura da linha do contorno.
         """
         super().__init__()
 
         self.tamanho = tamanho
         self.cor = cor
-        self.image = pygame.Surface((self.tamanho * 2, self.tamanho * 2), pygame.SRCALPHA) # Cria uma superfície transparente
-        pygame.draw.circle(self.image, self.cor, (self.tamanho, self.tamanho), self.tamanho) # Desenha um círculo na superfície
+        self.cor_contorno = cor_contorno
+        self.largura_contorno = largura_contorno
 
-        self.rect = self.image.get_rect(center=(x_origem, y_origem)) # Posição inicial centrada na origem
-        self.velocidade_magnitude = velocidade # Renomeado para evitar conflito com velocidade_x/y
-        self.dano = dano # Dano causado pelo projétil
+        diametro_total = self.tamanho * 2
+        self.image = pygame.Surface((diametro_total, diametro_total), pygame.SRCALPHA) 
+        
+        pygame.draw.circle(self.image, self.cor, (self.tamanho, self.tamanho), self.tamanho) 
+        
+        if self.largura_contorno > 0:
+            pygame.draw.circle(self.image, self.cor_contorno, (self.tamanho, self.tamanho), self.tamanho, self.largura_contorno)
 
-        # Calcula a direção para o alvo
+        self.rect = self.image.get_rect(center=(x_origem, y_origem)) 
+        self.velocidade_magnitude = velocidade 
+        self.dano = dano 
+
         dx = x_alvo - x_origem
         dy = y_alvo - y_origem
         distancia = math.hypot(dx, dy)
 
-        # Normaliza o vetor de direção e multiplica pela velocidade
         if distancia > 0:
             self.velocidade_x = (dx / distancia) * self.velocidade_magnitude
             self.velocidade_y = (dy / distancia) * self.velocidade_magnitude
         else:
-            # Se a origem e o alvo forem os mesmos, o projétil não se move (ou move para uma direção padrão)
             self.velocidade_x = 0
-            self.velocidade_y = -self.velocidade_magnitude # Exemplo: move para cima
+            self.velocidade_y = -self.velocidade_magnitude 
 
-        self.atingiu = False # Flag para saber se o projétil atingiu algo (jogador)
-        self.tempo_criacao = time.time() # Tempo de criação para possível remoção por tempo
-        self.vida_util = 5 # Tempo em segundos antes de o projétil desaparecer (ajuste)
-        self.alive = True # Flag para controlar se o projétil está ativo (para GerenciadorDeInimigos)
+        self.atingiu = False 
+        self.tempo_criacao = time.time() 
+        self.vida_util = 5 
+        self.alive = True 
 
 
-    def update(self, player, tela_largura, tela_altura):
+    def update(self, player, tela_largura, tela_altura, dt_ms=None): 
         """
         Atualiza a posição do projétil e verifica colisões.
-
-        Args:
-            player (Player): O objeto jogador para verificar colisão.
-            tela_largura (int): Largura da tela para verificar limites.
-            tela_altura (int): Altura da tela para verificar limites.
         """
         if not self.alive:
             return
 
-        # Move o projétil
-        self.rect.x += self.velocidade_x
-        self.rect.y += self.velocidade_y
+        fator_tempo = 1.0
+        if dt_ms is not None and dt_ms > 0:
+            fator_tempo = (dt_ms / (1000.0 / 60.0)) 
 
-        # Verifica colisão com o jogador (se o jogador estiver vivo e o projétil não tiver atingido nada ainda)
+
+        self.rect.x += self.velocidade_x * fator_tempo
+        self.rect.y += self.velocidade_y * fator_tempo
+
         if not self.atingiu and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
             if self.rect.colliderect(player.rect):
                 if hasattr(player, 'receber_dano'):
@@ -77,23 +82,16 @@ class ProjetilNeve(pygame.sprite.Sprite):
                 else:
                     print("DEBUG(ProjetilNeve): Objeto player não tem método 'receber_dano'.")
         
-        # Remove o projétil se sair da tela ou se a vida útil acabar ou se atingiu
         if self.rect.right < 0 or self.rect.left > tela_largura or \
            self.rect.bottom < 0 or self.rect.top > tela_altura or \
            self.atingiu or (time.time() - self.tempo_criacao > self.vida_util):
-            self.kill() # Remove o sprite de todos os grupos
-            self.alive = False # Marca como não vivo para remoção da lista manual
+            self.kill() 
+            self.alive = False 
 
 
     def desenhar(self, surface, camera_x, camera_y):
         """
         Desenha o projétil na superfície, aplicando o offset da câmera.
-
-        Args:
-            surface (pygame.Surface): A superfície onde desenhar.
-            camera_x (int): O offset x da câmera.
-            camera_y (int): O offset y da câmera.
         """
         if self.alive:
             surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-
