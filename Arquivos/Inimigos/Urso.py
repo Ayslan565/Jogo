@@ -180,10 +180,11 @@ class Urso(InimigoBase):
     def __init__(self, x, y, velocidade=1.3): 
         Urso.carregar_recursos_urso() 
 
-        vida_urso = 220
+        vida_urso = 120
         dano_contato_urso = 25 
         xp_urso = 130
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Urso/Urso.png"
+        #moedas_dropadas = 18
 
         super().__init__(
             x, y,
