@@ -179,10 +179,11 @@ class Planta_Carnivora(InimigoBase):
     def __init__(self, x, y, velocidade=0.5): # Plantas carnívoras podem ser lentas ou imóveis
         Planta_Carnivora.carregar_recursos_planta_carnivora() 
 
-        vida_planta = 100
+        vida_planta = 90
         dano_contato_planta = 8 
         xp_planta = 50
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Planta_Carnivora/Planta1.png"
+        #moedas_dropas = 15
 
         super().__init__(
             x, y,
