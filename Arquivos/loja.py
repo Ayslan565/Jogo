@@ -460,8 +460,8 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
     carregar_recursos_loja(tamanho_item=(80,80), tamanho_vendedor_img=tamanho_vendedor_para_carregar)
 
     itens_data_global["Cajados"] = [
-        {"nome": "Cajado da Fixacao Ametista", "preco": 80, "imagem": imagem_Cajado_1, "descricao": "Se nào souber usa-lo não compre, uma arma extremamente poderosa mas incontrolável para aqueles que não possuem experiência"},
-        {"nome": "Cajado Da santa Natureza", "preco": 200, "imagem": imagem_Cajado_2, "descricao": "Uma arma unica rara e que causa medo a todos os monstros da floresta. Esse cajado parece simples mas é feito com a madeira de um inimigo dificil de ser derrotado. A natureza estará sempre ao seu lado quando você estiver usando ele."},
+        {"nome": "Cajado da Fixacao Ametista", "preco": 200, "imagem": imagem_Cajado_1, "descricao": "Se não souber usa-lo não compre, uma arma extremamente poderosa mas incontrolável para aqueles que não possuem experiência"},
+        {"nome": "Cajado Da santa Natureza", "preco": 300, "imagem": imagem_Cajado_2, "descricao": "Uma arma única rara e que causa medo a todos os monstros da floresta. Esse cajado parece simples mas é feito com a madeira de uma árvore almadiçoada. A natureza estará sempre ao seu lado quando você estiver usando ele."},
         {"nome": "Livro dos impuros", "preco": 450, "imagem": imagem_Cajado_3, "descricao": "Contém conhecimento proibido, pode ser que ele te ensine a dominar alguma arte mística, ou pode ser que ele te enlouqueça até a MORTE."},
     ]
     itens_data_global["Espadas"] = [
