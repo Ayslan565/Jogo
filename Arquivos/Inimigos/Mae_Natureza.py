@@ -181,9 +181,11 @@ class Mae_Natureza(InimigoBase):
     def __init__(self, x, y, velocidade=0.7): 
         Mae_Natureza.carregar_recursos_mae_natureza() 
 
-        vida_mae_natureza = 220
+        vida_mae_natureza = 120
         dano_contato_mae_natureza = 12 
         xp_mae_natureza = 120
+        #moedas_dropadas = 17
+        
         # O _carregar_sprite da InimigoBase (herdada) será usado para esta imagem principal.
         # O caminho DEVE SER RELATIVO À PASTA RAIZ DO JOGO.
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Mae_Natureza/Mae1.png"
