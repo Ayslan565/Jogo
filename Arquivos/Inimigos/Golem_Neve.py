@@ -177,10 +177,11 @@ class Golem_Neve(InimigoBase):
     def __init__(self, x, y, velocidade=0.5): # Golem é lento
         Golem_Neve.carregar_recursos_golem_neve() 
 
-        vida_golem = 300
+        vida_golem = 120
         dano_contato_golem = 120
         xp_golem = 600
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Golem Neve/GN1.png"
+        #moedas_dropadas = 25
 
         super().__init__(
             x, y,
