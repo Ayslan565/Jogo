@@ -158,9 +158,11 @@ class Fantasma(InimigoBase):
     def __init__(self, x, y, velocidade=1.7): # Velocidade um pouco maior para fantasma
         Fantasma.carregar_recursos_fantasma()
 
-        vida_fantasma = 45 
+        vida_fantasma = 80 
         dano_contato_fantasma = 4 
         xp_fantasma = 25
+        #moedas_dropas = 11
+        
         # O _carregar_sprite da InimigoBase será usado para esta imagem principal.
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Fantasma/Fantasma1.png" 
 
