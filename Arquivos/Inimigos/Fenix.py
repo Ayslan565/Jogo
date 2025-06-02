@@ -156,10 +156,11 @@ class Fenix(InimigoBase):
     def __init__(self, x, y, velocidade=2.8): 
         Fenix.carregar_recursos_fenix()
 
-        vida_fenix = 120 
+        vida_fenix = 110 
         dano_contato_fenix = 6 
         xp_fenix = 70
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Fenix/Fenix 1.png" 
+        # moedas_dropadas = 20
 
         super().__init__(
             x, y, 
