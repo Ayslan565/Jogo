@@ -465,11 +465,11 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
         {"nome": "Livro dos impuros", "preco": 350, "imagem": imagem_Cajado_3, "descricao": "Contém conhecimento proibido."},
     ]
     itens_data_global["Espadas"] = [
-        {"nome": "Adaga do Fogo Contudente", "preco": 100, "imagem": imagem_Espada_1, "descricao": "Lâmina curta que queima ao toque."},
-        {"nome": "Espada de Fogo azul Sacra Cerulea", "preco": 150, "imagem": imagem_Espada_2, "descricao": "Chamas azuis dançam nesta espada."},
-        {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Revela os pecados de quem a encara."},
-        {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Uma relíquia de tempos esquecidos."},
-        {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Brilha com a luz pálida da lua."},
+        {"nome": "Adaga do Fogo Contudente", "preco": 100, "imagem": imagem_Espada_1, "descricao": "Uma lâmina pequena, mas perigosa, sua ponta ao penetrar inimigos causa uma queimadura"},
+        {"nome": "Espada de Fogo azul Sacra Cerulea", "preco": 150, "imagem": imagem_Espada_2, "descricao": "Lâmina de aço cintilante com punho dourado e uma gema safira-azul, forjada sob o calor das estrelas e abençoada com sabedoria celestia. Ela é Leal para os justos e forte para os destemidos."},
+        {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão  em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço."},
+        {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Forjada sob a fúria de um Buraco Negro. Sua gema âmbar concede intuição aguçada para antecipar inimigos, sendo ideal para quem valoriza agilidade e estratégia, movendo-se como uma sombra para atacar com precisão."},
+        {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares"},
         {"nome": "Lâmina do Ceu Centilhante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Rápida como um raio, afiada como uma estrela."}
     ]
     itens_data_global["Machados"] = [
