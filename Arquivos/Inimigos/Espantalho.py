@@ -157,9 +157,11 @@ class Espantalho(InimigoBase):
     def __init__(self, x, y, velocidade=1.3): 
         Espantalho.carregar_recursos_espantalho() # Garante que os recursos da classe estão carregados
 
-        vida_espantalho = 65 
+        vida_espantalho = 85 
         dano_contato_espantalho = 5 
         xp_espantalho = 20
+        #moedas_dropadas = 11
+        
         # O sprite_path principal deve ser relativo à pasta raiz do jogo.
         # A classe InimigoBase (herdada) usará seu método _carregar_sprite para carregá-lo.
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espantalho/Espantalho.png" 
