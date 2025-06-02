@@ -179,10 +179,11 @@ class Lobo(InimigoBase):
     def __init__(self, x, y, velocidade=2.5): # Lobos são geralmente rápidos
         Lobo.carregar_recursos_lobo() 
 
-        vida_lobo = 70
+        vida_lobo = 55
         dano_contato_lobo = 90 # Dano de contato pode ser menor se o ataque principal for a mordida
         xp_lobo = 45
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Lobo/Lobo1.png"
+        #moedas_dropadas = 6
 
         super().__init__(
             x, y,
