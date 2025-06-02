@@ -161,9 +161,11 @@ class Espirito_Das_Flores(InimigoBase):
     def __init__(self, x, y, velocidade=1.6): 
         Espirito_Das_Flores.carregar_recursos_espirito()
 
-        vida_espirito = 75 
+        vida_espirito = 75
         dano_contato_espirito = 6 
         xp_espirito = 35
+        #moedas_dropadas = 10
+        
         # O _carregar_sprite da InimigoBase será usado para esta imagem principal.
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espirito_Flores/Espirito_Flores1.png" 
 
