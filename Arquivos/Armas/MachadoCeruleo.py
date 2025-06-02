@@ -2,7 +2,7 @@
 import pygame
 import os
 # Importa a classe base para machados.
-from .MachadoBase import MachadoBase
+from MachadoBase import MachadoBase
 
 class MachadoCeruleo(MachadoBase):
     """

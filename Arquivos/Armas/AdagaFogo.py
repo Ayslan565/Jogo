@@ -1,7 +1,7 @@
 # AdagaFogo.py
 import pygame
 import os
-from .weapon import Weapon # Assume que weapon.py está no mesmo diretório 'Armas'
+from weapon import Weapon
 
 class AdagaFogo(Weapon):
     """
@@ -34,7 +34,7 @@ class AdagaFogo(Weapon):
             element="Fogo",
             attack_effect_sprite_path=initial_stats_for_super.get("effect_sprite_base", None),
             attack_effect_scale=initial_stats_for_super.get("effect_scale_base", 1.0),
-            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites\Armas\Espadas\Adaga do Fogo Contudente\Adaga E-1.png") 
+            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png")
         )
         
         # --- CONFIGURAÇÕES MODIFICÁVEIS POR NÍVEL ---
@@ -63,7 +63,7 @@ class AdagaFogo(Weapon):
                 ], 
                 "animation_speed": 60,      # CONFIGURÁVEL: Velocidade da animação visual (ms por frame)
                 "animation_display_scale":0.4, # CONFIGURÁVEL: Escala do sprite da animação visual
-                "ui_icon": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png" 
+                "ui_icon": "C:/Users/aysla/Documents/Jogo_Asrahel/Jogo/Arquivos/Armas/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png"
             },
             1.5: {
                 "damage": 18.0, "range": 30 + (37/2), "cooldown": 0.33, "name_suffix": "+1", 

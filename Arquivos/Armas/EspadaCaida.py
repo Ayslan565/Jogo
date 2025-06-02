@@ -1,5 +1,5 @@
 # Armas/EspadaCaida.py
-from .weapon import Weapon
+from weapon import Weapon
 
 class EspadaCaida(Weapon):
     """

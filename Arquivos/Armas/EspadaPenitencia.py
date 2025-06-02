@@ -2,7 +2,7 @@
 import pygame
 import os
 # Assume que weapon.py está no mesmo diretório 'Armas' ou em um local acessível via Python path
-from .weapon import Weapon
+from weapon import Weapon
 
 class EspadaPenitencia(Weapon):
     """
@@ -41,13 +41,14 @@ class EspadaPenitencia(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaPenitencia/Efeitos/ImpactoPenitenciaNv1.png", # Exemplo
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv1/PenitenciaFrame1.png", # Exemplo
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv1/PenitenciaFrame2.png", # Exemplo
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv1/PenitenciaFrame3.png"  # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT0.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT1.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT2.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT3.png"  # Exemplo
                 ],
                 "animation_speed": 95,     # CONFIGURÁVEL (ms por frame)
                 "animation_display_scale": 1.15, # CONFIGURÁVEL
-                "ui_icon": "Sprites/Armas/Espadas/EspadaPenitencia/Icone_EP1.png" # Exemplo
+                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E1.png" # Exemplo
             },
             1.5: {
                 "damage": 65.0, "range": 135.0, "cooldown": 1.4, "name_suffix": "+1",
@@ -55,13 +56,14 @@ class EspadaPenitencia(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaPenitencia/Efeitos/ImpactoPenitenciaNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [ # Reutilizando animação Nv1
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv1/PenitenciaFrame1.png",
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv1/PenitenciaFrame2.png",
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv1/PenitenciaFrame3.png"
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT0.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT1.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT2.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E1/AT3.png"  # Exemplo
                 ],
                 "animation_speed": 90,
                 "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Espadas/EspadaPenitencia/Icone_EP1.png"
+                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E1.png" # Exemplo
             },
             2.0: {
                 "damage": 80.0, "range": 145.0, "cooldown": 1.2, "name_suffix": "Julgadora",
@@ -69,14 +71,14 @@ class EspadaPenitencia(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaPenitencia/Efeitos/ImpactoPenitenciaNv2.png", # Exemplo
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame1.png", # Exemplo
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame2.png", # Exemplo
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame3.png", # Exemplo
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame4.png"  # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT0.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT1.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT2.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT3.png"  # Exemplo
                 ],
                 "animation_speed": 85,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Espadas/EspadaPenitencia/Icone_EP2.png" # Exemplo
+                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E2.png" # Exemplo
             },
             2.5: {
                 "damage": 88.0, "range": 150.0, "cooldown": 1.1, "name_suffix": "Julgadora +1",
@@ -84,14 +86,14 @@ class EspadaPenitencia(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaPenitencia/Efeitos/ImpactoPenitenciaNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [ # Reutilizando animação Nv2
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame1.png",
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame2.png",
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame3.png",
-                    "Sprites/Armas/Espadas/EspadaPenitencia/Ataque/Nv2/JulgamentoFrame4.png"
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT0.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT1.png", # Exemplo
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT2.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/E2/AT3.png"  # Exemplo
                 ],
                 "animation_speed": 80,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Espadas/EspadaPenitencia/Icone_EP2.png"
+                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E2.png" # Exemplo
             },
             3.0: {
                 "damage": 100.0, "range": 165.0, "cooldown": 1.0, "name_suffix": "Absoluta",

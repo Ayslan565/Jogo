@@ -1,270 +1,635 @@
-# Inimigos.py
 import pygame
 import os
-import time 
-import math 
-import random # Adicionado para o fallback de _resolver_colisao
+import random
+import sys
 
-class Inimigo(pygame.sprite.Sprite): 
-    """
-    Classe base para todos os inimigos no jogo.
-    Define atributos comuns como vida, velocidade, dano de contato,
-    valor de XP, carregamento de sprite, animação de flash de dano,
-    e métodos básicos de movimento e desenho.
-    """
-    def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
-        super().__init__()
+# --- CONSTANTES ---
+DEFAULT_WEAPON_ICON_PATH = os.path.join("Sprites\Armas\Espadas\Adaga do Fogo Contudente\Adaga E-1.png") # Caminho relativo à pasta Sprites
+
+# Tenta importar a classe Weapon real. Se falhar, usa um placeholder.
+try:
+    from Armas.weapon import Weapon 
+except ImportError:
+    print("ALERTA(BarraInventario): Classe 'Weapon' não encontrada em Armas.weapon. Usando placeholder.")
+    class Weapon: # Placeholder se a classe Weapon real não for encontrada
+        def __init__(self, name="Arma Desconhecida", ui_icon_path=None, damage=10, attack_range=50, cooldown=0.5, hitbox_dimensions=(0,0), hitbox_offset=(0,0), attack_animation_sprites=None, attack_animation_speed=100):
+            self.name = name
+            self.ui_icon_path = ui_icon_path if ui_icon_path else DEFAULT_WEAPON_ICON_PATH
+            self._base_name = name 
+            self.level = 1
+            self.damage = damage
+            self.attack_range = attack_range
+            self.cooldown = cooldown
+            self.hitbox_width = hitbox_dimensions[0]
+            self.hitbox_height = hitbox_dimensions[1]
+            self.hitbox_offset_x = hitbox_offset[0]
+            self.hitbox_offset_y = hitbox_offset[1]
+            self.attack_animation_sprites = attack_animation_sprites if attack_animation_sprites else []
+            # self.attack_animation_paths = [] # Removido se não usado diretamente pela Weapon base
+            self.attack_animation_speed = attack_animation_speed
+            self.current_attack_animation_frame = 0
+            self.last_attack_animation_update = 0
+            self.animation_display_scale_factor = 1.0
+        def get_current_attack_animation_sprite(self): 
+            if self.attack_animation_sprites and self.current_attack_animation_frame < len(self.attack_animation_sprites):
+                return self.attack_animation_sprites[self.current_attack_animation_frame]
+            return None 
+
+# --- Tentativas de Importação de Armas Específicas (para teste standalone) ---
+AdagaFogo = None
+EspadaBrasas = None
+
+# Bloco para configurar caminhos de importação (especialmente para testes standalone)
+project_root_for_import = None # Inicializa
+try:
+    current_file_dir_for_import = os.path.dirname(os.path.abspath(__file__))
+    project_root_for_import = current_file_dir_for_import
+    print(f"DEBUG(BarraInventario Imports): Diretório do arquivo atual: {current_file_dir_for_import}")
+    
+    for i in range(3): # Tenta subir até 3 níveis
+        print(f"DEBUG(BarraInventario Imports): Tentando raiz do projeto em: {project_root_for_import}")
+        if os.path.isdir(os.path.join(project_root_for_import, "Armas")) or \
+           os.path.isdir(os.path.join(project_root_for_import, "Sprites")) or \
+           os.path.exists(os.path.join(project_root_for_import, "main.py")): # Adicione um arquivo/pasta raiz conhecido
+            print(f"DEBUG(BarraInventario Imports): Raiz do projeto encontrada em: {project_root_for_import}")
+            break
+        parent_dir = os.path.dirname(project_root_for_import)
+        if parent_dir == project_root_for_import: 
+            project_root_for_import = os.path.dirname(current_file_dir_for_import) 
+            print(f"ALERTA(BarraInventario Imports): Não foi possível determinar a raiz do projeto automaticamente. Usando diretório do arquivo: {project_root_for_import}")
+            break
+        project_root_for_import = parent_dir
+    else: # Se o loop terminar sem break
+        project_root_for_import = os.path.dirname(current_file_dir_for_import) # Fallback final
+        print(f"ALERTA(BarraInventario Imports): Raiz do projeto não encontrada após {i+1} tentativas. Usando diretório do arquivo: {project_root_for_import}")
+
+    if project_root_for_import not in sys.path:
+        sys.path.insert(0, project_root_for_import)
+        print(f"DEBUG(BarraInventario Imports): Adicionado ao sys.path: {project_root_for_import}")
+
+    from Arquivos.Armas.AdagaFogo import AdagaFogo
+    from Armas.EspadaBrasas import EspadaBrasas 
+    print("DEBUG(BarraInventario Imports): Importações de AdagaFogo e EspadaBrasas (para teste) tentadas.")
+
+except ImportError as e:
+    print(f"ALERTA(BarraInventario Imports): Falha ao importar classes de armas para teste: {e}.")
+except Exception as e_gen:
+    print(f"ERRO(BarraInventario Imports): Erro inesperado durante configuração de importação: {e_gen}")
+
+
+# Cores (com transparência alfa onde aplicável)
+COR_FUNDO_SLOT = (70, 70, 70, 200)
+COR_BORDA_SLOT = (120, 120, 120, 220)
+COR_BORDA_SELECIONADA = (236, 100, 0, 255) # Laranja vibrante
+COR_BORDA_EQUIPADA = (60, 180, 236, 255) # Azul ciano
+COR_TEXTO_TECLA_ATALHO = (230, 230, 230)
+COR_FUNDO_PAINEL_CENTRAL = (35, 35, 35, 230)
+COR_BORDA_PAINEL_CENTRAL = (100, 100, 100, 240)
+COR_TEXTO_TITULO_INVENTARIO = (230, 230, 230)
+COR_TEXTO_NOME_ARMA_DETALHE = (255, 255, 255)
+COR_LOSANGO_BORDA = (140, 140, 140, 200) 
+COR_LOSANGO_PONTA_SELECIONADA = COR_BORDA_SELECIONADA 
+COR_TEXTO_DINHEIRO = (255, 215, 0) 
+COR_FUNDO_LOSANGO_CENTRAL = (50, 50, 50, 180) 
+
+# Espessuras e Raios
+ESPESSURA_LOSANGO_NORMAL = 2
+ESPESSURA_LOSANGO_PONTA_SELECIONADA = 3
+ESPESSURA_BORDA_ICONE_CENTRAL = 2 
+RAIO_BORDA_ICONE_CENTRAL = 5
+RAIO_BORDA_SLOT = 5
+
+
+class BarraInventario:
+    def __init__(self, x, y, largura_tela, altura_tela, num_slots_hud=4, slot_tamanho=(70, 70), espacamento=8): 
+        self.largura_tela_original = largura_tela 
+        self.altura_tela_original = altura_tela 
         
-        self.x = x
-        self.y = y
-        self.largura = largura
-        self.altura = altura
-        self.hp = vida_maxima 
-        self.max_hp = vida_maxima 
-        self.velocidade = velocidade
-        self.contact_damage = dano_contato
-        self.xp_value = xp_value 
-        self.sprite_path_base = sprite_path # Guardar o caminho original para referência
+        self.pos_x_hud = x
+        self.pos_y_hud = y
 
-        self.image = self._carregar_sprite(sprite_path, (largura, altura))
-        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self.num_slots_hud = num_slots_hud
+        self.num_slots_painel = 4 
 
-        self.last_hit_time = 0 
-        self.hit_flash_duration = 150 
-        self.hit_flash_color = (255, 255, 255, 128) 
-        
-        self.facing_right = True 
+        self.slot_tamanho_hud = slot_tamanho
+        self.espacamento_hud = espacamento
 
-        # Garante que self.sprites seja inicializado com uma imagem válida
-        if hasattr(self, 'image') and isinstance(self.image, pygame.Surface):
-            self.sprites = [self.image]
-        else: # Fallback se self.image não for uma Surface válida após _carregar_sprite
-            placeholder_surface = pygame.Surface((largura, altura), pygame.SRCALPHA)
-            pygame.draw.rect(placeholder_surface, (255,0,255), (0,0,largura,altura))
-            self.sprites = [placeholder_surface]
-            if not hasattr(self, 'image') or not isinstance(self.image, pygame.Surface): # Garante que self.image exista
-                self.image = placeholder_surface
-        
-        self.sprite_index = 0
-        self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
-        self.intervalo_animacao = 200 
+        self.slot_rects_hud = [pygame.Rect(0,0,0,0)] * self.num_slots_hud
+        self.slot_rects_painel = [pygame.Rect(0,0,0,0)] * self.num_slots_painel
 
-        self.is_attacking = False 
-        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
-        self.hit_by_player_this_attack = False 
-        
-        self.contact_cooldown = 1000 
-        self.last_contact_time = pygame.time.get_ticks()
+        self.item_selecionado_index_painel = 0 
 
-    def _carregar_sprite(self, path, tamanho):
-        """Carrega e escala um sprite, com um fallback para placeholder."""
-        base_dir = os.path.dirname(os.path.abspath(__file__)) # Diretório de Inimigos.py
-        # Assumindo que a pasta 'Sprites' está um nível ACIMA do diretório de Inimigos.py
-        # Ex: SeuProjeto/Sprites/ e SeuProjeto/scripts/Inimigos.py
-        game_root_dir = os.path.dirname(base_dir) 
-        # Se Inimigos.py e a pasta 'Sprites' estiverem na mesma pasta (raiz do projeto), use:
-        # game_root_dir = base_dir 
-        
-        full_path = os.path.join(game_root_dir, path.replace("\\", "/")) 
+        self._icon_cache = {} 
+        self.visao_inventario_aberta = False 
 
-        # print(f"--- DEBUG INIMIGO BASE TENTANDO CARREGAR: {full_path}") # Descomente para depurar paths
-        if not os.path.exists(full_path):
-            print(f"DEBUG(Inimigo - _carregar_sprite): Aviso: Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
-            img = pygame.Surface(tamanho, pygame.SRCALPHA)
-            pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1])) 
-            return img
         try:
-            img = pygame.image.load(full_path).convert_alpha()
-            img = pygame.transform.scale(img, tamanho)
-            return img
+            pygame.font.init() 
+            self.fonte_tecla_atalho = pygame.font.Font(None, 22) 
+            self.fonte_nome_arma_fullview = pygame.font.Font(None, 24)
+            self.fonte_titulo_inventario = pygame.font.Font(None, 30)
+            self.fonte_dinheiro = pygame.font.Font(None, 26) 
         except pygame.error as e:
-            print(f"DEBUG(Inimigo - _carregar_sprite): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
-            img = pygame.Surface(tamanho, pygame.SRCALPHA)
-            pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1]))
-            return img
+            print(f"DEBUG(InventarioBarra): Erro ao carregar fontes Pygame: {e}. Usando SysFont.")
+            self.fonte_tecla_atalho = pygame.font.SysFont("arial", 18)
+            self.fonte_nome_arma_fullview = pygame.font.SysFont("arial", 20)
+            self.fonte_titulo_inventario = pygame.font.SysFont("arial", 26)
+            self.fonte_dinheiro = pygame.font.SysFont("arial", 22)
+        except Exception as e_font: 
+            print(f"ERRO(InventarioBarra): Erro inesperado ao carregar fontes: {e_font}. Usando SysFont.")
+            self.fonte_tecla_atalho = pygame.font.SysFont("arial", 18)
+            self.fonte_nome_arma_fullview = pygame.font.SysFont("arial", 20)
+            self.fonte_titulo_inventario = pygame.font.SysFont("arial", 26)
+            self.fonte_dinheiro = pygame.font.SysFont("arial", 22)
 
-    def receber_dano(self, dano, fonte_dano_rect=None):
-        """Reduz a vida do inimigo e ativa o efeito de flash."""
-        self.hp -= dano
-        self.last_hit_time = pygame.time.get_ticks() 
-        if self.hp <= 0:
-            self.hp = 0
+        self._calcular_rects_painel_central()
+        self._calcular_rects_barra_rapida()
 
-    def esta_vivo(self):
-        """Verifica se o inimigo ainda está vivo."""
-        return self.hp > 0
+    def _calcular_rects_painel_central(self):
+        centro_x_tela = self.largura_tela_original // 2
+        centro_y_tela = self.altura_tela_original // 2
+        
+        slot_w, slot_h = self.slot_tamanho_hud 
+        offset_do_centro_slots = 130 
 
-    def mover_em_direcao(self, alvo_x, alvo_y, dt_ms=None): 
-        """Move o inimigo na direção de um ponto alvo e atualiza a direção horizontal."""
-        if self.esta_vivo() and self.velocidade > 0:
-            # DEBUG PRINT: Verifique se este método está a ser chamado para os inimigos que não se movem
-            # print(f"DEBUG MOVENDO: {type(self).__name__} com vel {self.velocidade}, dt_ms: {dt_ms}")
+        rect_top = pygame.Rect(0, 0, slot_w, slot_h)
+        rect_top.center = (centro_x_tela, centro_y_tela - offset_do_centro_slots)
+        rect_direita = pygame.Rect(0, 0, slot_w, slot_h)
+        rect_direita.center = (centro_x_tela + offset_do_centro_slots, centro_y_tela)
+        rect_bottom = pygame.Rect(0, 0, slot_w, slot_h)
+        rect_bottom.center = (centro_x_tela, centro_y_tela + offset_do_centro_slots)
+        rect_esquerda = pygame.Rect(0, 0, slot_w, slot_h)
+        rect_esquerda.center = (centro_x_tela - offset_do_centro_slots, centro_y_tela)
+        
+        self.slot_rects_painel = [rect_top, rect_direita, rect_bottom, rect_esquerda]
+
+        min_x_slots = min(r.left for r in self.slot_rects_painel)
+        max_x_slots = max(r.right for r in self.slot_rects_painel)
+        min_y_slots = min(r.top for r in self.slot_rects_painel)
+        max_y_slots = max(r.bottom for r in self.slot_rects_painel)
+        
+        padding_painel_externo = self.espacamento_hud * 2.5 
+        altura_area_titulo = 45 
+        altura_area_nome_arma = 40 
+        altura_area_dinheiro = 35 
+
+        painel_largura = (max_x_slots - min_x_slots) + padding_painel_externo * 2
+        
+        painel_y_inicio = min_y_slots - altura_area_titulo - self.espacamento_hud
+        painel_y_fim = max_y_slots + altura_area_nome_arma + altura_area_dinheiro + self.espacamento_hud * 1.5
+        painel_altura_total = painel_y_fim - painel_y_inicio
+
+        painel_x_inicio = centro_x_tela - painel_largura // 2
+        self.rect_painel_fundo = pygame.Rect(painel_x_inicio, painel_y_inicio, painel_largura, painel_altura_total)
+
+    def _calcular_rects_barra_rapida(self):
+        start_x = self.pos_x_hud
+        slot_w, slot_h = self.slot_tamanho_hud
+        for i in range(self.num_slots_hud):
+            rect_x = start_x + i * (slot_w + self.espacamento_hud)
+            self.slot_rects_hud[i] = pygame.Rect(rect_x, self.pos_y_hud, slot_w, slot_h)
+
+    def _get_project_root(self) -> str:
+        global project_root_for_import 
+        if 'project_root_for_import' in globals() and project_root_for_import and os.path.isdir(project_root_for_import):
+            # print(f"DEBUG(InventarioBarra _get_project_root): Usando raiz do projeto determinada globalmente: {project_root_for_import}")
+            return project_root_for_import
+        else:
+            current_file_path = os.path.abspath(__file__)
+            fallback_root_level1 = os.path.dirname(current_file_path)
+            fallback_root_level2 = os.path.dirname(fallback_root_level1) 
             
-            dx = alvo_x - self.rect.centerx
-            dy = alvo_y - self.rect.centery
-            distancia = math.hypot(dx, dy)
+            if os.path.isdir(os.path.join(fallback_root_level1, "Sprites")) or os.path.isdir(os.path.join(fallback_root_level1, "Armas")):
+                print(f"DEBUG(InventarioBarra _get_project_root): Usando fallback NÍVEL 1 para raiz do projeto: {fallback_root_level1}")
+                return fallback_root_level1
+            elif os.path.isdir(os.path.join(fallback_root_level2, "Sprites")) or os.path.isdir(os.path.join(fallback_root_level2, "Armas")):
+                print(f"DEBUG(InventarioBarra _get_project_root): Usando fallback NÍVEL 2 para raiz do projeto: {fallback_root_level2}")
+                return fallback_root_level2
+            else: 
+                print(f"ALERTA(InventarioBarra _get_project_root): Fallback para raiz do projeto (dir do arquivo): {fallback_root_level1}. Verifique se está correto.")
+                return fallback_root_level1
 
-            fator_tempo = 1.0 
-            if dt_ms is not None and dt_ms > 0:
-                fator_tempo = (dt_ms / (1000.0 / 60.0)) # Assume que self.velocidade é px/(frame @60fps)
-                # Se self.velocidade for px/segundo, use: fator_tempo = dt_ms / 1000.0
-            # else:
-                # print(f"DEBUG MOVENDO: {type(self).__name__} usando fator_tempo 1.0 (frame-dependent ou dt_ms inválido)")
 
+    def _load_image_from_path(self, image_path_relativo_ao_projeto: str, cache_key_prefix="icon", novo_tamanho=None) -> pygame.Surface | None:
+        if not image_path_relativo_ao_projeto:
+            print(f"DEBUG(InventarioBarra _load_image_from_path): Caminho da imagem VAZIO para {cache_key_prefix}.")
+            return None
+            
+        project_root = self._get_project_root()
+        
+        normalized_rel_path = os.path.normpath(image_path_relativo_ao_projeto.lstrip('/\\'))
+        full_path = os.path.join(project_root, normalized_rel_path)
+        
+        print(f"DEBUG(InventarioBarra _load_image_from_path): Tentando carregar imagem de: '{full_path}' (Relativo: '{image_path_relativo_ao_projeto}', Raiz: '{project_root}')")
 
-            if distancia > 0: 
-                mov_x = (dx / distancia) * self.velocidade * fator_tempo
-                mov_y = (dy / distancia) * self.velocidade * fator_tempo
+        tamanho_usado_para_cache = novo_tamanho if novo_tamanho else self.slot_tamanho_hud 
+        tamanho_str_cache = f"{tamanho_usado_para_cache[0]}x{tamanho_usado_para_cache[1]}"
+        cache_key = f"{cache_key_prefix}_{normalized_rel_path.replace(os.sep, '_')}_{tamanho_str_cache}"
+
+        if cache_key in self._icon_cache: 
+            return self._icon_cache[cache_key]
+        
+        tamanho_icone_final = tamanho_usado_para_cache
+        if not novo_tamanho: 
+            padding_icone = max(4, int(min(tamanho_usado_para_cache) * 0.1)) 
+            tamanho_icone_final = (max(1, tamanho_usado_para_cache[0] - padding_icone*2), 
+                                   max(1, tamanho_usado_para_cache[1] - padding_icone*2))
+
+        if os.path.exists(full_path) and os.path.isfile(full_path):
+            try:
+                icone_surface = pygame.image.load(full_path).convert_alpha()
+                icone_surface = pygame.transform.smoothscale(icone_surface, tamanho_icone_final)
+                self._icon_cache[cache_key] = icone_surface 
+                print(f"SUCESSO(InventarioBarra _load_image_from_path): Ícone '{full_path}' carregado e escalado.")
+                return icone_surface
+            except pygame.error as e:
+                print(f"ALERTA(InventarioBarra _load_image_from_path): Erro Pygame ao carregar/escalar '{full_path}': {e}")
+            except Exception as e_gen_load:
+                print(f"ERRO(InventarioBarra _load_image_from_path): Erro inesperado ao carregar '{full_path}': {e_gen_load}")
+        else:
+            print(f"FALHA(InventarioBarra _load_image_from_path): Imagem NÃO ENCONTRADA em '{full_path}'.")
+        return None 
+
+    def _carregar_icone_arma(self, arma_instancia: Weapon, tamanho_personalizado=None) -> pygame.Surface | None:
+        if not isinstance(arma_instancia, Weapon):
+            print("DEBUG(InventarioBarra _carregar_icone_arma): Instância de arma inválida fornecida.")
+            return None 
+        
+        nome_arma_para_icone = getattr(arma_instancia, 'name', "ArmaDesconhecida")
+        
+        tamanho_ph_cache = tamanho_personalizado if tamanho_personalizado else self.slot_tamanho_hud
+        padding_ph = max(4, int(min(tamanho_ph_cache) * 0.1))
+        tamanho_ph_interno = (max(1, tamanho_ph_cache[0] - padding_ph*2), max(1, tamanho_ph_cache[1] - padding_ph*2))
+        
+        placeholder_cache_key = f"placeholder_icon_{nome_arma_para_icone.replace(' ', '_')}_{tamanho_ph_interno[0]}x{tamanho_ph_interno[1]}"
+
+        caminho_icone_especifico = getattr(arma_instancia, 'ui_icon_path', None)
+        
+        if caminho_icone_especifico:
+            icone = self._load_image_from_path(caminho_icone_especifico, 
+                                               cache_key_prefix=f"icon_{nome_arma_para_icone.replace(' ', '_')}", 
+                                               novo_tamanho=tamanho_personalizado)
+            if icone:
+                return icone
+            else:
+                print(f"ALERTA(InventarioBarra _carregar_icone_arma): Falha ao carregar ícone específico de '{caminho_icone_especifico}' para '{nome_arma_para_icone}'. Tentando padrão.")
+        
+        icone_default = self._load_image_from_path(DEFAULT_WEAPON_ICON_PATH, 
+                                                   cache_key_prefix="default_icon", 
+                                                   novo_tamanho=tamanho_personalizado)
+        if icone_default:
+            return icone_default
+        else:
+            print(f"ALERTA(InventarioBarra _carregar_icone_arma): Falha ao carregar ícone padrão '{DEFAULT_WEAPON_ICON_PATH}'. Criando placeholder para '{nome_arma_para_icone}'.")
+
+        if placeholder_cache_key in self._icon_cache:
+             return self._icon_cache[placeholder_cache_key]
+
+        placeholder_icone = self._criar_icone_placeholder_arma(nome_arma_para_icone, tamanho_icone=tamanho_ph_interno)
+        if placeholder_icone: 
+            self._icon_cache[placeholder_cache_key] = placeholder_icone
+        return placeholder_icone
+
+    def _criar_icone_placeholder_arma(self, nome_arma="?", tamanho_icone=None):
+        if tamanho_icone is None: 
+            padding_default = max(4, int(min(self.slot_tamanho_hud) * 0.1))
+            tamanho_icone = (max(1,self.slot_tamanho_hud[0] - padding_default*2), 
+                             max(1,self.slot_tamanho_hud[1] - padding_default*2))
+
+        placeholder_surf = pygame.Surface(tamanho_icone, pygame.SRCALPHA) 
+        cor_r, cor_g, cor_b = random.randint(80, 160), random.randint(80, 160), random.randint(80, 160)
+        placeholder_surf.fill((cor_r, cor_g, cor_b, 180)) 
+        
+        try: 
+            fonte_tam_ph = max(10, int(tamanho_icone[1] * 0.55)) 
+            fonte_placeholder = pygame.font.Font(None, fonte_tam_ph) 
+            texto_ph = nome_arma[0].upper() if nome_arma and len(nome_arma)>0 else "?"
+            texto_surface_ph = fonte_placeholder.render(texto_ph, True, (240,240,240)) 
+            rect_texto_ph = texto_surface_ph.get_rect(center=(tamanho_icone[0]//2, tamanho_icone[1]//2))
+            placeholder_surf.blit(texto_surface_ph, rect_texto_ph)
+            pygame.draw.rect(placeholder_surf, (cor_r-20, cor_g-20, cor_b-20), (0,0,tamanho_icone[0],tamanho_icone[1]), 1) 
+        except Exception as e_ph_text:
+            print(f"DEBUG(InventarioBarra): Erro ao criar texto para placeholder '{nome_arma}': {e_ph_text}")
+        return placeholder_surf
+
+    def handle_input(self, evento, jogador_ref):
+        if not hasattr(jogador_ref, 'owned_weapons') or not hasattr(jogador_ref, 'equip_weapon') or not hasattr(jogador_ref, 'current_weapon'):
+            return False 
+
+        armas_jogador = jogador_ref.owned_weapons
+
+        if evento.type == pygame.KEYDOWN:
+            novo_slot_selecionado_teclado = -1
+            if evento.key == pygame.K_1: novo_slot_selecionado_teclado = 0
+            elif evento.key == pygame.K_2: novo_slot_selecionado_teclado = 1
+            elif evento.key == pygame.K_3: novo_slot_selecionado_teclado = 2
+            elif evento.key == pygame.K_4: novo_slot_selecionado_teclado = 3
+
+            if 0 <= novo_slot_selecionado_teclado < self.num_slots_painel: 
+                self.item_selecionado_index_painel = novo_slot_selecionado_teclado 
                 
-                self.rect.x += mov_x
-                self.rect.y += mov_y
+                arma_para_equipar_teclado = None
+                if novo_slot_selecionado_teclado < len(armas_jogador) and armas_jogador[novo_slot_selecionado_teclado] is not None:
+                    arma_para_equipar_teclado = armas_jogador[novo_slot_selecionado_teclado]
+                
+                if arma_para_equipar_teclado:
+                    jogador_ref.equip_weapon(arma_para_equipar_teclado)
+                return False 
 
-                if dx > 0:
-                    self.facing_right = True
-                elif dx < 0:
-                    self.facing_right = False
-        # elif self.esta_vivo() and self.velocidade <= 0:
-            # print(f"DEBUG NÃO MOVENDO: {type(self).__name__} está vivo mas velocidade é {self.velocidade}")
+        elif evento.type == pygame.MOUSEBUTTONDOWN and self.visao_inventario_aberta: 
+            if evento.button == 1: 
+                mouse_pos = pygame.mouse.get_pos()
+                if self.rect_painel_fundo.collidepoint(mouse_pos): 
+                    for i, slot_rect in enumerate(self.slot_rects_painel):
+                        if slot_rect.collidepoint(mouse_pos):
+                            self.item_selecionado_index_painel = i 
+                            
+                            arma_para_equipar_clique = None 
+                            if i < len(armas_jogador) and armas_jogador[i] is not None:
+                                arma_para_equipar_clique = armas_jogador[i]
+                            
+                            if arma_para_equipar_clique:
+                                jogador_ref.equip_weapon(arma_para_equipar_clique)
+                            return True 
+                    return True 
+                else: 
+                    self.toggle_visao_inventario(jogador_ref) 
+                    return True 
+        return False 
 
-
-    def atualizar_animacao(self):
-        """Atualiza o índice do sprite para a animação e aplica o flip horizontal."""
-        agora = pygame.time.get_ticks()
-        if self.sprites and len(self.sprites) > 1 and self.esta_vivo(): 
-            if agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao:
-                self.tempo_ultimo_update_animacao = agora
-                self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
+    def toggle_visao_inventario(self, jogador_ref): 
+        self.visao_inventario_aberta = not self.visao_inventario_aberta
         
-        # Garante que self.image seja sempre uma Surface válida
-        if self.sprites and len(self.sprites) > 0:
-            current_sprite_index = int(self.sprite_index % len(self.sprites))
+        if self.visao_inventario_aberta:
+            arma_equipada_jogador = getattr(jogador_ref, 'current_weapon', None)
+            armas_possuidas_jogador = getattr(jogador_ref, 'owned_weapons', [])
             
-            base_image = None
-            if current_sprite_index < len(self.sprites) and isinstance(self.sprites[current_sprite_index], pygame.Surface):
-                base_image = self.sprites[current_sprite_index]
-            elif isinstance(self.sprites[0], pygame.Surface): 
-                base_image = self.sprites[0]
-            
-            if base_image:
-                if hasattr(self, 'facing_right') and not self.facing_right:
-                    self.image = pygame.transform.flip(base_image, True, False)
-                else:
-                    self.image = base_image
-            elif not hasattr(self, 'image') or not isinstance(self.image, pygame.Surface): # Fallback crítico
-                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
-                pygame.draw.rect(self.image, (255, 0, 255), (0,0,self.largura,self.altura))
-        elif not hasattr(self, 'image') or not isinstance(self.image, pygame.Surface): 
-            self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
-            pygame.draw.rect(self.image, (255, 0, 255), (0, 0, self.largura, self.altura))
+            self.item_selecionado_index_painel = 0 
+            if arma_equipada_jogador and armas_possuidas_jogador:
+                try:
+                    idx_arma_equipada = -1
+                    for i, arma_inv in enumerate(armas_possuidas_jogador):
+                        if arma_inv is arma_equipada_jogador:
+                            idx_arma_equipada = i
+                            break
+                    
+                    if 0 <= idx_arma_equipada < self.num_slots_painel:
+                        self.item_selecionado_index_painel = idx_arma_equipada
+                except ValueError: 
+                    pass 
 
+    def desenhar(self, tela: pygame.Surface, jogador_ref):
+        self._desenhar_barra_rapida_hud(tela, jogador_ref)
 
-    def _resolver_colisao_com_outro_inimigo(self, outro_inimigo):
-        """Lógica simples para empurrar este inimigo para fora da colisão com outro."""
-        dx = self.rect.centerx - outro_inimigo.rect.centerx
-        dy = self.rect.centery - outro_inimigo.rect.centery
+        if not self.visao_inventario_aberta: 
+            return 
+
+        arma_equipada_jogador = getattr(jogador_ref, 'current_weapon', None)
+        armas_do_jogador = getattr(jogador_ref, 'owned_weapons', [])
+        dinheiro_jogador = getattr(jogador_ref, 'dinheiro', 0)
+        nome_arma_para_exibir_painel = "" 
+
+        fundo_inv_surface = pygame.Surface(self.rect_painel_fundo.size, pygame.SRCALPHA)
+        fundo_inv_surface.fill(COR_FUNDO_PAINEL_CENTRAL)
+        tela.blit(fundo_inv_surface, self.rect_painel_fundo.topleft)
+        pygame.draw.rect(tela, COR_BORDA_PAINEL_CENTRAL, self.rect_painel_fundo, 2, border_radius=RAIO_BORDA_SLOT + 2)
         
-        # Evita divisão por zero e comportamento estranho se estiverem exatamente no mesmo ponto
-        if dx == 0 and dy == 0:
-            self.rect.x += random.choice([-1, 1])
-            return
+        titulo_surface = self.fonte_titulo_inventario.render("Inventário", True, COR_TEXTO_TITULO_INVENTARIO)
+        titulo_rect = titulo_surface.get_rect(centerx=self.rect_painel_fundo.centerx, 
+                                             top=self.rect_painel_fundo.top + self.espacamento_hud + 5)
+        tela.blit(titulo_surface, titulo_rect)
 
-        dist = math.hypot(dx, dy) # dist não será 0 aqui por causa da checagem acima
+        cx_tela = self.largura_tela_original // 2
+        cy_tela = self.altura_tela_original // 2
+        offset_losango_visual = 80 
+        tamanho_icone_central_arma = (int(offset_losango_visual * 0.85), int(offset_losango_visual * 0.85)) 
 
-        # Calcula a sobreposição (aproximada, pode ser melhorada com cálculo exato de intersecção de rects)
-        min_dist_centers = (self.rect.width / 2 + outro_inimigo.rect.width / 2) # Mínima distância entre centros sem sobreposição X
+        p_sup = (cx_tela, cy_tela - offset_losango_visual)
+        p_dir = (cx_tela + offset_losango_visual, cy_tela)
+        p_inf = (cx_tela, cy_tela + offset_losango_visual)
+        p_esq = (cx_tela - offset_losango_visual, cy_tela)
+        pontos_losango_desenho = [p_sup, p_dir, p_inf, p_esq]
+
+        pygame.draw.polygon(tela, COR_FUNDO_LOSANGO_CENTRAL, pontos_losango_desenho) 
+        pygame.draw.polygon(tela, COR_LOSANGO_BORDA, pontos_losango_desenho, ESPESSURA_LOSANGO_NORMAL)
+
+        if arma_equipada_jogador: 
+            icone_arma_eq_central = self._carregar_icone_arma(arma_equipada_jogador, tamanho_personalizado=tamanho_icone_central_arma)
+            if icone_arma_eq_central:
+                rect_icone_eq_central = icone_arma_eq_central.get_rect(center=(cx_tela, cy_tela))
+                tela.blit(icone_arma_eq_central, rect_icone_eq_central)
+                pygame.draw.rect(tela, COR_BORDA_EQUIPADA, rect_icone_eq_central.inflate(6,6), ESPESSURA_BORDA_ICONE_CENTRAL, border_radius=RAIO_BORDA_ICONE_CENTRAL)
+
+        idx_painel_sel = self.item_selecionado_index_painel
+        cor_ponta_sel_losango = COR_LOSANGO_PONTA_SELECIONADA
+        esp_ponta_sel_losango = ESPESSURA_LOSANGO_PONTA_SELECIONADA
+        if 0 <= idx_painel_sel < 4: 
+            if idx_painel_sel == 0: 
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_esq, p_sup, esp_ponta_sel_losango)
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_sup, p_dir, esp_ponta_sel_losango)
+            elif idx_painel_sel == 1: 
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_sup, p_dir, esp_ponta_sel_losango)
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_dir, p_inf, esp_ponta_sel_losango)
+            elif idx_painel_sel == 2: 
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_dir, p_inf, esp_ponta_sel_losango)
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_inf, p_esq, esp_ponta_sel_losango)
+            elif idx_painel_sel == 3: 
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_inf, p_esq, esp_ponta_sel_losango)
+                pygame.draw.line(tela, cor_ponta_sel_losango, p_esq, p_sup, esp_ponta_sel_losango)
+
+        for i, slot_rect_painel_item in enumerate(self.slot_rects_painel):
+            fundo_slot_surf = pygame.Surface(self.slot_tamanho_hud, pygame.SRCALPHA) 
+            fundo_slot_surf.fill(COR_FUNDO_SLOT)
+            tela.blit(fundo_slot_surf, slot_rect_painel_item.topleft)
+
+            arma_no_slot_painel = None
+            if i < len(armas_do_jogador): 
+                arma_no_slot_painel = armas_do_jogador[i] 
+
+            cor_borda_atual_slot = COR_BORDA_SLOT
+            espessura_borda_atual_slot = 2
+
+            if arma_no_slot_painel and arma_equipada_jogador and arma_no_slot_painel is arma_equipada_jogador:
+                cor_borda_atual_slot = COR_BORDA_EQUIPADA
+                espessura_borda_atual_slot = 3
+            elif i == self.item_selecionado_index_painel: 
+                cor_borda_atual_slot = COR_BORDA_SELECIONADA
+                espessura_borda_atual_slot = 3
+
+            pygame.draw.rect(tela, cor_borda_atual_slot, slot_rect_painel_item, espessura_borda_atual_slot, border_radius=RAIO_BORDA_SLOT)
+
+            if arma_no_slot_painel: 
+                icone_arma_slot = self._carregar_icone_arma(arma_no_slot_painel, tamanho_personalizado=self.slot_tamanho_hud) 
+                if icone_arma_slot:
+                    icone_rect_slot = icone_arma_slot.get_rect(center=slot_rect_painel_item.center)
+                    tela.blit(icone_arma_slot, icone_rect_slot)
+                
+                if i == self.item_selecionado_index_painel: 
+                    nome_arma_para_exibir_painel = arma_no_slot_painel.name
+            
+            if i == self.item_selecionado_index_painel and not arma_no_slot_painel: 
+                nome_arma_para_exibir_painel = "Vazio" 
+
+            texto_atalho_painel = self.fonte_tecla_atalho.render(str(i + 1), True, COR_TEXTO_TECLA_ATALHO)
+            tela.blit(texto_atalho_painel, (slot_rect_painel_item.left + 5, slot_rect_painel_item.top + 3))
+
+        if nome_arma_para_exibir_painel: 
+            nome_arma_surf_detalhe = self.fonte_nome_arma_fullview.render(nome_arma_para_exibir_painel, True, COR_TEXTO_NOME_ARMA_DETALHE)
+            pos_y_nome_arma = self.slot_rects_painel[2].bottom + self.espacamento_hud + nome_arma_surf_detalhe.get_height() // 2 + 5
+            nome_arma_rect_detalhe = nome_arma_surf_detalhe.get_rect(centerx=self.rect_painel_fundo.centerx, 
+                                                                     centery=pos_y_nome_arma)
+            tela.blit(nome_arma_surf_detalhe, nome_arma_rect_detalhe)
         
-        # Simplificação: apenas empurra para longe ao longo do vetor que os conecta se estiverem muito próximos
-        # Esta é uma forma muito básica de evitar sobreposição total.
-        # Uma sobreposição mais precisa usaria self.rect.width, self.rect.height etc.
-        overlap = (self.rect.width / 2 + outro_inimigo.rect.width / 2) - dist # Quanto eles se sobrepõem
+        texto_dinheiro_str = f"Ouro: {dinheiro_jogador}" 
+        surface_dinheiro_jogador = self.fonte_dinheiro.render(texto_dinheiro_str, True, COR_TEXTO_DINHEIRO)
+        rect_dinheiro_jogador = surface_dinheiro_jogador.get_rect(left=self.rect_painel_fundo.left + self.espacamento_hud + 10, 
+                                                                  bottom=self.rect_painel_fundo.bottom - self.espacamento_hud - 5)
+        tela.blit(surface_dinheiro_jogador, rect_dinheiro_jogador)
+
+
+    def _desenhar_barra_rapida_hud(self, tela: pygame.Surface, jogador_ref):
+        arma_equipada_jogador_hud = getattr(jogador_ref, 'current_weapon', None)
+        armas_do_jogador_hud = getattr(jogador_ref, 'owned_weapons', []) 
+
+        for i, slot_rect_hud_item in enumerate(self.slot_rects_hud):
+            if i >= self.num_slots_hud: continue 
+
+            fundo_slot_hud_surf = pygame.Surface(self.slot_tamanho_hud, pygame.SRCALPHA)
+            fundo_slot_hud_surf.fill(COR_FUNDO_SLOT)
+            tela.blit(fundo_slot_hud_surf, slot_rect_hud_item.topleft)
+
+            arma_neste_slot_hud_item = None
+            if i < len(armas_do_jogador_hud): 
+                arma_neste_slot_hud_item = armas_do_jogador_hud[i] 
+
+            cor_borda_hud_slot = COR_BORDA_SLOT
+            espessura_borda_hud_slot = 2
+
+            if arma_neste_slot_hud_item and arma_equipada_jogador_hud and arma_neste_slot_hud_item is arma_equipada_jogador_hud:
+                cor_borda_hud_slot = COR_BORDA_EQUIPADA 
+                espessura_borda_hud_slot = 3
+            
+            pygame.draw.rect(tela, cor_borda_hud_slot, slot_rect_hud_item, espessura_borda_hud_slot, border_radius=RAIO_BORDA_SLOT)
+
+            if arma_neste_slot_hud_item: 
+                icone_arma_hud = self._carregar_icone_arma(arma_neste_slot_hud_item, tamanho_personalizado=self.slot_tamanho_hud) 
+                if icone_arma_hud:
+                    icone_rect_hud = icone_arma_hud.get_rect(center=slot_rect_hud_item.center)
+                    tela.blit(icone_arma_hud, icone_rect_hud)
+
+            if i < 4 : 
+                texto_atalho_hud_render = self.fonte_tecla_atalho.render(str(i + 1), True, COR_TEXTO_TECLA_ATALHO)
+                tela.blit(texto_atalho_hud_render, (slot_rect_hud_item.left + 5, slot_rect_hud_item.top + 3))
+
+
+# --- Bloco para Teste Standalone ---
+if __name__ == '__main__':
+    pygame.init()
+    LARGURA_TELA_TESTE = 800
+    ALTURA_TELA_TESTE = 600
+    tela_teste = pygame.display.set_mode((LARGURA_TELA_TESTE, ALTURA_TELA_TESTE))
+    pygame.display.set_caption("Teste da Barra de Inventário - Adaga Inicial")
+    clock = pygame.time.Clock()
+
+    class MockJogador: 
+        def __init__(self): 
+            self.dinheiro = 1250
+            self.max_owned_weapons = 3 
+            self.owned_weapons: list[Weapon | None] = [None] * self.max_owned_weapons 
+            self.current_weapon: Weapon | None = None
+            
+            arma_adaga_para_mock = None
+            if AdagaFogo: 
+                try:
+                    arma_adaga_para_mock = AdagaFogo()
+                    print("DEBUG(MockJogador Init): Instância de AdagaFogo criada para mock.")
+                except Exception as e_adaga:
+                    print(f"ERRO(MockJogador Init): Falha ao instanciar AdagaFogo: {e_adaga}")
+                    arma_adaga_para_mock = Weapon(name="Adaga Fogo (Falha)", ui_icon_path=DEFAULT_WEAPON_ICON_PATH)
+            else: 
+                print("ALERTA(MockJogador Init): Classe AdagaFogo não disponível. Usando placeholder Weapon para Adaga.")
+                arma_adaga_para_mock = Weapon(name="Adaga Fogo T (Mock)", 
+                                              ui_icon_path=DEFAULT_WEAPON_ICON_PATH, 
+                                              damage=12, attack_range=60, cooldown=0.4)
+
+            if arma_adaga_para_mock:
+                self.add_owned_weapon(arma_adaga_para_mock) 
+
+        def equip_weapon(self, weapon_instance: Weapon | None):
+            if weapon_instance is None: 
+                self.current_weapon = None
+                return
+
+            if weapon_instance in self.owned_weapons: 
+                self.current_weapon = weapon_instance
+
+        def add_owned_weapon(self, weapon_object: Weapon) -> bool:
+            if not isinstance(weapon_object, Weapon): 
+                return False
+            
+            if any(w.name == weapon_object.name for w in self.owned_weapons if w is not None):
+                return False 
+
+            try:
+                empty_slot_index = self.owned_weapons.index(None) 
+                self.owned_weapons[empty_slot_index] = weapon_object
+                if self.current_weapon is None: 
+                    self.equip_weapon(weapon_object)
+                return True
+            except ValueError: 
+                return False
+
+    mock_jogador_teste = MockJogador() 
+    
+    barra_hud_x_teste = (LARGURA_TELA_TESTE - (4 * 50 + 3 * 5)) // 2 
+    barra_hud_y_teste = ALTURA_TELA_TESTE - 60 
+    slot_hud_tamanho_teste = (50,50) 
+
+    barra_teste_inst = BarraInventario(x=barra_hud_x_teste, y=barra_hud_y_teste, 
+                                       largura_tela=LARGURA_TELA_TESTE, altura_tela=ALTURA_TELA_TESTE, 
+                                       num_slots_hud=4, 
+                                       slot_tamanho=slot_hud_tamanho_teste, espacamento=5)
+    
+    rodando_teste_loop = True
+    print("\n--- INICIANDO LOOP DE TESTE DA BARRA DE INVENTÁRIO ---")
+    print("Pressione TAB para abrir/fechar o inventário.")
+    print("Pressione 1-4 para tentar equipar armas (se houver nos slots).")
+    print("Pressione ESC para fechar o inventário ou sair do teste.")
+
+    while rodando_teste_loop:
+        for evento_teste in pygame.event.get():
+            if evento_teste.type == pygame.QUIT:
+                rodando_teste_loop = False
+
+            consumido_pelo_inventario = barra_teste_inst.handle_input(evento_teste, mock_jogador_teste)
+
+            if not consumido_pelo_inventario: 
+                if evento_teste.type == pygame.KEYDOWN:
+                    if evento_teste.key == pygame.K_ESCAPE:
+                        if barra_teste_inst.visao_inventario_aberta: 
+                            barra_teste_inst.toggle_visao_inventario(mock_jogador_teste)
+                        else: 
+                            rodando_teste_loop = False 
+                    elif evento_teste.key == pygame.K_TAB: 
+                        barra_teste_inst.toggle_visao_inventario(mock_jogador_teste)
+                    elif evento_teste.key == pygame.K_p: 
+                        if EspadaBrasas:
+                            nova_arma_teste = EspadaBrasas()
+                            print(f"DEBUG(Teste): Tentando adicionar {nova_arma_teste.name} ao mock.")
+                        else:
+                            nova_arma_teste = Weapon(name="Espada Teste", ui_icon_path=None, damage=20) 
+                            print(f"DEBUG(Teste): Tentando adicionar {nova_arma_teste.name} (placeholder) ao mock.")
+                        
+                        if mock_jogador_teste.add_owned_weapon(nova_arma_teste):
+                            print(f"DEBUG(Teste): '{nova_arma_teste.name}' adicionada ao mock jogador.")
+                        else:
+                            print(f"DEBUG(Teste): Falha ao adicionar '{nova_arma_teste.name}' ao mock jogador (sem espaço ou duplicata?).")
+
         
-        if overlap > 0: # Se há sobreposição
-            push_strength = overlap / 2 + 0.5 # Empurra para fora da sobreposição + um pouco mais
-                                         # O +0.5 é para garantir que se separem mesmo com floats
-            
-            # Empurra 'self' para longe de 'outro_inimigo'
-            self.rect.x += (dx / dist) * push_strength
-            self.rect.y += (dy / dist) * push_strength
-            
-            # Opcionalmente, empurra o outro inimigo também
-            # outro_inimigo.rect.x -= (dx / dist) * push_strength
-            # outro_inimigo.rect.y -= (dy / dist) * push_strength
+        tela_teste.fill((20, 25, 30)) 
+        barra_teste_inst.desenhar(tela_teste, mock_jogador_teste) 
+        pygame.display.flip()
+        clock.tick(60)
 
-
-    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        """
-        Atualiza o estado do inimigo (movimento, animação, colisão entre inimigos e comportamento de contato).
-        """
-        if self.esta_vivo():
-            # Movimento em direção ao jogador
-            if hasattr(player, 'rect'):
-                self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            
-            # Animação
-            self.atualizar_animacao()
-            
-            # LÓGICA DE COLISÃO ENTRE INIMIGOS
-            if outros_inimigos: 
-                for outro_inimigo in outros_inimigos:
-                    if outro_inimigo != self and self.rect.colliderect(outro_inimigo.rect):
-                        self._resolver_colisao_com_outro_inimigo(outro_inimigo)
-            
-            # Dano de contato com o jogador
-            current_ticks = pygame.time.get_ticks()
-            if hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
-                if self.rect.colliderect(player.rect):
-                    if (current_ticks - self.last_contact_time >= self.contact_cooldown):
-                        if hasattr(player, 'receber_dano'):
-                            player.receber_dano(self.contact_damage)
-                            self.last_contact_time = current_ticks
-        # else:
-            # Se não estiver vivo, o GerenciadorDeInimigos deve chamar self.kill() ao remover dos grupos.
-
-
-    def desenhar(self, janela, camera_x, camera_y):
-        """
-        Desenha o inimigo na tela, aplicando o efeito de flash se estiver ativo,
-        e desenha a barra de vida.
-        """
-        if not hasattr(self, 'image') or self.image is None or not isinstance(self.image, pygame.Surface): 
-            # print(f"DEBUG(Inimigo-desenhar): self.image inválida para {type(self).__name__}, recriando placeholder.")
-            self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
-            pygame.draw.rect(self.image, (255,0,255, 128), (0,0,self.largura, self.altura))
-            if not hasattr(self, 'rect'): 
-                self.rect = self.image.get_rect(topleft=(self.x, self.y))
-
-        screen_x = self.rect.x - camera_x
-        screen_y = self.rect.y - camera_y
-
-        janela.blit(self.image, (screen_x, screen_y))
-
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_hit_time < self.hit_flash_duration and hasattr(self, 'image') and self.image:
-            flash_image_overlay = self.image.copy()
-            flash_image_overlay.fill(self.hit_flash_color[:3] + (0,), special_flags=pygame.BLEND_RGB_ADD) 
-            flash_image_overlay.set_alpha(self.hit_flash_color[3]) 
-            janela.blit(flash_image_overlay, (screen_x, screen_y))
-
-        if self.hp < self.max_hp and self.hp > 0: 
-            bar_width = self.largura
-            bar_height = 5
-            health_percentage = self.hp / self.max_hp
-            current_bar_width = int(bar_width * health_percentage)
-            
-            bar_x = screen_x
-            bar_y = screen_y - bar_height - 5 
-
-            pygame.draw.rect(janela, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height), border_radius=2) 
-            pygame.draw.rect(janela, (0, 255, 0), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2) 
-            pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2) 
-
-
-    def verificar_colisao(self, outro_objeto):
-        """
-        Verifica a colisão entre o inimigo e outro objeto.
-        Assume que o outro objeto tem um atributo 'rect_colisao' ou 'rect'.
-        """
-        outro_rect = getattr(outro_objeto, 'rect_colisao', getattr(outro_objeto, 'rect', None))
-        if outro_rect:
-            return self.rect.colliderect(outro_rect)
-        return False
+    pygame.quit()
+    print("--- TESTE DA BARRA DE INVENTÁRIO FINALIZADO ---")
+    sys.exit()

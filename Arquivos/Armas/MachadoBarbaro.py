@@ -3,7 +3,7 @@ import pygame
 import os
 # Importa a classe base para machados. Garanta que MachadoBase tenha uma interface compatível
 # com a classe Weapon que usamos para as espadas, especialmente o método _load_attack_effect_sprite().
-from .MachadoBase import MachadoBase
+from MachadoBase import MachadoBase
 
 class MachadoBarbaro(MachadoBase):
     """

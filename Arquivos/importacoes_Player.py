@@ -8,6 +8,35 @@ import os
 import time 
 import threading # Adicionado para threading.Event em Roda_Armas
 import tkinter as tk # Adicionado para tk.TclError em Roda_Armas
+from vida import Vida 
+from Armas.weapon import Weapon 
+
+# Tentativas de importação para todas as armas listadas na loja
+try: from Arquivos.Armas.AdagaFogo import AdagaFogo
+except ImportError: AdagaFogo = None
+try: from Armas.EspadaFogoAzul import EspadaFogoAzul # Para "Espada de Fogo azul Sacra Cerulea"
+except ImportError: EspadaFogoAzul = None
+try: from Armas.EspadaPenitencia import EspadaPenitencia # Para "Espada do Olhar Da Penitencia"
+except ImportError: EspadaPenitencia = None
+try: from Armas.EspadaCaida import EspadaCaida # Para "Espada Sacra Caida"
+except ImportError: EspadaCaida = None
+try: from Armas.EspadaLua import EspadaLua # Para "Espada Sacra do Lua"
+except ImportError: EspadaLua = None
+try: from Armas.LaminaCeuCinti import LaminaDoCeuCentilhante # Para "Lâmina do Ceu Centilhante"
+except ImportError: LaminaDoCeuCentilhante = None
+
+try: from Armas.MachadoBarbaro import MachadoBarbaro # Para "Machado Bárbaro Cravejado"
+except ImportError: MachadoBarbaro = None
+try: from Armas.MachadoCeruleo import MachadoCeruleo # Para "Machado Cerúleo da Estrela Cadente"
+except ImportError: MachadoCeruleo = None
+try: from Armas.Machado_Santa import MachadoDaDescidaSanta # Para "Machado da Descida Santa"
+except ImportError: MachadoDaDescidaSanta = None
+try: from Armas.MachadoAbrasa import MachadoDoFogoAbrasador # Para "Machado do Fogo Abrasador"
+except ImportError: MachadoDoFogoAbrasador = None
+try: from Armas.MachadoMarfim import MachadoMarfim # Para "Machado do Marfim Resplendor"
+except ImportError: MachadoMarfim = None
+try: from Armas.MachadoMacabro import MachadoMacabro # Para "Machado Macabro da Gula Infinita"
+except ImportError: MachadoMacabro = None
 
 # --- Classes Base e Utilitários ---
 try:
@@ -33,7 +62,7 @@ try: from Armas.MachadoMarfim import MachadoMarfim
 except ImportError: MachadoMarfim = None
 try: from Armas.MachadoBarbaro import MachadoBarbaro
 except ImportError: MachadoBarbaro = None
-try: from Armas.AdagaFogo import AdagaFogo
+try: from Arquivos.Armas.AdagaFogo import AdagaFogo
 except ImportError: AdagaFogo = None
 try: from Armas.EspadaFogoAzul import EspadaFogoAzul
 except ImportError: EspadaFogoAzul = None
@@ -44,14 +73,6 @@ except ImportError: EspadaCaida = None
 try: from Armas.EspadaPenitencia import EspadaPenitencia
 except ImportError: EspadaPenitencia = None
 # Adicione aqui outras classes de armas que seu jogo possa ter
-
-
-# --- Módulos de UI e Jogo ---
-try:
-    from player import Player # Assume que player.py está acessível
-except ImportError:
-    print("DEBUG(importacoes): ERRO CRÍTICO: Módulo 'player.py' ou classe 'Player' não encontrado.")
-    Player = None
 
 try:
     from Roda_Armas import WeaponWheelUI

@@ -3,7 +3,7 @@ import pygame
 import os
 # Assume que weapon.py está no mesmo diretório 'Armas' ou em um local acessível via Python path
 # Se weapon.py estiver em Armas/, e este arquivo também, o import relativo é o ideal.
-from .weapon import Weapon
+from weapon import Weapon
 
 class EspadaBrasas(Weapon):
     """

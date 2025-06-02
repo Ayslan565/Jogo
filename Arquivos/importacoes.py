@@ -26,7 +26,7 @@ except ImportError:
 
 # --- Classes de Armas Específicas ---
 # Adicione todas as suas classes de armas aqui
-try: from Armas.AdagaFogo import AdagaFogo
+try: from Arquivos.Armas.AdagaFogo import AdagaFogo
 except ImportError: AdagaFogo = None; print("DEBUG(importacoes): AdagaFogo não encontrada.")
 try: from Armas.EspadaBrasas import EspadaBrasas
 except ImportError: EspadaBrasas = None; print("DEBUG(importacoes): EspadaBrasas não encontrada.")

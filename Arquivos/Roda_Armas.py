@@ -12,7 +12,7 @@ import threading # Import threading para referenciar o tipo Event, se necessári
 # Certifique-se de que os caminhos e nomes das classes estão corretos.
 try:
     from Armas.weapon import Weapon 
-    from Armas.AdagaFogo import AdagaFogo
+    from Arquivos.Armas.AdagaFogo import AdagaFogo
     from Armas.EspadaBrasas import EspadaBrasas
     from Armas.EspadaCaida import EspadaCaida
     from Armas.EspadaFogoAzul import EspadaFogoAzul

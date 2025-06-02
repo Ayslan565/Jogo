@@ -3,43 +3,39 @@ import random
 import math
 import os
 import time
+from importacoes_Player import * # Assume que este arquivo importa Vida e Weapon, e as classes de armas
 
-from vida import Vida 
-from Armas.weapon import Weapon 
 
-try: from Armas.EspadaBrasas import EspadaBrasas
+# A classe EspadaBrasas é importada mas não parece corresponder diretamente a um item na lista da loja fornecida.
+# Se "Espada Sacra Das Brasas" for um item da loja, adicione-o ao SHOP_ITEM_TO_WEAPON_CLASS_MAP.
+try: from Armas.EspadaBrasas import EspadaBrasas 
 except ImportError: EspadaBrasas = None
-try: from Armas.MachadoCeruleo import MachadoCeruleo
-except ImportError: MachadoCeruleo = None
-try: from Armas.MachadoMacabro import MachadoMacabro
-except ImportError: MachadoMacabro = None
-try: from Armas.MachadoMarfim import MachadoMarfim
-except ImportError: MachadoMarfim = None
-try: from Armas.MachadoBarbaro import MachadoBarbaro
-except ImportError: MachadoBarbaro = None
-try: from Armas.AdagaFogo import AdagaFogo
-except ImportError: AdagaFogo = None
-try: from Armas.EspadaFogoAzul import EspadaFogoAzul
-except ImportError: EspadaFogoAzul = None
-try: from Armas.EspadaLua import EspadaLua
-except ImportError: EspadaLua = None
-try: from Armas.EspadaCaida import EspadaCaida
-except ImportError: EspadaCaida = None
-try: from Armas.EspadaPenitencia import EspadaPenitencia
-except ImportError: EspadaPenitencia = None
 
-# --- Mapeamento de nomes de itens da loja para classes de Armas (Exemplo) ---
-SHOP_ITEM_TO_WEAPON_CLASS = {
-    "Adaga Básica": AdagaFogo, 
-    "Espada Média": EspadaBrasas, 
-    "Espada dos Corrompidos": EspadaCaida,
-    "Espada dos Deuses Caidos": EspadaFogoAzul, 
-    "Espada Demoniaca": EspadaPenitencia, 
-    "Machado Comum": MachadoBarbaro,
-    "Machado Dos Heréges": MachadoMacabro, 
-    "Machado de Batalha": MachadoCeruleo,
-    "Machado Duplo": MachadoMarfim,
-    # Adicione mais itens conforme necessário
+
+# --- Mapeamento de nomes de itens da loja para classes de Armas ---
+# As chaves DEVEM CORRESPONDER EXATAMENTE aos nomes ("nome") dos itens em itens_data_global no loja_modulo.py
+SHOP_ITEM_TO_WEAPON_CLASS_MAP = {
+    "Adaga do Fogo Contudente": AdagaFogo,
+    "Espada de Fogo azul Sacra Cerulea": EspadaFogoAzul,
+    "Espada do Olhar Da Penitencia": EspadaPenitencia,
+    "Espada Sacra Caida": EspadaCaida,
+    "Espada Sacra do Lua": EspadaLua,
+    "Lâmina do Ceu Centilhante": LaminaDoCeuCentilhante,
+    
+    "Machado Bárbaro Cravejado": MachadoBarbaro,
+    "Machado Cerúleo da Estrela Cadente": MachadoCeruleo,
+    "Machado da Descida Santa": MachadoDaDescidaSanta,
+    "Machado do Fogo Abrasador": MachadoDoFogoAbrasador,
+    "Machado do Marfim Resplendor": MachadoMarfim,
+    "Machado Macabro da Gula Infinita": MachadoMacabro,
+
+    # Adicione aqui os mapeamentos para os cajados se eles forem armas compráveis
+    # Exemplo: "Cajado da Fixacao Ametista": CajadoDaFixacaoAmetista,
+    # "Cajado Da santa Natureza": CajadoDaSantaNatureza,
+    # "Livro dos impuros": LivroDosImpuros,
+
+    # Se "Espada Sacra Das Brasas" for um item da loja e usar a classe EspadaBrasas:
+    # "Espada Sacra Das Brasas": EspadaBrasas, 
 }
 
 class Player(pygame.sprite.Sprite):
@@ -65,6 +61,9 @@ class Player(pygame.sprite.Sprite):
 
         self.xp_manager = None 
         self.dinheiro = 1000 
+        
+        self.SHOP_ITEM_TO_WEAPON_CLASS = SHOP_ITEM_TO_WEAPON_CLASS_MAP
+
 
         tamanho_sprite_desejado = (60, 60)
         caminhos_esquerda = ["Sprites/Asrahel/Esquerda/Ashael_E1.png", "Sprites/Asrahel/Esquerda/Ashael_E2.png", "Sprites/Asrahel/Esquerda/Ashael_E3.png", "Sprites/Asrahel/Esquerda/Ashael_E4.png", "Sprites/Asrahel/Esquerda/Ashael_E5.png", "Sprites/Asrahel/Esquerda/Ashael_E6.png"]
@@ -92,7 +91,7 @@ class Player(pygame.sprite.Sprite):
             pygame.draw.rect(self.image, (255,0,255), self.image.get_rect())
 
         self.rect = self.image.get_rect(center=(round(self.x), round(self.y)))
-        self.rect_colisao = self.rect.inflate(-30, -20) # Reduzido para melhor colisão
+        self.rect_colisao = self.rect.inflate(-30, -20) 
 
         self.tempo_animacao = 100
         self.ultimo_update = pygame.time.get_ticks()
@@ -100,8 +99,16 @@ class Player(pygame.sprite.Sprite):
         self.current_weapon: Weapon = None
         self.tempo_ultimo_ataque = 0.0
 
-        if AdagaFogo is not None: # Equipar uma arma inicial
-            self.equip_weapon(AdagaFogo())
+        # Tenta equipar uma arma inicial (AdagaFogo)
+        # Certifique-se que AdagaFogo está corretamente importada em importacoes_Player.py
+        if 'AdagaFogo' in globals() and AdagaFogo is not None:
+            try:
+                self.equip_weapon(AdagaFogo())
+                print("DEBUG(Player Init): AdagaFogo inicial equipada.")
+            except Exception as e_init_weapon:
+                print(f"ERRO(Player Init): Falha ao instanciar AdagaFogo inicial: {e_init_weapon}")
+        else:
+            print("ALERTA(Player Init): Classe AdagaFogo não disponível para arma inicial.")
         
         self.is_attacking = False 
         self.is_attacking_animation_active = False
@@ -111,15 +118,17 @@ class Player(pygame.sprite.Sprite):
         self.attack_hitbox = pygame.Rect(0,0,0,0)
         self.hit_enemies_this_attack = set()
         self.owned_weapons = []
+        if self.current_weapon: # Adiciona a arma inicial à lista de possuídas, se equipada
+            self.owned_weapons.append(self.current_weapon)
 
-        # --- Atributos para I-Frames (Invencibilidade Temporária) ---
+
         self.pode_levar_dano = True
-        self.tempo_ultimo_dano_levado = 0  # Timestamp do último dano (pygame.time.get_ticks())
-        self.duracao_invencibilidade_ms = 500  # Duração da invencibilidade em milissegundos (ex: 1.5 segundos)
-        self.is_invencivel_piscando = False # Controla se o jogador está no estado de piscar por dano
-        self.tempo_para_proximo_pisca_dano = 0 # Timestamp para o próximo toggle de visibilidade
-        self.intervalo_pisca_dano_ms = 100 # Intervalo entre os "piscas" (em ms)
-        self.visivel_durante_pisca_dano = True # Controla se o sprite é desenhado durante o piscar
+        self.tempo_ultimo_dano_levado = 0 
+        self.duracao_invencibilidade_ms = 500 
+        self.is_invencivel_piscando = False 
+        self.tempo_para_proximo_pisca_dano = 0 
+        self.intervalo_pisca_dano_ms = 100 
+        self.visivel_durante_pisca_dano = True 
 
     @property
     def dano(self) -> float:
@@ -138,18 +147,42 @@ class Player(pygame.sprite.Sprite):
         return self.xp_manager.level if self.xp_manager else 1
 
     def equip_weapon(self, weapon_object: Weapon):
-        if Weapon is None: return
+        if Weapon is None: 
+            print("ALERTA(Player.equip_weapon): Classe base Weapon não disponível.")
+            return
         if isinstance(weapon_object, Weapon):
             self.current_weapon = weapon_object
             self.tempo_ultimo_ataque = time.time() 
+            print(f"DEBUG(Player.equip_weapon): Arma '{self.current_weapon.name}' equipada.")
+        else:
+            print(f"ALERTA(Player.equip_weapon): Tentativa de equipar objeto inválido: {weapon_object}")
+
 
     def add_owned_weapon(self, weapon_object: Weapon):
         if Weapon is None: return False
         if not isinstance(weapon_object, Weapon): return False
-        if any(w.name == weapon_object.name for w in self.owned_weapons): return False
-        if len(self.owned_weapons) >= 3: return False # Limite de 3 armas possuídas
-        self.owned_weapons.append(weapon_object)
-        if not self.current_weapon: self.equip_weapon(weapon_object)
+        # Verifica se já possui uma arma com o mesmo nome base (para evitar duplicatas da mesma arma, mesmo em níveis diferentes)
+        if any(hasattr(w, '_base_name') and w._base_name == weapon_object._base_name for w in self.owned_weapons if w is not None):
+            print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' (ou uma versão dela) já está no inventário.")
+            return False
+        if len(self.owned_weapons) >= 3: 
+            print(f"DEBUG(Player.add_owned_weapon): Inventário cheio. Não foi possível adicionar '{weapon_object.name}'.")
+            return False 
+        
+        # Encontra o primeiro slot None ou substitui se necessário (lógica de substituição pode ser mais complexa)
+        try:
+            empty_slot_index = self.owned_weapons.index(None)
+            self.owned_weapons[empty_slot_index] = weapon_object
+        except ValueError: # Nenhum slot None, adiciona ao final se houver espaço
+             if len(self.owned_weapons) < 3: # Limite de 3 armas
+                self.owned_weapons.append(weapon_object)
+             else: # Se realmente não há espaço (já tem 3 armas e nenhuma é None)
+                print(f"DEBUG(Player.add_owned_weapon): Inventário realmente cheio. Não foi possível adicionar '{weapon_object.name}'.")
+                return False
+
+        print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' adicionada ao inventário.")
+        if not self.current_weapon: 
+            self.equip_weapon(weapon_object)
         return True
 
     def _carregar_sprites(self, caminhos, tamanho, nome_conjunto):
@@ -171,48 +204,41 @@ class Player(pygame.sprite.Sprite):
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
                 pygame.draw.rect(placeholder, (255,0,255), (0,0,tamanho[0],tamanho[1]))
                 sprites.append(placeholder)
-        if not sprites: # Garante que há pelo menos um sprite (placeholder)
+        if not sprites: 
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
             pygame.draw.rect(placeholder, (255,0,255), (0,0,tamanho[0],tamanho[1]))
             sprites.append(placeholder)
         return sprites
 
     def receber_dano(self, dano): 
-        if self.vida is not None and self.pode_levar_dano: # Verifica se pode levar dano
-            self.vida.receber_dano(dano) # Reduz a vida através da classe Vida
+        if self.vida is not None and self.pode_levar_dano: 
+            self.vida.receber_dano(dano) 
             
-            self.pode_levar_dano = False # Ativa a invencibilidade
+            self.pode_levar_dano = False 
             self.tempo_ultimo_dano_levado = pygame.time.get_ticks()
-            self.is_invencivel_piscando = True # Ativa o feedback visual de piscar
-            self.visivel_durante_pisca_dano = False # Começa "invisível" para o primeiro pisca
+            self.is_invencivel_piscando = True 
+            self.visivel_durante_pisca_dano = False 
             self.tempo_para_proximo_pisca_dano = self.tempo_ultimo_dano_levado + self.intervalo_pisca_dano_ms
             
             if not self.esta_vivo():
                 print("DEBUG(Player): Jogador morreu.")
             else:
                 print(f"DEBUG(Player): Jogador recebeu {dano} de dano. Invencibilidade ativada por {self.duracao_invencibilidade_ms / 1000.0}s.")
-        # else:
-            # print("DEBUG(Player): Tentativa de dano enquanto invencível ou sem vida.")
-
 
     def update(self):
         agora_ticks = pygame.time.get_ticks()
         agora_time = time.time()
 
-        # --- Lógica de Invencibilidade e Piscar ---
         if self.is_invencivel_piscando:
-            # Controla o efeito de piscar
             if agora_ticks >= self.tempo_para_proximo_pisca_dano:
-                self.visivel_durante_pisca_dano = not self.visivel_durante_pisca_dano # Alterna
+                self.visivel_durante_pisca_dano = not self.visivel_durante_pisca_dano 
                 self.tempo_para_proximo_pisca_dano = agora_ticks + self.intervalo_pisca_dano_ms
             
-            # Verifica se o tempo de invencibilidade acabou
             if agora_ticks - self.tempo_ultimo_dano_levado > self.duracao_invencibilidade_ms:
                 self.pode_levar_dano = True
                 self.is_invencivel_piscando = False
-                self.visivel_durante_pisca_dano = True # Garante que o jogador fique visível ao final
-                print("DEBUG(Player.update): Invencibilidade terminada.")
-        # --- Fim da Lógica de Invencibilidade ---
+                self.visivel_durante_pisca_dano = True 
+                # print("DEBUG(Player.update): Invencibilidade terminada.") # Comentado para reduzir spam
 
         if self.is_attacking_animation_active and (agora_time - self.attack_timer >= self.attack_duration):
             self.is_attacking = False 
@@ -258,7 +284,7 @@ class Player(pygame.sprite.Sprite):
                     self.current_weapon.current_attack_animation_frame = (self.current_weapon.current_attack_animation_frame + 1) % num_frames_arma
         
         if self.image is None: 
-                 self.image = pygame.Surface((60,60), pygame.SRCALPHA); pygame.draw.circle(self.image, (255,0,255), (30,30), 30)
+            self.image = pygame.Surface((60,60), pygame.SRCALPHA); pygame.draw.circle(self.image, (255,0,255), (30,30), 30)
 
         self.rect.center = (round(self.x), round(self.y))
         if hasattr(self, 'rect_colisao'): 
@@ -327,6 +353,13 @@ class Player(pygame.sprite.Sprite):
         if self.current_weapon and not self.is_attacking_animation_active and \
            current_time - self.tempo_ultimo_ataque >= self.cooldown_ataque:
             
+            # DEBUG: Verifica a arma atual e seus sprites de animação
+            # print(f"DEBUG(Player.atacar): Atacando com: {self.current_weapon.name}")
+            # if hasattr(self.current_weapon, 'attack_animation_sprites'):
+            #     print(f"DEBUG(Player.atacar): Sprites de animação da arma: {'SIM' if self.current_weapon.attack_animation_sprites else 'NÃO'}")
+            # else:
+            #     print(f"DEBUG(Player.atacar): Arma '{self.current_weapon.name}' NÃO TEM o atributo 'attack_animation_sprites'.")
+
             self.is_attacking = True 
             self.is_attacking_animation_active = True 
             
@@ -380,40 +413,35 @@ class Player(pygame.sprite.Sprite):
         pass 
 
     def desenhar(self, janela, camera_x, camera_y):
-        # Desenha o jogador, considerando o efeito de piscar da invencibilidade
         if self.image is not None and hasattr(self, 'rect'):
             if self.is_invencivel_piscando and not self.visivel_durante_pisca_dano:
-                pass # Não desenha o jogador para criar o efeito de piscar
+                pass 
             else:
-                # Se não estiver piscando ou se for para ser visível durante o pisca, desenha normal
                 janela.blit(self.image, (round(self.rect.x - camera_x), round(self.rect.y - camera_y)))
 
-        # Desenha o sprite de animação de ataque da arma, se ativo
+        # Desenha a animação de ataque da ARMA ATUAL, não do jogador.
         if self.is_attacking_animation_active and self.current_weapon and \
            hasattr(self.current_weapon, 'get_current_attack_animation_sprite'):
             
             attack_sprite_visual = self.current_weapon.get_current_attack_animation_sprite()
             
+            # DEBUG: Verifica qual sprite de ataque está sendo obtido
+            # if attack_sprite_visual:
+            #     print(f"DEBUG(Player.desenhar): Desenhando sprite de ataque para {self.current_weapon.name}")
+            # elif self.current_weapon:
+            #     print(f"ALERTA(Player.desenhar): Arma {self.current_weapon.name} não retornou sprite de ataque (get_current_attack_animation_sprite).")
+
+
             if attack_sprite_visual:
                 sprite_to_draw = attack_sprite_visual.copy()
-                if self.direction == "left":
+                if self.direction == "left": # Espelha a animação da arma se o jogador estiver virado para a esquerda
                     sprite_to_draw = pygame.transform.flip(sprite_to_draw, True, False)
                 
+                # Centraliza a animação da arma na hitbox de ataque calculada
                 attack_sprite_rect = sprite_to_draw.get_rect(center=self.attack_hitbox.center)
                 
                 janela.blit(sprite_to_draw, (round(attack_sprite_rect.x - camera_x), 
                                              round(attack_sprite_rect.y - camera_y)))
-        
-        # Opcional: Desenhar a hitbox LÓGICA para depuração
-        # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
-        #     debug_hitbox_rect_on_screen = pygame.Rect(
-        #         round(self.attack_hitbox.x - camera_x), 
-        #         round(self.attack_hitbox.y - camera_y),
-        #         self.attack_hitbox.width, 
-        #         self.attack_hitbox.height
-        #     )
-        #     pygame.draw.rect(janela, (255, 0, 0, 100), debug_hitbox_rect_on_screen, 1) 
-
 
     def esta_vivo(self):
         if self.vida is not None:
@@ -422,28 +450,62 @@ class Player(pygame.sprite.Sprite):
     
     def adicionar_item_inventario(self, item_da_loja_dict):
         nome_item = item_da_loja_dict.get("nome")
-        if not nome_item: return False
-        WeaponClass = SHOP_ITEM_TO_WEAPON_CLASS.get(nome_item)
+        if not nome_item: 
+            print("ALERTA(Player.adicionar_item_inventario): Item da loja sem nome.")
+            return False
+        
+        WeaponClass = self.SHOP_ITEM_TO_WEAPON_CLASS.get(nome_item)
         if WeaponClass:
             try:
+                # VERIFICAR SE A CLASSE DA ARMA REALMENTE EXISTE E NÃO É NONE
+                if WeaponClass is None:
+                    print(f"ERRO(Player.adicionar_item_inventario): Classe para '{nome_item}' é None (falha na importação?).")
+                    return False
                 nova_arma = WeaponClass() 
+                print(f"DEBUG(Player.adicionar_item_inventario): Instanciando '{nova_arma.name}' (Classe: {WeaponClass.__name__})")
                 return self.add_owned_weapon(nova_arma)
-            except Exception as e: print(f"DEBUG(Player): Erro ao instanciar '{nome_item}': {e}")
-        else: print(f"DEBUG(Player): Classe não mapeada para '{nome_item}'")
+            except Exception as e: 
+                print(f"ERRO(Player.adicionar_item_inventario): Erro ao instanciar '{nome_item}' da classe {WeaponClass}: {e}")
+        else: 
+            print(f"ALERTA(Player.adicionar_item_inventario): Classe não mapeada para o item da loja '{nome_item}'. Verifique SHOP_ITEM_TO_WEAPON_CLASS_MAP.")
         return False
             
     def evoluir_arma_atual(self, mapa_evolucoes_nivel_atual) -> str | None:
         if not self.current_weapon: return None
-        arma_atual_nome = self.current_weapon.name
+        arma_atual_nome = self.current_weapon.name # Ou self.current_weapon._base_name se for mais consistente
+        
+        # O mapa_evolucoes_nivel_atual deve usar o nome base ou o nome completo da arma como chave?
+        # Assumindo que usa o nome completo da arma no nível atual para encontrar a classe da próxima evolução.
         if arma_atual_nome in mapa_evolucoes_nivel_atual:
             NovaClasseArma = mapa_evolucoes_nivel_atual[arma_atual_nome]
+            if NovaClasseArma is None:
+                print(f"ALERTA(Player.evoluir_arma_atual): Evolução para '{arma_atual_nome}' mapeada para None.")
+                return None
             try:
-                nova_arma = NovaClasseArma()
-                self.equip_weapon(nova_arma) 
-                for i, owned_weapon in enumerate(self.owned_weapons):
-                    if owned_weapon.name == arma_atual_nome:
-                        self.owned_weapons[i] = nova_arma; break
-                return nova_arma.name
-            except Exception as e: print(f"DEBUG(Player): Erro ao evoluir '{NovaClasseArma.__name__}': {e}")
+                nova_arma_evoluida = NovaClasseArma()
+                
+                # Substitui a arma antiga na lista de possuídas e equipa
+                arma_antiga_instancia = self.current_weapon
+                self.equip_weapon(nova_arma_evoluida) 
+                
+                try:
+                    idx_antiga = self.owned_weapons.index(arma_antiga_instancia)
+                    self.owned_weapons[idx_antiga] = nova_arma_evoluida
+                except ValueError: # Se a arma antiga não estava na lista (improvável se estava equipada)
+                    print(f"ALERTA(Player.evoluir_arma_atual): Arma antiga '{arma_antiga_instancia.name}' não encontrada em owned_weapons para substituição.")
+                    # Tenta adicionar se houver espaço, caso contrário, a nova equipada não estará na lista de "owned"
+                    if not self.add_owned_weapon(nova_arma_evoluida): # Tenta adicionar se não conseguiu substituir
+                         # Se add_owned_weapon falhar (ex: inventário cheio e não conseguiu substituir),
+                         # o jogador ainda terá a nova arma equipada, mas ela não estará na lista owned_weapons,
+                         # o que pode ser um estado inconsistente.
+                         print(f"ALERTA(Player.evoluir_arma_atual): Não foi possível adicionar '{nova_arma_evoluida.name}' a owned_weapons após evolução.")
+
+
+                print(f"DEBUG(Player.evoluir_arma_atual): Arma '{arma_atual_nome}' evoluiu para '{nova_arma_evoluida.name}'.")
+                return nova_arma_evoluida.name
+            except Exception as e: 
+                print(f"ERRO(Player.evoluir_arma_atual): Erro ao instanciar evolução '{NovaClasseArma.__name__}' para '{arma_atual_nome}': {e}")
+        else:
+            print(f"DEBUG(Player.evoluir_arma_atual): Nenhuma evolução definida para '{arma_atual_nome}' no mapa fornecido.")
         return None
 
