@@ -300,9 +300,12 @@ class Demonio(Inimigo):
         Demonio.carregar_recursos_demonio() # Garante que sprites e sons sejam carregados uma vez
 
         # Atributos específicos do Demônio
-        demonio_hp = 120
+        demonio_hp = 90
         demonio_contact_damage = 10
         demonio_xp_value = 75
+        # moedas_dropadas = 12
+
+        
         # O sprite_path_principal é usado pela classe base, mas Demonio usa sua lista de sprites.
         # Podemos passar o caminho do primeiro frame como referência.
         sprite_path_ref = "Sprites/Inimigos/Demonio/" + Demonio.sprites_originais[0].get_at((0,0)) if Demonio.sprites_originais and Demonio.sprites_originais[0] else "Sprites/Inimigos/Demonio/placeholder_demonio.png"
