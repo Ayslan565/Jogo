@@ -2,7 +2,7 @@
 import pygame
 import os
 # Assume que weapon.py está no mesmo diretório 'Armas' ou em um local acessível via Python path
-from weapon import Weapon
+from .weapon import Weapon
 
 class LaminaDoCeuCentilhante(Weapon):
     """
