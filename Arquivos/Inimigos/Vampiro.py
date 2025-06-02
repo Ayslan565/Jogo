@@ -280,6 +280,7 @@ class Vampiro(Inimigo):
         vampiro_contact_damage = 8 
         vampiro_xp_value = 60
         sprite_path_ref = "Sprites/Inimigos/Vampiro/Vampiro_Walk_1.png" if Vampiro.sprites_andar else "placeholder_vampiro.png"
+        #moedas_dropadas = 15
 
         super().__init__(x, y,
                          Vampiro.tamanho_sprite_definido[0], Vampiro.tamanho_sprite_definido[1],
