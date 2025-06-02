@@ -179,10 +179,11 @@ class Goblin(InimigoBase):
     def __init__(self, x, y, velocidade=2.2): 
         Goblin.carregar_recursos_goblin() 
 
-        vida_goblin = 45
+        vida_goblin = 50
         dano_contato_goblin = 7
         xp_goblin = 18
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Goblin/goblin1.png"
+        # moedas_dropadas = 5
 
         super().__init__(
             x, y,
