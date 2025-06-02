@@ -111,9 +111,11 @@ class BonecoDeNeve(InimigoBase):
     def __init__(self, x, y, velocidade=1.2): # Velocidade padrão para o BonecoDeNeve
         BonecoDeNeve.carregar_recursos() # Garante que os sprites de animação estão carregados
 
-        vida_boneco = 80
+        vida_boneco = 70
         dano_contato_boneco = 7
         xp_boneco = 30
+        # moedas_dropadas = 10
+        
         # Este é o sprite_path principal que será passado para o construtor da InimigoBase.
         # A InimigoBase (com seu _carregar_sprite corrigido) é responsável por carregar este.
         # O caminho DEVE SER RELATIVO À PASTA RAIZ DO JOGO.
