@@ -2,647 +2,537 @@ import pygame
 import random
 import sys
 import os
-# import tkinter as tk # Não é mais necessário
 
 # --- Configuração do sys.path ---
-# Garante que os módulos locais e do projeto possam ser importados corretamente.
 current_dir = os.path.dirname(os.path.abspath(__file__))
-arquivos_dir = current_dir # Assume que 'main.py' está na pasta 'Arquivos'
-if arquivos_dir not in sys.path:
-    sys.path.append(arquivos_dir)
-
-project_root_dir = os.path.dirname(current_dir) # Assume que 'Arquivos' é uma subpasta do projeto
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+project_root_dir = os.path.dirname(current_dir)
 if project_root_dir not in sys.path:
-    sys.path.insert(0, project_root_dir) 
-    print(f"DEBUG(Game Path): Adicionado ao sys.path (raiz do projeto): {project_root_dir}")
+    sys.path.insert(0, project_root_dir)
 
 # --- Pré-definição de Nomes Globais como Fallback ---
-# Inicializa nomes de classes/módulos como None. Serão preenchidos pelas importações.
 Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, BarraInventario, ItemInventario = (None,) * 15
 AdagaFogo, EspadaBrasas, MachadoCeruleo, MachadoMacabro, MachadoMarfim, MachadoBarbaro, EspadaFogoAzul, EspadaLua, EspadaCaida, EspadaPenitencia, MachadoBase = (None,) * 11
-WeaponWheelUI = None 
+LaminaDoCeuCentilhante, MachadoDaDescidaSanta, MachadoDoFogoAbrasador = (None,) * 3
+WeaponWheelUI = None
+Luta_boss = None 
 
 # --- Importações Centralizadas ---
-# Tenta importar todos os módulos necessários de 'importacoes.py'
 try:
-    from importacoes import * 
-except ImportError as e_imp:
-    print(f"ALERTA(Game Imports): Falha ao carregar módulos de 'importacoes.py': {e_imp}. Tentando fallbacks.")
-except Exception as e_gen_imp:
-    print(f"ERRO(Game Imports): Erro inesperado ao importar de 'importacoes.py': {e_gen_imp}")
+    from importacoes import *
+    if Luta_boss is None: 
+        try:
+            import Luta_boss as LutaBossModule 
+            Luta_boss = LutaBossModule
+        except ImportError: pass 
+except ImportError:
+    try:
+        if Luta_boss is None:
+            import Luta_boss as LutaBossModule
+            Luta_boss = LutaBossModule
+    except ImportError: pass
+except Exception: pass
 
-
-# Fallback para Player se a importação centralizada falhar em defini-lo
 try:
-    if Player is None: # Só tenta importar localmente se Player ainda for None
-        from player import Player as PlayerLocal # Tenta importar Player de player.py
-        Player = PlayerLocal # Atribui a classe local à variável global Player
-        print("DEBUG(Game Imports): Classe Player carregada diretamente de player.py (fallback).")
-except ImportError as e_player_local:
-    print(f"ALERTA(Game Imports): Falha ao importar 'Player' de player.py (fallback): {e_player_local}")
-    # Player permanece None se ambas as tentativas de importação falharem.
+    if Player is None:
+        from player import Player as PlayerLocal
+        Player = PlayerLocal
+except ImportError: pass
 
 # --- Constantes e Configurações Globais do Jogo ---
 MUSICAS_JOGO = [
-    "Musica/Gameplay/Faixa 1.mp3",
-    "Musica/Gameplay/Faixa 2.mp3",
-    "Musica/Gameplay/Faixa 3.mp3",
+    os.path.join(project_root_dir, "Musica", "Gameplay", "Faixa 1.mp3"),
+    os.path.join(project_root_dir, "Musica", "Gameplay", "Faixa 2.mp3"),
+    os.path.join(project_root_dir, "Musica", "Gameplay", "Faixa 3.mp3"),
 ]
-DEATH_SCREEN_BACKGROUND_IMAGE = "Sprites/Backgrounds/death_background.png"
+MUSICAS_CHEFE_PARA_MODULO = [
+    os.path.join(project_root_dir, "Musica", "Boss Fight", "Faixa1.mp3"),
+    os.path.join(project_root_dir, "Musica", "Boss Fight", "Faixa2.mp3"),
+]
+DEATH_SCREEN_BACKGROUND_IMAGE = os.path.join(project_root_dir, "Sprites", "Backgrounds", "death_background.png")
+game_music_volume = 0.3 
+game_sfx_volume = 0.5
 
-game_music_volume = 0.5 # Volume padrão da música
-game_sfx_volume = 0.5   # Volume padrão dos efeitos sonoros
-
-# Variáveis globais de estado do jogo (serão inicializadas em inicializar_jogo)
-jogador = None 
+jogador = None
 pause_manager = None
-xp_manager = None 
-barra_inventario = None 
-gerenciador_inimigos = None 
-game_is_running_flag = True     # Flag para threads externas (se houver)
-jogo_pausado_para_inventario = False # Controla se o jogo está pausado devido ao inventário aberto
-
+xp_manager = None
+barra_inventario = None
+gerenciador_inimigos = None
+game_is_running_flag = True
+jogo_pausado_para_inventario = False
+musica_gameplay_atual_path = None
+musica_gameplay_atual_pos_ms = 0
 
 def inicializar_jogo(largura_tela, altura_tela):
-    """
-    Inicializa todos os componentes principais do jogo (jogador, inimigos, UI, etc.).
-    Retorna uma tupla com os objetos inicializados e o estado do jogo.
-    """
-    global jogador, game_music_volume, pause_manager, xp_manager, barra_inventario, gerenciador_inimigos
-    print("DEBUG(Game): Iniciando inicializar_jogo()...")
-    tempo_inicio_func = pygame.time.get_ticks() # Para medir o tempo de inicialização, se necessário
+    global jogador, game_music_volume, pause_manager, xp_manager, barra_inventario, gerenciador_inimigos, \
+           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms
+    tempo_inicio_func = pygame.time.get_ticks()
+
+    if Luta_boss and hasattr(Luta_boss, 'configurar_musicas_chefe'):
+        Luta_boss.configurar_musicas_chefe(MUSICAS_CHEFE_PARA_MODULO)
 
     if Player is None:
-        print("ERRO CRÍTICO(Game): Classe Player não está disponível. Impossível iniciar o jogo.")
-        # Retorna valores que indicam falha na inicialização
-        return None, None, None, [], [], set(), None, True, tempo_inicio_func, None, None 
-
-    # Cria a instância do jogador
-    jogador = Player(velocidade=5, vida_maxima=150) 
-    print(f"DEBUG(Game): Instância do jogador criada: {jogador}") 
-    
-    # Garante que o jogador tenha um rect_colisao (essencial para movimento e interações)
-    if not hasattr(jogador, 'rect_colisao') and hasattr(jogador, 'rect'): 
-        print("DEBUG(Game): Jogador não possui rect_colisao, criando um a partir do rect principal.")
-        jogador.rect_colisao = jogador.rect.inflate(-10,-10) # Cria um rect de colisão um pouco menor
-    elif not hasattr(jogador, 'rect'):
-        print("ERRO CRÍTICO(Game): Jogador não possui atributo 'rect' após inicialização.")
+        print("ERRO CRÍTICO (main.py): Classe Player não carregada.")
         return None, None, None, [], [], set(), None, True, tempo_inicio_func, None, None
 
-    # Inicializa o gerenciador de XP
+    jogador = Player(velocidade=5, vida_maxima=150)
+    jogador.x = float(largura_tela // 2) 
+    jogador.y = float(altura_tela // 2)
+    if hasattr(jogador, 'rect'): jogador.rect.center = (int(jogador.x), int(jogador.y))
+    
+    if not hasattr(jogador, 'rect_colisao') and hasattr(jogador, 'rect'):
+        jogador.rect_colisao = jogador.rect.inflate(-10,-10)
+    elif not hasattr(jogador, 'rect'):
+        print("ERRO CRÍTICO (main.py): Instância do Jogador não possui 'rect'.")
+        return None, None, None, [], [], set(), None, True, tempo_inicio_func, None, None
+
     if XPManager is not None:
         xp_manager = XPManager(player_ref=jogador, largura_tela=largura_tela, altura_tela=altura_tela)
-        if hasattr(jogador, 'xp_manager'): jogador.xp_manager = xp_manager # Atribui ao jogador
-        print("DEBUG(Game): XPManager inicializado.")
-    else: 
-        xp_manager = None
-        print("ALERTA(Game): XPManager não disponível.")
-    
-    # --- MODIFICADO: Arma Inicial ---
-    # Adiciona e equipa AdagaFogo como a ÚNICA arma inicial.
-    if AdagaFogo is not None and hasattr(jogador, 'add_owned_weapon'):
-        initial_weapon_instance = AdagaFogo()
-        # O método add_owned_weapon já equipa a arma se for a primeira.
-        if jogador.add_owned_weapon(initial_weapon_instance):
-            print(f"DEBUG(Game): Arma inicial '{initial_weapon_instance.name}' adicionada e equipada.")
-        else:
-            print(f"ALERTA(Game): Falha ao adicionar arma inicial '{initial_weapon_instance.name}'.")
-    else:
-        print("ALERTA(Game): AdagaFogo ou método add_owned_weapon não disponível no jogador.")
+        if hasattr(jogador, 'xp_manager'): jogador.xp_manager = xp_manager
+    else: xp_manager = None
 
-    # O bloco que adicionava EspadaBrasas foi REMOVIDO para garantir que o jogador comece apenas com a Adaga.
+    if AdagaFogo is not None and hasattr(jogador, 'add_owned_weapon') and callable(jogador.add_owned_weapon):
+        try:
+            jogador.add_owned_weapon(AdagaFogo()) 
+        except Exception as e: print(f"DEBUG (main.py): Falha ao adicionar AdagaFogo: {e}")
 
-    # Inicializa o sistema de estações do ano
     estacoes = Estacoes() if Estacoes is not None else None
-    if estacoes: print("DEBUG(Game): Estacoes inicializadas.")
-    else: print("ALERTA(Game): Estacoes não disponíveis.")
+    gramas, arvores, blocos_gerados = [], [], set()
 
-    gramas, arvores, blocos_gerados = [], [], set() # Elementos do cenário
-    
-    # Inicializa o gerenciador de inimigos
     if GerenciadorDeInimigos is not None and estacoes is not None:
         gerenciador_inimigos = GerenciadorDeInimigos(estacoes_obj=estacoes, tela_largura=largura_tela, altura_tela=altura_tela)
-        if jogador and hasattr(jogador, 'rect'): 
-            # Tenta fazer o spawn inicial de inimigos
-            if hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'):
-                gerenciador_inimigos.spawn_inimigos_iniciais(jogador) 
-            elif hasattr(gerenciador_inimigos, 'spawn_inimigos'): # Fallback para método genérico
-                gerenciador_inimigos.spawn_inimigos(jogador)
-            print("DEBUG(Game): GerenciadorDeInimigos inicializado e spawn inicial tentado.")
-    else:
-        gerenciador_inimigos = None
-        print("ALERTA(Game): GerenciadorDeInimigos não pôde ser inicializado (dependências ausentes).")
+        if jogador and hasattr(jogador, 'rect') and hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'):
+            gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
+    else: gerenciador_inimigos = None
 
-    # Inicializa o timer do jogo (se disponível)
     timer_obj = None
-    if Timer is not None and pygame.font.get_init(): 
+    if Timer is not None and pygame.font.get_init():
         try:
-            # Estima a largura do texto do timer para centralizá-lo
-            fonte_estimativa_timer = pygame.font.Font(None, 36)
-            largura_texto_timer = fonte_estimativa_timer.size("00:00")[0]
-            largura_fundo_timer = largura_texto_timer + 20 # Adiciona padding
+            fonte_timer = pygame.font.Font(None, 36)
+            largura_fundo_timer = fonte_timer.size("00:00")[0] + 20
             timer_pos_x = largura_tela // 2 - largura_fundo_timer // 2
-            timer_obj = Timer(timer_pos_x, 25) # Posição Y ajustada
-            print("DEBUG(Game): Timer inicializado.")
-        except pygame.error as e_timer_font: 
-            print(f"ALERTA(Game): Erro ao criar fonte para Timer: {e_timer_font}")
-        except Exception as e_timer_gen:
-            print(f"ALERTA(Game): Erro inesperado ao inicializar Timer: {e_timer_gen}")
-
-
-    # Reseta o spawn da loja (se o módulo existir)
+            timer_obj = Timer(timer_pos_x, 25)
+        except Exception as e: print(f"DEBUG (main.py): Falha ao inicializar Timer: {e}")
+            
     if shop_elements and hasattr(shop_elements, 'reset_shop_spawn'):
         shop_elements.reset_shop_spawn()
-        print("DEBUG(Game): Spawn da loja resetado.")
 
-    # Inicializa o gerenciador do menu de pausa
     if PauseMenuManager is not None:
-        # main é passado como callback para retornar ao menu principal ou reiniciar o jogo
-        pause_manager = PauseMenuManager(pygame.display.get_surface(), 
-                                         largura_tela, altura_tela, 
-                                         main, main, # Assumindo que main pode reiniciar o jogo ou ir para o menu
-                                         game_music_volume, game_sfx_volume)
-        print("DEBUG(Game): PauseMenuManager inicializado.")
-    else: 
-        pause_manager = None
-        print("ALERTA(Game): PauseMenuManager não disponível.")
-    
-    # Inicializa a barra de inventário de armas
+        pause_manager = PauseMenuManager(pygame.display.get_surface(), largura_tela, altura_tela,
+                                         main, main, game_music_volume, game_sfx_volume)
+    else: pause_manager = None
+
     if BarraInventario and jogador and hasattr(jogador, 'owned_weapons'):
-        margem_borda_x_inv = 25
-        margem_borda_y_inv = 25
-        slot_tamanho_barra_inv = 50 # Tamanho dos slots na barra
-        
-        # Posiciona a barra de inventário no canto inferior esquerdo
-        barra_inv_x = margem_borda_x_inv
-        barra_inv_y = altura_tela - slot_tamanho_barra_inv - margem_borda_y_inv
-        
-        barra_inventario = BarraInventario(barra_inv_x, barra_inv_y, largura_tela, altura_tela, 
-                                           num_slots_hud=4, # Número de slots na barra rápida
-                                           slot_tamanho=(slot_tamanho_barra_inv, slot_tamanho_barra_inv),
-                                           espacamento=7)
-        print("DEBUG(Game): Barra de Inventário (Armas) inicializada.")
+        barra_inv_x, barra_inv_y = 25, altura_tela - 50 - 25
+        barra_inventario = BarraInventario(barra_inv_x, barra_inv_y, largura_tela, altura_tela, num_slots_hud=4)
+    else: barra_inventario = None
 
-        # Adiciona as armas iniciais do jogador à interface da barra de inventário
-        # (Esta parte foi simplificada pois o jogador agora só começa com uma arma)
-        if hasattr(barra_inventario, 'handle_input'): # Verifica se o método esperado existe
-            # A barra de inventário deve ser capaz de ler jogador.owned_weapons em seu método desenhar.
-            # Não é mais necessário popular manualmente aqui se a barra lê dinamicamente.
-            # Se a barra precisa que itens sejam "adicionados" a ela, isso seria feito aqui.
-            # Exemplo:
-            # for i, arma_no_inv_jogador in enumerate(jogador.owned_weapons):
-            #     if arma_no_inv_jogador and i < barra_inventario.num_slots_hud:
-            #         # Supondo que barra_inventario.adicionar_arma_ao_slot(arma, slot_idx) exista
-            #         pass 
-            pass # A lógica de popular a barra foi simplificada/movida para a própria classe BarraInventario ou seu desenhar.
-            
-    else:
-        barra_inventario = None
-        print("ALERTA(Game): BarraInventario não disponível ou jogador/inventário ausente.")
-
-    # Referência à vida do jogador para a UI
-    vida_jogador_ref = None
-    if hasattr(jogador, 'vida') and jogador.vida is not None:
-        vida_jogador_ref = jogador.vida
-    elif Vida is not None: # Se o jogador não tem 'vida' mas a classe Vida existe
-        print("ALERTA(Game): jogador.vida é None. Criando instância de Vida separada para UI.")
-        vida_max_fallback = getattr(jogador, 'vida_maxima', 150) 
-        vida_jogador_ref = Vida(vida_maxima=vida_max_fallback)
-        if hasattr(jogador, 'vida'): # Tenta atribuir de volta ao jogador
-            jogador.vida = vida_jogador_ref
+    vida_jogador_ref = getattr(jogador, 'vida', None)
+    if vida_jogador_ref is None and Vida is not None: 
+        vida_jogador_ref = Vida(getattr(jogador, 'vida_maxima', 150))
+        if hasattr(jogador, 'vida'): jogador.vida = vida_jogador_ref
     
-    if vida_jogador_ref: print("DEBUG(Game): Referência à vida do jogador obtida para UI.")
-    else: print("ALERTA(Game): Não foi possível obter referência à vida do jogador para UI.")
-
-    print("DEBUG(Game): Saindo de inicializar_jogo().") 
+    musica_gameplay_atual_path = None; musica_gameplay_atual_pos_ms = 0
     return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario
 
-
 def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista, estacoes_obj, blocos_ja_gerados_set):
-    """Gera dinamicamente elementos do cenário (grama, árvores) em blocos ao redor do jogador."""
-    if jogador_obj is None or not hasattr(jogador_obj, 'rect') or estacoes_obj is None:
-        # print("DEBUG(Game Gen): Abortando geração de elementos (jogador/estacoes ausente).")
+    if not (jogador_obj and hasattr(jogador_obj, 'rect') and estacoes_obj and Grama and Arvore):
         return
-
-    bloco_tamanho_geracao = 1080 # Tamanho da área (bloco) para geração de novos elementos
-    
-    # Determina o bloco atual do jogador
+    bloco_tamanho_geracao = 1080 
     jogador_bloco_x = int(jogador_obj.rect.centerx // bloco_tamanho_geracao)
     jogador_bloco_y = int(jogador_obj.rect.centery // bloco_tamanho_geracao)
-
-    # Verifica os blocos adjacentes (incluindo o atual)
-    for dx_bloco in range(-1, 2): # De -1 a 1 (bloco anterior, atual, próximo)
-        for dy_bloco in range(-1, 2):
+    for dx_bloco in range(-1, 2): 
+        for dy_bloco in range(-1, 2): 
             bloco_coord_atual = (jogador_bloco_x + dx_bloco, jogador_bloco_y + dy_bloco)
-            
-            if bloco_coord_atual not in blocos_ja_gerados_set: # Se este bloco ainda não foi gerado
+            if bloco_coord_atual not in blocos_ja_gerados_set: 
                 blocos_ja_gerados_set.add(bloco_coord_atual)
-                # print(f"DEBUG(Game Gen): Gerando elementos para o novo bloco: {bloco_coord_atual}")
-                
-                # Calcula as coordenadas base do bloco
-                base_x_bloco = (jogador_bloco_x + dx_bloco) * bloco_tamanho_geracao
-                base_y_bloco = (jogador_bloco_y + dy_bloco) * bloco_tamanho_geracao
-                
-                # Gera grama (se a classe Grama estiver disponível)
-                if Grama is not None:
-                    for _ in range(random.randint(15, 25)): # Número aleatório de gramas por bloco
-                        gramas_lista.append(Grama(base_x_bloco + random.randint(0, bloco_tamanho_geracao), 
-                                                  base_y_bloco + random.randint(0, bloco_tamanho_geracao), 
-                                                  50, 50)) # Tamanho da grama
-                
-                # Gera árvores (se a classe Arvore e o índice da estação estiverem disponíveis)
-                if Arvore is not None and hasattr(estacoes_obj, 'i'):
-                    for _ in range(random.randint(1, 3)): # Número aleatório de árvores por bloco
-                        # Posiciona árvores mais centralizadas no bloco para evitar bordas abruptas
-                        arvores_lista.append(Arvore(base_x_bloco + random.randint(bloco_tamanho_geracao // 4, 3 * bloco_tamanho_geracao // 4), 
-                                                    base_y_bloco + random.randint(bloco_tamanho_geracao // 4, 3 * bloco_tamanho_geracao // 4), 
-                                                    180, 180, estacoes_obj.i)) # Tamanho da árvore e estação atual
-                
-                # Tenta gerar a loja (se o módulo e função existirem)
+                base_x_bloco = bloco_coord_atual[0] * bloco_tamanho_geracao
+                base_y_bloco = bloco_coord_atual[1] * bloco_tamanho_geracao
+                for _ in range(random.randint(15, 25)): 
+                    try:
+                        gramas_lista.append(Grama(base_x_bloco + random.randint(0, bloco_tamanho_geracao),
+                                                  base_y_bloco + random.randint(0, bloco_tamanho_geracao),
+                                                  50, 50)) 
+                    except Exception as e: print(f"DEBUG (main.py): Erro ao gerar grama: {e}")
+                if hasattr(estacoes_obj, 'indice_estacao_atual'): 
+                    for _ in range(random.randint(1, 3)): 
+                        try:
+                            arvores_lista.append(Arvore(base_x_bloco + random.randint(bloco_tamanho_geracao // 4, 3 * bloco_tamanho_geracao // 4),
+                                                        base_y_bloco + random.randint(bloco_tamanho_geracao // 4, 3 * bloco_tamanho_geracao // 4),
+                                                        180, 180, estacoes_obj.indice_estacao_atual)) 
+                        except Exception as e: print(f"DEBUG (main.py): Erro ao gerar arvore: {e}")
                 if shop_elements and hasattr(shop_elements, 'spawn_shop_if_possible'):
                     shop_elements.spawn_shop_if_possible(jogador_obj, estacoes_obj, blocos_ja_gerados_set)
 
 def tocar_musica_jogo():
-    """Seleciona aleatoriamente e toca uma música de fundo para o jogo."""
-    global game_music_volume
-    if not MUSICAS_JOGO: 
-        print("ALERTA(Game Audio): Nenhuma música definida em MUSICAS_JOGO.")
-        return
-        
+    global game_music_volume, musica_gameplay_atual_path, musica_gameplay_atual_pos_ms
+    if not MUSICAS_JOGO: return
+    if not pygame.mixer.get_init(): return
+    if pygame.mixer.music.get_busy(): pygame.mixer.music.stop()
     musica_path_escolhida = random.choice(MUSICAS_JOGO)
     try:
-        if pygame.mixer.get_init(): # Verifica se o mixer está inicializado
-            pygame.mixer.music.load(musica_path_escolhida)
-            pygame.mixer.music.set_volume(game_music_volume) # Usa o volume global
-            pygame.mixer.music.play(-1) # -1 para tocar em loop infinito
-            print(f"DEBUG(Game Audio): Tocando música: {musica_path_escolhida}")
-    except pygame.error as e_audio: 
-        print(f"ERRO(Game Audio): Erro ao carregar/tocar música '{musica_path_escolhida}': {e_audio}")
-    except Exception as e_gen_audio:
-        print(f"ERRO(Game Audio): Erro inesperado com áudio: {e_gen_audio}")
-
+        pygame.mixer.music.load(musica_path_escolhida)
+        pygame.mixer.music.set_volume(game_music_volume)
+        pygame.mixer.music.play(-1) 
+        musica_gameplay_atual_path = musica_path_escolhida
+        musica_gameplay_atual_pos_ms = 0 
+    except Exception as e:
+        print(f"ERRO (main.py) ao tocar música '{musica_path_escolhida}': {e}")
+        musica_gameplay_atual_path = None
 
 def verificar_colisoes_com_inimigos(gerenciador_inimigos_obj, jogador_obj):
-    """Verifica e aplica dano ao jogador por colisão com inimigos."""
-    if jogador_obj is None or not hasattr(jogador_obj, 'vida') or jogador_obj.vida is None or \
-       not hasattr(jogador_obj.vida, 'esta_vivo') or not jogador_obj.vida.esta_vivo():
-        return # Jogador inválido ou já morto
-    
+    if not (jogador_obj and hasattr(jogador_obj, 'vida') and jogador_obj.vida and \
+            hasattr(jogador_obj.vida, 'esta_vivo') and jogador_obj.vida.esta_vivo() and \
+            hasattr(jogador_obj, 'receber_dano') and callable(jogador_obj.receber_dano) and \
+            getattr(jogador_obj, 'pode_levar_dano', True)):
+        return
     jogador_col_rect = getattr(jogador_obj, 'rect_colisao', getattr(jogador_obj, 'rect', None))
-    if jogador_col_rect is None or gerenciador_inimigos_obj is None or not hasattr(gerenciador_inimigos_obj, 'inimigos'):
-        return # Sem rect de colisão do jogador ou gerenciador/lista de inimigos inválido
-
-    for inimigo_atual in list(gerenciador_inimigos_obj.inimigos): # Itera sobre uma cópia para permitir remoção
-        if inimigo_atual and hasattr(inimigo_atual, 'rect'):
-            dano_contato_inimigo = getattr(inimigo_atual, 'contact_damage', 10) # Dano padrão se não especificado
-            inimigo_col_rect_atual = getattr(inimigo_atual, 'rect_colisao', inimigo_atual.rect) # Usa rect_colisao se existir
-
+    if not (jogador_col_rect and gerenciador_inimigos_obj and hasattr(gerenciador_inimigos_obj, 'inimigos')):
+        return
+    for inimigo_atual in list(gerenciador_inimigos_obj.inimigos):
+        if inimigo_atual and hasattr(inimigo_atual, 'rect') and hasattr(inimigo_atual, 'esta_vivo') and inimigo_atual.esta_vivo():
+            dano_contato_inimigo = getattr(inimigo_atual, 'contact_damage', 0) 
+            if dano_contato_inimigo <= 0: continue 
+            inimigo_col_rect_atual = getattr(inimigo_atual, 'rect_colisao', inimigo_atual.rect)
             if inimigo_col_rect_atual and jogador_col_rect.colliderect(inimigo_col_rect_atual):
-                if hasattr(jogador_obj, 'receber_dano') and jogador_obj.pode_levar_dano: # Verifica se pode levar dano (I-Frames)
-                    # print(f"DEBUG(Game Colisão): Jogador colidiu com {getattr(inimigo_atual, 'nome', 'Inimigo')}. Dano: {dano_contato_inimigo}")
-                    try: 
-                        # Tenta passar o rect do inimigo para empurrar, se o método aceitar
-                        jogador_obj.receber_dano(dano_contato_inimigo, inimigo_col_rect_atual) 
-                    except TypeError: # Se receber_dano não aceitar o segundo argumento
-                        jogador_obj.receber_dano(dano_contato_inimigo)
+                try:
+                    jogador_obj.receber_dano(dano_contato_inimigo, inimigo_col_rect_atual)
+                except TypeError: 
+                    jogador_obj.receber_dano(dano_contato_inimigo)
 
+def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
+                  gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui_obj,
+                  cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms,
+                  luta_boss_ativa_status): # Novo parâmetro para estado da luta
+    global xp_manager, Luta_boss 
 
-def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj, 
-                  gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui_obj, 
-                  cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms): 
-    """Desenha todos os elementos visíveis do jogo na tela."""
-    global xp_manager # Acessa o xp_manager global
-    
-    janela_surf.fill((0, 0, 0)) # Limpa a tela (fundo preto)
-    
-    # Desenha a estação (fundo)
-    if estacoes_obj and hasattr(estacoes_obj, 'desenhar'): 
-        estacoes_obj.desenhar(janela_surf)
-    
-    # Desenha gramas
-    for grama_item in gramas_lista: 
-        if grama_item and hasattr(grama_item, 'desenhar'): 
-            grama_item.desenhar(janela_surf, cam_x, cam_y)
-    
-    # Desenha inimigos e seus projéteis
+    janela_surf.fill((20, 20, 30)) 
+    if estacoes_obj and hasattr(estacoes_obj, 'desenhar'): estacoes_obj.desenhar(janela_surf)
+
+    if not luta_boss_ativa_status:
+        elementos_cenario = gramas_lista + arvores_lista
+        for elemento in elementos_cenario:
+            if elemento and hasattr(elemento, 'desenhar'): elemento.desenhar(janela_surf, cam_x, cam_y)
+        if shop_elements and hasattr(shop_elements, 'draw_shop_elements'):
+            shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms)
+
     if gerenciador_inimigos_obj:
-        if hasattr(gerenciador_inimigos_obj, 'desenhar_inimigos'): 
+        if hasattr(gerenciador_inimigos_obj, 'desenhar_inimigos') and not luta_boss_ativa_status:
             gerenciador_inimigos_obj.desenhar_inimigos(janela_surf, cam_x, cam_y)
-        if hasattr(gerenciador_inimigos_obj, 'desenhar_projeteis_inimigos'): 
+        if hasattr(gerenciador_inimigos_obj, 'desenhar_chefe') and luta_boss_ativa_status: 
+            gerenciador_inimigos_obj.desenhar_chefe(janela_surf, cam_x, cam_y) # Desenha o chefe se a luta estiver ativa
+        if hasattr(gerenciador_inimigos_obj, 'desenhar_projeteis_inimigos'): # Projéteis podem ser de chefe ou normais
             gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
     
-    # Desenha o jogador
-    if jogador_obj and hasattr(jogador_obj, 'desenhar'): 
-        jogador_obj.desenhar(janela_surf, cam_x, cam_y)
-    
-    # Desenha árvores (após o jogador, para sobreposição correta)
-    for arvore_item in arvores_lista: 
-        if arvore_item and hasattr(arvore_item, 'desenhar'): 
-            arvore_item.desenhar(janela_surf, cam_x, cam_y)
-            
-    # Desenha elementos da loja (se houver)
-    if shop_elements and hasattr(shop_elements, 'draw_shop_elements'): 
-        shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms) 
-        
-    # Mensagem da estação (ex: "Verão")
-    if estacoes_obj and hasattr(estacoes_obj, 'desenhar_mensagem_estacao'): 
-        estacoes_obj.desenhar_mensagem_estacao(janela_surf)
-    
-    # UI: Barra de vida
-    if vida_ui_obj and hasattr(vida_ui_obj, 'desenhar'): 
-        vida_ui_obj.desenhar(janela_surf, 20, 20) # Posição fixa no canto superior esquerdo
-        
-    # UI: Timer do jogo
-    if timer_ui_obj and hasattr(timer_ui_obj, 'desenhar'): 
-        timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
-        
-    # UI: Barra de XP
-    if xp_manager and hasattr(xp_manager, 'draw'): 
-        xp_manager.draw(janela_surf)
+    if jogador_obj and hasattr(jogador_obj, 'desenhar'): jogador_obj.desenhar(janela_surf, cam_x, cam_y)
 
-    # UI: Barra de Inventário (Armas)
-    if barra_inventario_ui_obj and hasattr(barra_inventario_ui_obj, 'desenhar') and jogador_obj:
-        barra_inventario_ui_obj.desenhar(janela_surf, jogador_obj) # Passa a referência do jogador
+    if luta_boss_ativa_status:
+        arena_atual_local = Luta_boss.get_arena_rect() if Luta_boss else None
+        if arena_atual_local:
+            rect_arena_na_tela = arena_atual_local.move(-cam_x, -cam_y) 
+            s = pygame.Surface((rect_arena_na_tela.width, rect_arena_na_tela.height), pygame.SRCALPHA)
+            pygame.draw.rect(s, (150, 0, 0, 90), s.get_rect(), 7, border_radius=10) 
+            janela_surf.blit(s, rect_arena_na_tela.topleft)
+        
+        # Barra de vida do chefe (se o chefe existir e estiver vivo)
+        chefe_para_ui = Luta_boss.get_chefe_atual() if Luta_boss else None
+        if chefe_para_ui and hasattr(chefe_para_ui, 'hp') and hasattr(chefe_para_ui, 'max_hp') and hasattr(chefe_para_ui, 'esta_vivo') and chefe_para_ui.esta_vivo():
+            largura_barra_vida_chefe = janela_surf.get_width() * 0.6
+            altura_barra_vida_chefe = 20
+            x_barra_vida_chefe = (janela_surf.get_width() - largura_barra_vida_chefe) / 2
+            y_barra_vida_chefe = 30
+            percentual_vida_chefe = max(0, chefe_para_ui.hp / chefe_para_ui.max_hp) # Garante não ser negativo
+            
+            pygame.draw.rect(janela_surf, (100,0,0), (x_barra_vida_chefe, y_barra_vida_chefe, largura_barra_vida_chefe, altura_barra_vida_chefe))
+            pygame.draw.rect(janela_surf, (255,0,0), (x_barra_vida_chefe, y_barra_vida_chefe, largura_barra_vida_chefe * percentual_vida_chefe, altura_barra_vida_chefe))
+            pygame.draw.rect(janela_surf, (255,255,255), (x_barra_vida_chefe, y_barra_vida_chefe, largura_barra_vida_chefe, altura_barra_vida_chefe), 2)
+
+    # UI do Jogador (Vida sempre visível)
+    if vida_ui_obj and hasattr(vida_ui_obj, 'desenhar') and callable(vida_ui_obj.desenhar):
+        vida_ui_obj.desenhar(janela_surf, 20, 20) 
+    
+    # Outras UIs (Timer, XP, Inventário HUD) - Ocultar durante luta contra chefe
+    if not luta_boss_ativa_status:
+        if estacoes_obj and hasattr(estacoes_obj, 'desenhar_mensagem_estacao'):
+            estacoes_obj.desenhar_mensagem_estacao(janela_surf)
+        if timer_ui_obj and hasattr(timer_ui_obj, 'desenhar') and callable(timer_ui_obj.desenhar):
+            timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
+        if xp_manager and hasattr(xp_manager, 'draw') and callable(xp_manager.draw):
+            xp_manager.draw(janela_surf)
+        if barra_inventario_ui_obj and hasattr(barra_inventario_ui_obj, 'desenhar') and callable(barra_inventario_ui_obj.desenhar) and jogador_obj:
+            barra_inventario_ui_obj.desenhar(janela_surf, jogador_obj) # HUD do inventário
 
 
 def main():
-    """Função principal que executa o menu e o loop do jogo."""
     global jogador, game_music_volume, game_sfx_volume, pause_manager, game_is_running_flag, \
-           xp_manager, barra_inventario, jogo_pausado_para_inventario, gerenciador_inimigos
+           xp_manager, barra_inventario, jogo_pausado_para_inventario, gerenciador_inimigos, \
+           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, Luta_boss
 
-    print("DEBUG(Game): Iniciando main()...") 
-    pygame.init() # Inicializa todos os módulos Pygame
-    if not pygame.font.get_init(): # Garante que o módulo de fontes está pronto
-        pygame.font.init()
-        print("DEBUG(Game): Módulo Pygame Font inicializado em main.")
+    pygame.init()
+    if not pygame.font.get_init(): pygame.font.init()
+    
+    mixer_initialized_successfully = False
     try:
-        pygame.mixer.init() # Inicializa o mixer de áudio
-        print("DEBUG(Game): Módulo Pygame Mixer inicializado.")
-    except pygame.error as e_mixer: 
-        print(f"ALERTA(Game): Erro ao inicializar Pygame Mixer: {e_mixer}")
+        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+        pygame.mixer.set_num_channels(32) 
+        mixer_initialized_successfully = True
+    except pygame.error as e: print(f"AVISO (main.py): Falha ao inicializar pygame.mixer: {e}")
 
-    # Configura a tela para fullscreen com base na resolução do monitor
-    info_display = pygame.display.Info()
-    largura_tela_jogo = info_display.current_w
-    altura_tela_jogo = info_display.current_h
-    janela_principal = pygame.display.set_mode((largura_tela_jogo, altura_tela_jogo), pygame.FULLSCREEN | pygame.SCALED)
+    try:
+        info_display = pygame.display.Info()
+        largura_tela_jogo, altura_tela_jogo = info_display.current_w, info_display.current_h
+        janela_principal = pygame.display.set_mode((largura_tela_jogo, altura_tela_jogo), pygame.FULLSCREEN | pygame.SCALED)
+    except Exception:
+        largura_tela_jogo, altura_tela_jogo = 1280, 720
+        janela_principal = pygame.display.set_mode((largura_tela_jogo, altura_tela_jogo), pygame.RESIZABLE)
     pygame.display.set_caption("Lenda de Asrahel")
-    clock = pygame.time.Clock() # Relógio para controlar o FPS
+    clock = pygame.time.Clock()
 
-    # --- Loop do Menu Principal ---
-    if Menu is None: 
-        print("ALERTA(Game): Classe Menu não disponível. Pulando diretamente para o jogo.")
-        acao_menu_principal = "jogar" # Se não houver menu, assume que quer jogar
-    else:
+    acao_menu_principal = "jogar" 
+    if Menu is not None:
         menu_principal_obj = Menu(largura_tela_jogo, altura_tela_jogo)
-        acao_menu_principal = None # Ação a ser retornada pelo menu
-        print("DEBUG(Game): Entrando no loop do menu principal...") 
-        while acao_menu_principal is None: 
+        acao_menu_principal = None
+        while acao_menu_principal is None:
             mouse_pos_menu = pygame.mouse.get_pos()
             menu_principal_obj.desenhar(janela_principal, mouse_pos_menu)
-            
-            for evento_menu in pygame.event.get(): 
-                if evento_menu.type == pygame.QUIT:
-                    if hasattr(menu_principal_obj, 'parar_musica'): menu_principal_obj.parar_musica()
-                    pygame.quit()
-                    sys.exit()
-                if evento_menu.type == pygame.MOUSEBUTTONDOWN:
+            for evento_menu in pygame.event.get():
+                if evento_menu.type == pygame.QUIT: pygame.quit(); sys.exit()
+                if evento_menu.type == pygame.MOUSEBUTTONDOWN and evento_menu.button == 1:
                     if hasattr(menu_principal_obj, 'verificar_click'):
                         acao_menu_principal = menu_principal_obj.verificar_click(*evento_menu.pos)
-                        if acao_menu_principal == "sair": break # Sai do loop do menu se "sair" for clicado
-            
+                        if acao_menu_principal == "sair": break 
             if acao_menu_principal == "sair": break 
-            pygame.display.update() # Atualiza a tela do menu
-            clock.tick(60) # Limita o FPS do menu
-        print(f"DEBUG(Game): Saindo do loop do menu principal. Ação: {acao_menu_principal}") 
-
-    # --- Início do Jogo ---
+            pygame.display.update()
+            clock.tick(30)
+    
     if acao_menu_principal == "jogar":
         if Menu is not None and 'menu_principal_obj' in locals() and hasattr(menu_principal_obj, 'parar_musica'):
-            menu_principal_obj.parar_musica() # Para a música do menu
-        
-        print("DEBUG(Game): Ação 'jogar' selecionada. Chamando inicializar_jogo()...") 
-        
-        # Inicializa todos os componentes do jogo
+            menu_principal_obj.parar_musica()
+
         jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, \
         gerenciador_inimigos, jogador_morreu, tempo_inicio_jogo, timer_obj, \
         barra_inventario = inicializar_jogo(largura_tela_jogo, altura_tela_jogo)
-        
-        print(f"DEBUG(Game): Retorno de inicializar_jogo(): Jogador: {'OK' if jogador else 'FALHA'}, Vida UI: {'OK' if vida_jogador_ref else 'FALHA'}, BarraInv UI: {'OK' if barra_inventario else 'FALHA'}") 
-        
-        if jogador is None: # Verificação crítica
-            print("ERRO CRÍTICO(Game): Falha ao inicializar o jogador em inicializar_jogo(). Encerrando.")
-            pygame.quit()
-            sys.exit()
 
-        tocar_musica_jogo() # Inicia a música de fundo do jogo
-        game_state = "playing"  # Estado atual do jogo (pode ser "paused", "inventory", etc.)
-        game_is_running_flag = True # Flag para o loop principal
-
+        if jogador is None: pygame.quit(); sys.exit()
+        if mixer_initialized_successfully and Luta_boss and not Luta_boss.esta_luta_ativa(): # Só toca música normal se não começar em luta
+            tocar_musica_jogo()
+        
+        game_state = "playing"
         running_game_loop = True
-        print("DEBUG(Game): Entrando no loop principal do jogo (while running_game_loop)...") 
+        
         while running_game_loop:
-            delta_time_ms = clock.get_rawtime() # Tempo desde o último frame, para movimentos baseados em tempo
+            delta_time_ms = clock.tick(60)
+            luta_boss_ativa_main = Luta_boss and Luta_boss.esta_luta_ativa()
 
-            # --- Processamento de Eventos ---
+            if mixer_initialized_successfully and pygame.mixer.music.get_busy() and not luta_boss_ativa_main:
+                musica_gameplay_atual_pos_ms = pygame.mixer.music.get_pos()
+
             for evento_jogo in pygame.event.get():
-                if evento_jogo.type == pygame.QUIT: 
-                    running_game_loop = False # Encerra o loop do jogo
+                if evento_jogo.type == pygame.QUIT: running_game_loop = False; game_is_running_flag = False
                 
                 if evento_jogo.type == pygame.KEYDOWN:
-                    # print(f"DEBUG(Game Loop) KEYDOWN: {pygame.key.name(evento_jogo.key)}") # Log de teclas (pode ser verboso)
-                    
                     if evento_jogo.key == pygame.K_ESCAPE:
-                        if jogo_pausado_para_inventario and barra_inventario: 
-                            # print("DEBUG(Game Loop): ESC com inventário aberto. Fechando inventário.")
+                        if jogo_pausado_para_inventario and barra_inventario and not luta_boss_ativa_main: # Fechar inventário (se não em luta)
                             barra_inventario.toggle_visao_inventario(jogador)
-                            jogo_pausado_para_inventario = False 
-                            if pygame.mixer.get_init() and pygame.mixer.music.get_busy(): # Se a música estava tocando
+                            jogo_pausado_para_inventario = False
+                            if mixer_initialized_successfully and musica_gameplay_atual_path and not pygame.mixer.music.get_busy():
                                 pygame.mixer.music.unpause()
-                            # print("DEBUG(Game Loop): Inventário fechado com ESC, jogo retomado.")
-                        elif game_state == "playing" and pause_manager: 
-                            # print("DEBUG(Game Loop): ESC pressionado. Abrindo menu de pausa.")
-                            # Pausa a música antes de mostrar o menu
-                            if pygame.mixer.get_init() and pygame.mixer.music.get_busy(): pygame.mixer.music.pause()
-                            
-                            action_pause, new_music_vol_pause, new_sfx_vol_pause = pause_manager.show_menu()
-                            game_music_volume, game_sfx_volume = new_music_vol_pause, new_sfx_vol_pause # Atualiza volumes globais
-                            
-                            # Retoma a música se o jogador continuar
-                            if action_pause == "resume_game" and pygame.mixer.get_init():
-                                if not pygame.mixer.music.get_busy(): tocar_musica_jogo() # Se não estava tocando, reinicia
-                                else: pygame.mixer.music.unpause()
-                            elif action_pause == "main_menu": 
-                                running_game_loop = False; acao_menu_principal = "main_menu_from_pause"; break 
-                            elif action_pause == "quit": 
-                                running_game_loop = False; break
+                            elif mixer_initialized_successfully and not pygame.mixer.music.get_busy():
+                                tocar_musica_jogo()
+                        elif game_state == "playing" and pause_manager and not luta_boss_ativa_main: # Abrir menu de pausa (se não em luta)
+                            if mixer_initialized_successfully and pygame.mixer.music.get_busy(): pygame.mixer.music.pause()
+                            action_pause, new_music_vol, new_sfx_vol = pause_manager.show_menu()
+                            game_music_volume, game_sfx_volume = new_music_vol, new_sfx_vol
+                            if mixer_initialized_successfully: pygame.mixer.music.set_volume(game_music_volume)
+                            if action_pause == "resume_game" and mixer_initialized_successfully:
+                                if musica_gameplay_atual_path and not pygame.mixer.music.get_busy(): pygame.mixer.music.unpause()
+                                elif not pygame.mixer.music.get_busy(): tocar_musica_jogo()
+                            elif action_pause == "main_menu": running_game_loop = False; acao_menu_principal = "main_menu_from_pause"; break
+                            elif action_pause == "quit": running_game_loop = False; game_is_running_flag = False; break
+                        # Durante a luta contra chefe, ESC pode não fazer nada ou ter uma função muito limitada (não implementado aqui)
                     
-                    elif evento_jogo.key == pygame.K_TAB and game_state == "playing": 
-                        # print(f"DEBUG(Game Loop): TAB pressionado.")
-                        if barra_inventario and jogador: 
-                            # print(f"DEBUG(Game Loop): Chamando toggle_visao_inventario. Estado atual: {barra_inventario.visao_inventario_aberta}")
+                    elif evento_jogo.key == pygame.K_TAB and game_state == "playing" and not luta_boss_ativa_main: # Inventário (se não em luta)
+                        if barra_inventario and jogador:
                             barra_inventario.toggle_visao_inventario(jogador)
                             jogo_pausado_para_inventario = barra_inventario.visao_inventario_aberta
-                            # print(f"DEBUG(Game Loop): Novo estado visao_inventario: {barra_inventario.visao_inventario_aberta}, jogo_pausado: {jogo_pausado_para_inventario}")
                             if jogo_pausado_para_inventario:
-                                if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
-                                    pygame.mixer.music.pause()
-                                # print("DEBUG(Game Loop): Inventário aberto com TAB, jogo pausado.")
-                            else: # Fechou inventário
-                                if pygame.mixer.get_init(): 
-                                    if not pygame.mixer.music.get_busy(): tocar_musica_jogo() # Se não estava tocando, reinicia
-                                    else: pygame.mixer.music.unpause()
-                                # print("DEBUG(Game Loop): Inventário fechado com TAB, jogo retomado.")
+                                if mixer_initialized_successfully and pygame.mixer.music.get_busy(): pygame.mixer.music.pause()
+                            else:
+                                if mixer_initialized_successfully:
+                                    if musica_gameplay_atual_path and not pygame.mixer.music.get_busy(): pygame.mixer.music.unpause()
+                                    elif not pygame.mixer.music.get_busy(): tocar_musica_jogo()
                     
-                    # Passa inputs para a barra de inventário (1-4 para equipar, cliques se aberta)
-                    # A barra de inventário lida com as teclas numéricas para troca rápida.
-                    if barra_inventario and game_state == "playing" and jogador: 
-                        # O handle_input da barra de inventário já verifica se está aberta para cliques.
-                        # Para teclas (1-4), funciona mesmo se fechada (HUD).
-                        barra_inventario.handle_input(evento_jogo, jogador)
-            
-            if not running_game_loop: break # Sai do loop de eventos se o jogo terminou
-            
-            # --- Lógica de Atualização do Jogo (se não pausado) ---
-            teclas_pressionadas = pygame.key.get_pressed() 
-            
-            if game_state == "playing" and not jogo_pausado_para_inventario: 
-                if jogador:
-                    if hasattr(jogador, 'mover'):
-                        jogador.mover(teclas_pressionadas, arvores) # Passa árvores para colisão de movimento
-                    if hasattr(jogador, 'update'): 
-                        jogador.update() # Atualiza animações, timers internos do jogador
-                
-                if gerenciador_inimigos: 
-                    if hasattr(gerenciador_inimigos, 'process_spawn_requests') and jogador:
-                        gerenciador_inimigos.process_spawn_requests(jogador)
-                    if hasattr(gerenciador_inimigos, 'update_inimigos') and jogador:
-                        gerenciador_inimigos.update_inimigos(jogador) # Movimento, IA, ataques de inimigos
-                    if hasattr(gerenciador_inimigos, 'update_projeteis_inimigos') and jogador:
-                        gerenciador_inimigos.update_projeteis_inimigos(jogador) # Atualiza projéteis
+                    elif evento_jogo.key == pygame.K_F10 and Luta_boss and not luta_boss_ativa_main and \
+                         jogador and est and gerenciador_inimigos and game_state == "playing": # Iniciar chefe (se não em luta)
+                        print("DEBUG (main.py): F10 pressionado, tentando iniciar luta contra chefe.")
+                        if Luta_boss.iniciar_luta_chefe(jogador, 0, gerenciador_inimigos, est,
+                                                      largura_tela_jogo, altura_tela_jogo,
+                                                      musica_gameplay_atual_path, musica_gameplay_atual_pos_ms):
+                            print("DEBUG (main.py): Luta contra chefe iniciada com sucesso via F10.")
+                            # A flag luta_boss_ativa_main será atualizada no próximo ciclo do loop
+                        else:
+                            print("ERRO (main.py): Falha ao iniciar luta contra chefe via F10.")
+                            if mixer_initialized_successfully and not pygame.mixer.music.get_busy() and musica_gameplay_atual_path:
+                                tocar_musica_jogo() 
 
-                # Gera novos elementos do cenário dinamicamente
-                gerar_elementos_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados)
+                if barra_inventario and game_state == "playing" and jogador and not luta_boss_ativa_main: # HUD inventário (se não em luta)
+                    barra_inventario.handle_input(evento_jogo, jogador)
+            
+            if not running_game_loop: break
 
-                # Atualiza a estação do ano
-                if est and hasattr(est, 'atualizar'):
-                    estacao_anterior = est.i
-                    est.atualizar()
-                    if est.i != estacao_anterior: # Se a estação mudou
-                        print(f"DEBUG(Game Loop): Mudança de estação para {est.nome_estacao()}")
-                        if arvores: # Atualiza a aparência das árvores
+            # --- LÓGICA DE ATUALIZAÇÃO DO JOGO ---
+            # Só atualiza se o jogo não estiver pausado pelo inventário em tela cheia (E não estiver em luta, pois inventário é desabilitado)
+            if game_state == "playing" and not (jogo_pausado_para_inventario and not luta_boss_ativa_main):
+                teclas_pressionadas = pygame.key.get_pressed()
+                if jogador: # Atualização do jogador sempre ocorre
+                    if hasattr(jogador, 'mover'): jogador.mover(teclas_pressionadas, arvores)
+                    if hasattr(jogador, 'update'): jogador.update(delta_time_ms, teclas_pressionadas)
+
+                # --- Ramo Principal: Luta Contra Chefe ATIVA ---
+                if luta_boss_ativa_main:
+                    # Confinar jogador à arena
+                    arena_atual = Luta_boss.get_arena_rect()
+                    if arena_atual and jogador and hasattr(jogador, 'rect'):
+                        jogador.rect.clamp_ip(arena_atual)
+                        if hasattr(jogador, 'x') and hasattr(jogador, 'y'):
+                            jogador.x = float(jogador.rect.centerx); jogador.y = float(jogador.rect.centery)
+
+                    # Atualizar lógica da luta (verifica se chefe morreu, etc.)
+                    # Luta_boss.atualizar_luta chama Luta_boss.finalizar_luta_chefe internamente se o chefe morrer.
+                    if Luta_boss: Luta_boss.atualizar_luta(jogador, est, gerenciador_inimigos) 
+                    
+                    # Atualizar o chefe (IA, movimento) - somente se a luta ainda estiver ativa após a atualização acima
+                    if Luta_boss and Luta_boss.esta_luta_ativa(): # Verifica de novo, pois atualizar_luta pode ter finalizado
+                        chefe_obj = Luta_boss.get_chefe_atual()
+                        if chefe_obj and hasattr(chefe_obj, 'esta_vivo') and chefe_obj.esta_vivo():
+                            if gerenciador_inimigos and hasattr(gerenciador_inimigos, 'update_chefe'):
+                                gerenciador_inimigos.update_chefe(jogador, delta_time_ms) # Passa jogador e dt
+                    
+                    # Ataque do jogador (mira no chefe)
+                    if jogador and gerenciador_inimigos and hasattr(jogador, 'atacar'):
+                        alvos_chefe = []
+                        chefe_para_atacar = Luta_boss.get_chefe_atual() if Luta_boss else None
+                        if chefe_para_atacar and hasattr(chefe_para_atacar, 'esta_vivo') and chefe_para_atacar.esta_vivo():
+                            alvos_chefe.append(chefe_para_atacar)
+                        try: jogador.atacar(alvos_chefe, delta_time_ms)
+                        except TypeError: jogador.atacar(alvos_chefe)
+
+                    # Colisão jogador com chefe/ataques do chefe
+                    if jogador and hasattr(jogador, 'vida') and jogador.vida:
+                        chefe_para_colisao = Luta_boss.get_chefe_atual() if Luta_boss else None
+                        if chefe_para_colisao and hasattr(chefe_para_colisao, 'rect') and \
+                           hasattr(jogador, 'rect_colisao') and hasattr(chefe_para_colisao, 'esta_vivo') and \
+                           chefe_para_colisao.esta_vivo() and getattr(jogador, 'pode_levar_dano', True):
+                            dano_contato_chefe = getattr(chefe_para_colisao, 'contact_damage', 0)
+                            if dano_contato_chefe > 0:
+                                rect_colisao_chefe = getattr(chefe_para_colisao, 'rect_colisao', chefe_para_colisao.rect)
+                                if jogador.rect_colisao.colliderect(rect_colisao_chefe):
+                                    try: jogador.receber_dano(dano_contato_chefe, rect_colisao_chefe)
+                                    except TypeError: jogador.receber_dano(dano_contato_chefe)
+                        
+                        if not jogador.vida.esta_vivo(): # Se jogador morrer durante a luta
+                            jogador_morreu = True; running_game_loop = False
+                            if Luta_boss: Luta_boss.finalizar_luta_chefe(jogador, est, gerenciador_inimigos) # Finaliza a luta ao morrer
+
+                # --- Ramo Principal: Gameplay Normal (NÃO em luta contra chefe) ---
+                else:
+                    if est and hasattr(est, 'atualizar_ciclo_estacoes'):
+                        sinal_estacao = est.atualizar_ciclo_estacoes()
+                        if sinal_estacao == "PENDENTE_CHEFE_PRIMAVERA":
+                            print("DEBUG (main.py): Recebido PENDENTE_CHEFE_PRIMAVERA. Tentando iniciar luta...")
+                            if Luta_boss and jogador and gerenciador_inimigos:
+                                if Luta_boss.iniciar_luta_chefe(jogador, 0, gerenciador_inimigos, est,
+                                                              largura_tela_jogo, altura_tela_jogo,
+                                                              musica_gameplay_atual_path, musica_gameplay_atual_pos_ms):
+                                    print("DEBUG (main.py): Luta contra chefe da Primavera iniciada com sucesso.")
+                                    # A flag luta_boss_ativa_main será true no próximo frame, mudando o fluxo
+                                else:
+                                    print("ERRO (main.py): Falha ao iniciar luta contra chefe da Primavera.")
+                                    if hasattr(est, 'chefe_primavera_pendente'): est.chefe_primavera_pendente = False 
+                                    if mixer_initialized_successfully and not pygame.mixer.music.get_busy() and musica_gameplay_atual_path:
+                                        tocar_musica_jogo()
+                        elif sinal_estacao is True: 
                             for arvore_obj in arvores:
-                                if arvore_obj and hasattr(arvore_obj, 'atualizar_sprite'): 
-                                    arvore_obj.atualizar_sprite(est.i)
-                        if gerenciador_inimigos: # Reseta spawns ou muda tipos de inimigos
-                            if hasattr(gerenciador_inimigos, 'resetar_temporizador_spawn_estacao'):
-                                gerenciador_inimigos.resetar_temporizador_spawn_estacao()
-                            if jogador and hasattr(jogador, 'rect'): # Tenta novo spawn inicial para a estação
-                                if hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'): 
-                                    gerenciador_inimigos.spawn_inimigos_iniciais(jogador) 
-                                elif hasattr(gerenciador_inimigos, 'spawn_inimigos'):
-                                    gerenciador_inimigos.spawn_inimigos(jogador)
-
-                # Ataque do jogador
-                if jogador and gerenciador_inimigos and hasattr(gerenciador_inimigos, 'inimigos'):
-                    if hasattr(jogador, 'atacar'):
-                        jogador.atacar(gerenciador_inimigos.inimigos) # Passa a lista de inimigos para o ataque
-                
-                # Colisões jogador-inimigo
-                if jogador and hasattr(jogador, 'vida') and jogador.vida: 
-                    verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
-                    if not jogador.vida.esta_vivo(): # Verifica se o jogador morreu
-                        jogador_morreu = True
-                        running_game_loop = False # Encerra o loop do jogo
-
-                # Interação com a Loja
-                current_shop_rect_map = shop_elements.get_current_shop_rect() if shop_elements else None
-                if current_shop_rect_map and jogador and hasattr(jogador, 'rect_colisao') and \
-                   jogador.rect_colisao.colliderect(current_shop_rect_map) and teclas_pressionadas[pygame.K_e]: 
+                                if arvore_obj and hasattr(arvore_obj, 'atualizar_sprite') and hasattr(est, 'indice_estacao_atual'):
+                                    arvore_obj.atualizar_sprite(est.indice_estacao_atual)
+                            if gerenciador_inimigos:
+                                if hasattr(gerenciador_inimigos, 'resetar_temporizador_spawn_estacao'):
+                                    gerenciador_inimigos.resetar_temporizador_spawn_estacao()
+                                if jogador and hasattr(jogador, 'rect') and hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'):
+                                    gerenciador_inimigos.spawn_inimigos_iniciais(jogador, delta_time_ms)
                     
-                    if loja_core and hasattr(loja_core, 'run_shop_scene'):
-                        if pygame.mixer.get_init() and pygame.mixer.music.get_busy(): pygame.mixer.music.pause()
-                        
-                        # Executa a cena da loja
-                        continuar_jogo_apos_loja = loja_core.run_shop_scene(janela_principal, jogador, largura_tela_jogo, altura_tela_jogo)
-                        
-                        # Retoma a música do jogo
-                        if pygame.mixer.get_init():
-                            if pygame.mixer.music.get_busy(): pygame.mixer.music.unpause()
-                            else: tocar_musica_jogo() # Se a música parou por algum motivo
-                        
-                        if not continuar_jogo_apos_loja: running_game_loop = False # Se a loja indicar para sair
-                        
-                        # Reseta o spawn da loja para que ela possa aparecer novamente
-                        if shop_elements and hasattr(shop_elements, 'reset_shop_spawn'):
-                            shop_elements.reset_shop_spawn()
+                    if gerenciador_inimigos:
+                        if hasattr(gerenciador_inimigos, 'process_spawn_requests'): gerenciador_inimigos.process_spawn_requests(jogador, delta_time_ms)
+                        if hasattr(gerenciador_inimigos, 'update_inimigos'): gerenciador_inimigos.update_inimigos(jogador, delta_time_ms)
+                        if hasattr(gerenciador_inimigos, 'update_projeteis_inimigos'): gerenciador_inimigos.update_projeteis_inimigos(jogador, delta_time_ms)
+                    gerar_elementos_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados)
 
-            # --- Desenho da Cena ---
-            cam_x_calc = jogador.rect.centerx - largura_tela_jogo // 2 if jogador and hasattr(jogador, 'rect') else 0
-            cam_y_calc = jogador.rect.centery - altura_tela_jogo // 2 if jogador and hasattr(jogador, 'rect') else 0
-            tempo_decorrido_total_seg = (pygame.time.get_ticks() - tempo_inicio_jogo) // 1000 if tempo_inicio_jogo else 0
+                    if jogador and gerenciador_inimigos and hasattr(jogador, 'atacar'):
+                        alvos_normais = list(gerenciador_inimigos.inimigos)
+                        try: jogador.atacar(alvos_normais, delta_time_ms)
+                        except TypeError: jogador.atacar(alvos_normais)
+
+                    if jogador and hasattr(jogador, 'vida') and jogador.vida:
+                        verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
+                        if not jogador.vida.esta_vivo():
+                            jogador_morreu = True; running_game_loop = False
+                    
+                    if shop_elements and loja_core and not (Luta_boss and Luta_boss.esta_luta_ativa()): # Redundante, mas seguro
+                        shop_rect = shop_elements.get_current_shop_rect() if hasattr(shop_elements, 'get_current_shop_rect') else None
+                        if shop_rect and jogador and hasattr(jogador, 'rect_colisao') and \
+                           jogador.rect_colisao.colliderect(shop_rect) and teclas_pressionadas[pygame.K_e]:
+                            if mixer_initialized_successfully and pygame.mixer.music.get_busy(): pygame.mixer.music.pause()
+                            continuar = loja_core.run_shop_scene(janela_principal, jogador, largura_tela_jogo, altura_tela_jogo)
+                            if mixer_initialized_successfully:
+                                if musica_gameplay_atual_path and not pygame.mixer.music.get_busy(): pygame.mixer.music.unpause()
+                                elif not pygame.mixer.music.get_busy(): tocar_musica_jogo()
+                            if not continuar: running_game_loop = False; game_is_running_flag = False
+                            if hasattr(shop_elements, 'reset_shop_spawn'): shop_elements.reset_shop_spawn()
             
-            desenhar_cena(janela_principal, est, gramas, arvores, jogador, gerenciador_inimigos, 
-                          vida_jogador_ref, barra_inventario, 
-                          cam_x_calc, cam_y_calc, tempo_decorrido_total_seg, timer_obj, delta_time_ms)
+            # --- FIM DA LÓGICA DE ATUALIZAÇÃO ---
 
-            pygame.display.flip() # Atualiza a tela inteira
-            clock.tick(60) # Mantém o FPS em 60
+            cam_x = jogador.rect.centerx - largura_tela_jogo // 2 if jogador and hasattr(jogador, 'rect') else 0
+            cam_y = jogador.rect.centery - altura_tela_jogo // 2 if jogador and hasattr(jogador, 'rect') else 0
+            tempo_total_seg = (pygame.time.get_ticks() - tempo_inicio_jogo) // 1000 if tempo_inicio_jogo is not None else 0
 
-        # --- Fim do Loop Principal do Jogo ---
-        game_is_running_flag = False # Sinaliza para threads externas pararem (se houver)
+            desenhar_cena(janela_principal, est, gramas, arvores, jogador, gerenciador_inimigos,
+                          vida_jogador_ref, barra_inventario,
+                          cam_x, cam_y, tempo_total_seg, timer_obj, delta_time_ms,
+                          luta_boss_ativa_main) # Passa o estado da luta para o desenho
+            
+            if jogo_pausado_para_inventario and barra_inventario and \
+               hasattr(barra_inventario, 'desenhar_inventario_completo') and not luta_boss_ativa_main:
+                barra_inventario.desenhar_inventario_completo(janela_principal, jogador)
+            
+            pygame.display.flip()
         
-        # Para threads do gerenciador de inimigos, se existirem
-        if gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'): 
-            print("DEBUG(Game): Parando threads do GerenciadorDeInimigos...")
+        if gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'):
             gerenciador_inimigos.stop_threads()
 
-        # Tela de Morte (se o jogador morreu)
         if jogador_morreu and run_death_screen:
-            print("DEBUG(Game): Jogador morreu. Exibindo tela de morte...")
-            # Garante que janelas Tkinter do menu de pausa sejam fechadas (se existirem)
-            if pause_manager: 
-                if hasattr(pause_manager, 'toplevel_window') and pause_manager.toplevel_window and \
-                   hasattr(pause_manager.toplevel_window, 'winfo_exists') and pause_manager.toplevel_window.winfo_exists():
-                    pause_manager.toplevel_window.destroy()
-                if hasattr(pause_manager, 'tk_root') and pause_manager.tk_root and \
-                   hasattr(pause_manager.tk_root, 'winfo_exists') and pause_manager.tk_root.winfo_exists():
-                    pause_manager.tk_root.destroy()
-            run_death_screen(janela_principal, main, main, DEATH_SCREEN_BACKGROUND_IMAGE) # Passa main para reiniciar/menu
-        
-        # Se saiu do jogo pelo menu de pausa para voltar ao menu principal
-        if acao_menu_principal == "main_menu_from_pause": 
-            print("DEBUG(Game): Retornando ao menu principal a partir do jogo...")
-            main() # Chama main recursivamente para reiniciar o processo do menu
-            return # Evita executar o código de quit abaixo
+            if pause_manager and hasattr(pause_manager, 'destroy_tkinter_window'):
+                pause_manager.destroy_tkinter_window()
+            run_death_screen(janela_principal, main, main, DEATH_SCREEN_BACKGROUND_IMAGE)
+            return 
 
-    elif acao_menu_principal == "sair":
-        if Menu is not None and 'menu_principal_obj' in locals() and hasattr(menu_principal_obj, 'parar_musica'):
-            menu_principal_obj.parar_musica()
-        print("DEBUG(Game): Ação 'sair' selecionada no menu principal.")
+        if acao_menu_principal == "main_menu_from_pause": main(); return
     
-    # --- Finalização do Jogo ---
-    game_is_running_flag = False 
-    
-    if 'gerenciador_inimigos' in locals() and gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'): 
-        print("DEBUG(Game): Parando threads do GerenciadorDeInimigos na finalização...")
+    if 'gerenciador_inimigos' in locals() and gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'):
         gerenciador_inimigos.stop_threads()
-
-    if pygame.mixer.get_init(): pygame.mixer.quit() # Desinicializa o mixer
-    pygame.quit() # Desinicializa todos os módulos Pygame
-    print("DEBUG(Game): Pygame finalizado. Saindo do programa.")
+    if mixer_initialized_successfully: pygame.mixer.quit()
+    pygame.quit()
     sys.exit()
 
 if __name__ == "__main__":
-    # Este bloco é executado quando o script é rodado diretamente.
-    # Adiciona um try-except para capturar exceções não tratadas na função main,
-    # o que pode ajudar a manter a janela aberta para ver o erro no console.
     try:
         main()
     except Exception as e_main_fatal:
-        print(f"ERRO FATAL em main(): {e_main_fatal}")
         import traceback
-        traceback.print_exc() # Imprime o stack trace completo do erro
-        pygame.quit() # Tenta fechar o Pygame de forma limpa
-        input("Pressione Enter para sair após o erro fatal...") # Pausa para ver o erro
-        sys.exit(1) # Sai com código de erro
+        traceback.print_exc()
+        if pygame.get_init(): 
+            if 'gerenciador_inimigos' in globals() and gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'):
+                gerenciador_inimigos.stop_threads()
+            pygame.quit()
+        input("Pressione Enter para sair após o erro fatal...")
+        sys.exit(1)
