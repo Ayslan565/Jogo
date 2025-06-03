@@ -460,28 +460,28 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
     carregar_recursos_loja(tamanho_item=(80,80), tamanho_vendedor_img=tamanho_vendedor_para_carregar)
 
     itens_data_global["Cajados"] = [
-        {"nome": "Cajado da Fixacao Ametista", "preco": 80, "imagem": imagem_Cajado_1, "descricao": "Canaliza energia arcana instável."},
-        {"nome": "Cajado Da santa Natureza", "preco": 200, "imagem": imagem_Cajado_2, "descricao": "Imbuído com o poder da floresta."},
-        {"nome": "Livro dos impuros", "preco": 350, "imagem": imagem_Cajado_3, "descricao": "Contém conhecimento proibido."},
+        {"nome": "Cajado da Fixacao Ametista", "preco": 200, "imagem": imagem_Cajado_1, "descricao": "Se não souber usa-lo não compre, uma arma extremamente poderosa mas incontrolável para aqueles que não possuem experiência"},
+        {"nome": "Cajado Da santa Natureza", "preco": 300, "imagem": imagem_Cajado_2, "descricao": "Uma arma única rara e que causa medo a todos os monstros da floresta. Esse cajado parece simples mas é feito com a madeira de uma árvore almadiçoada. A natureza estará sempre ao seu lado quando você estiver usando ele."},
+        {"nome": "Livro dos impuros", "preco": 450, "imagem": imagem_Cajado_3, "descricao": "Contém conhecimento proibido, pode ser que ele te ensine a dominar alguma arte mística, ou pode ser que ele te enlouqueça até a MORTE."},
     ]
     itens_data_global["Espadas"] = [
         {"nome": "Adaga do Fogo Contudente", "preco": 100, "imagem": imagem_Espada_1, "descricao": "Uma lâmina pequena, mas perigosa, sua ponta ao penetrar inimigos causa uma queimadura"},
         {"nome": "Espada de Fogo azul Sacra Cerulea", "preco": 150, "imagem": imagem_Espada_2, "descricao": "Lâmina de aço cintilante com punho dourado e uma gema safira-azul, forjada sob o calor das estrelas e abençoada com sabedoria celestia. Ela é Leal para os justos e forte para os destemidos."},
         {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão  em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço."},
         {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Forjada sob a fúria de um Buraco Negro. Sua gema âmbar concede intuição aguçada para antecipar inimigos, sendo ideal para quem valoriza agilidade e estratégia, movendo-se como uma sombra para atacar com precisão."},
-        {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares"},
-        {"nome": "Lâmina do Ceu Centilhante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Rápida como um raio, afiada como uma estrela."}
+        {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares, encantada com o poder de uma estrela, ela guiará seus caminhos e voce jamais vai ficar na escuridão"},
+        {"nome": "Lâmina do Ceu Centilhante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. "}
     ]
     itens_data_global["Machados"] = [
-        {"nome": "Machado Bárbaro Cravejado", "preco": 120, "imagem": imagem_Machado_1, "descricao": "Bruto e eficaz para golpes pesados."},
-        {"nome": "Machado Cerúleo da Estrela Cadente", "preco": 250, "imagem": imagem_Machado_2, "descricao": "Forjado com metal celestial."},
-        {"nome": "Machado da Descida Santa", "preco": 300, "imagem": imagem_Machado_3, "descricao": "Abençoado para purificar o mal."},
-        {"nome": "Machado do Fogo Abrasador", "preco": 400, "imagem": imagem_Machado_4, "descricao": "Deixa um rastro de cinzas."},
-        {"nome": "Machado do Marfim Resplendor", "preco": 550, "imagem": imagem_Machado_5, "descricao": "Elegante, mas mortalmente afiado."},
-        {"nome": "Machado Macabro da Gula Infinita", "preco": 700, "imagem": imagem_Machado_6, "descricao": "Dizem que devora a alma de suas vítimas."},
+        {"nome": "Machado Bárbaro Cravejado", "preco": 120, "imagem": imagem_Machado_1, "descricao": "Bruto e eficaz para golpes pesados. Seu material é tão resistente que ele nunca te deixará na mão."},
+        {"nome": "Machado Cerúleo da Estrela Cadente", "preco": 250, "imagem": imagem_Machado_2, "descricao": "Forjado com metal celestial, as forças do universo estarão com você para te ajudar no que precisar."},
+        {"nome": "Machado da Descida Santa", "preco": 300, "imagem": imagem_Machado_3, "descricao": "Abençoado para purificar o mal, feito com o doce som da arpa de anjos, promete lealdade e confiança ao portador."},
+        {"nome": "Machado do Fogo Abrasador", "preco": 400, "imagem": imagem_Machado_4, "descricao": "Feito com as cinzas de fenix, uma arma poderosa feita com a morte de inimigos e que assusta qualquer inimigo que a vê. "},
+        {"nome": "Machado do Marfim Resplendor", "preco": 550, "imagem": imagem_Machado_5, "descricao": "Belo e mortal, para aqueles que gostam de exibir suas forças e belezas aos inimigos. Feito com preciosas pedras de esmeralda que ficam reluentes ao segura-lo ."},
+        {"nome": "Machado Macabro da Gula Infinita", "preco": 700, "imagem": imagem_Machado_6, "descricao": "Uma arma para quem tem fome de sangue e sede de justiça, uma fabricação sombria que assusta qualquer um"},
     ]
     itens_data_global["Poções"] = [ 
-        {"nome": "Poção de Cura", "preco": 50, "imagem": imagem_Pocao_Cura, "descricao": "Restaura uma pequena quantidade de vida."},
+        {"nome": "Poção de Cura", "preco": 50, "imagem": imagem_Pocao_Cura, "descricao": "Restaura uma pequena quantidade de vida quando você mais precisar."},
     ]
 
     fonte_loja = None; tamanho_fonte_loja = 30 

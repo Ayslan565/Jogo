@@ -400,12 +400,7 @@ class Vampiro(Inimigo):
         vampiro_hp = 90
         vampiro_contact_damage = 8 
         vampiro_xp_value = 60
-        # sprite_path_ref é relativo à raiz de assets, para a classe base Inimigo.
-        # Ex: "Sprites/Inimigos/Vampiro/Imagem.png" ou "placeholder_vampiro.png"
-        # A classe base Inimigo (real ou placeholder) precisa saber como lidar com este caminho.
-        sprite_path_ref = "Sprites/Inimigos/Vampiro/Imagem.png" # Default to one specific image for base
-        if not (Vampiro.sprites_andar and Vampiro.sprites_andar[0]): # Check if loading failed
-             sprite_path_ref = "placeholder_vampiro.png" # A simple name if sprites failed
+        sprite_path_ref = "Sprites/Inimigos/Vampiro/Vampiro_Walk_1.png" if Vampiro.sprites_andar else "placeholder_vampiro.png"
 
         super().__init__(x, y,
                          Vampiro.tamanho_sprite_definido[0], Vampiro.tamanho_sprite_definido[1],

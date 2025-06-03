@@ -181,10 +181,11 @@ class Troll(InimigoBase):
     def __init__(self, x, y, velocidade=1.0): # Trolls são geralmente lentos mas fortes
         Troll.carregar_recursos_troll() 
 
-        vida_troll = 180
+        vida_troll = 120
         dano_contato_troll = 18
         xp_troll = 90
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Troll/Troll_Andar1.png"
+        #moedas_dropadas = 18
 
         super().__init__(
             x, y,
