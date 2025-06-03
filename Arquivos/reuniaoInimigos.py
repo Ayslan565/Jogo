@@ -47,7 +47,13 @@ except ImportError:
 # Assumindo que todos os arquivos deinimigos estão dentro da pasta/subpacote Inimigos"
 # e que GerenciadorDInimigos.py pode usar imports relativos.
 
+
 # Para Fantasma, importando a classe específica em vez de '*'
+try:
+    from Inimigos.Arvore_Maldita import *
+except ImportError:
+    Arvore_Maldita = None
+    print("DEBUG(GerenciadorDInimigos): Arvore_Maldita não encontrada em Inimigos.Arvore_Maldita.")
 try:
     from Inimigos.Fantasma import Fantasma # Substitua 'Fantasma' pela(s) classe(s) real(is) em Fantasma.py
     # Se houver outras classes importantes em Fantasma.py:

@@ -89,6 +89,7 @@ try:
     from Armas.MachadoMacabro import MachadoMacabro
 except ImportError: MachadoMacabro = None; print("DEBUG(importacoes): Armas.MachadoMacabro não encontrada.")
 
+import Armas.AdagaFogo
 # --- Outros Módulos do Jogo (no diretório Jogo/) ---
 
 try:
