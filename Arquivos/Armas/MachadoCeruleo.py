@@ -44,13 +44,15 @@ class MachadoCeruleo(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv1.png", # Exemplo
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv1/CeruleoFrame1.png", # Exemplo
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv1/CeruleoFrame2.png", # Exemplo
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv1/CeruleoFrame3.png"  # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base2.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base3.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 110,     # CONFIGURÁVEL (ms por frame)
                 "animation_display_scale": 1.15, # CONFIGURÁVEL
-                "ui_icon": "Sprites/Armas/Machados/MachadoCeruleo/Icone_MC1.png", # Exemplo
+                "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png", # Exemplo
                 "description": "Um machado imbuído com a luz fria de uma estrela cadente.",
                 "rarity": "Raro",
                 "weapon_type": "Machado de Guerra",
@@ -62,13 +64,15 @@ class MachadoCeruleo(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv1/CeruleoFrame1.png",
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv1/CeruleoFrame2.png",
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv1/CeruleoFrame3.png"
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base2.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base3.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 105,
                 "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Machados/MachadoCeruleo/Icone_MC1.png"
+                "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png"
             },
             2.0: {
                 "damage": 50.0, "range": 105.0, "cooldown": 1.3, "name_suffix": "da Constelação",
@@ -76,14 +80,15 @@ class MachadoCeruleo(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv2.png", 
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame1.png", 
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame2.png", 
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame3.png", 
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame4.png"
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base2.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base3.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 100,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoCeruleo/Icone_MC2.png" 
+                "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E2.png" 
             },
             2.5: {
                 "damage": 55.0, "range": 110.0, "cooldown": 1.2, "name_suffix": "da Constelação +1",
@@ -91,14 +96,15 @@ class MachadoCeruleo(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame1.png",
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame2.png",
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame3.png",
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv2/ConstelacaoFrame4.png"
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base2.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base3.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 95,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoCeruleo/Icone_MC2.png"
+                "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E2.png"
             },
             3.0: {
                 "damage": 70.0, "range": 125.0, "cooldown": 1.0, "name_suffix": "Celestial",
@@ -106,15 +112,15 @@ class MachadoCeruleo(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv3.png", 
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv3/CelestialFrame1.png", 
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv3/CelestialFrame2.png", 
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv3/CelestialFrame3.png", 
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv3/CelestialFrame4.png", 
-                    "Sprites/Armas/Machados/MachadoCeruleo/Ataque/Nv3/CelestialFrame5.png"
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT3/AT3-base00.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT3/AT3-base10.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT3/AT3-base11.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT3/AT3-base20.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT3/AT3-base21.png",
                 ],
                 "animation_speed": 90,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/MachadoCeruleo/Icone_MC3.png"
+                "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E3.png"
             }
         }
 

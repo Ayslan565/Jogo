@@ -42,13 +42,15 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv1.png", # PLACEHOLDER
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv1/DescidaFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv1/DescidaFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv1/DescidaFrame3.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base0.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base1.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base2.png",  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base3.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 110,    # PLACEHOLDER (ms por frame)
                 "animation_display_scale": 1.15, # PLACEHOLDER
-                "ui_icon": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Icone_MDS1.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg" # PLACEHOLDER
             },
             1.5: {
                 "damage": 25.0, "range": 95.0, "cooldown": 1.9, "name_suffix": "+1",
@@ -56,13 +58,15 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv1.png", # PLACEHOLDER
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv1/DescidaFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv1/DescidaFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv1/DescidaFrame3.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base0.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base1.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base2.png",  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base3.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 105,
                 "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Icone_MDS1.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg" # PLACEHOLDER
             },
             2.0: {
                 "damage": 32.0, "range": 105.0, "cooldown": 1.7, "name_suffix": "Purificador", # SUGESTÃO
@@ -70,14 +74,15 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png", # PLACEHOLDER
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame3.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame4.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base0.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base1.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base2.png",  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base3.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 100,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Icone_MDS2.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.jpg" # PLACEHOLDER
             },
             2.5: {
                 "damage": 38.0, "range": 110.0, "cooldown": 1.6, "name_suffix": "Purificador +1",
@@ -85,14 +90,15 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png", # PLACEHOLDER
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame3.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv2/PurificadorFrame4.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base0.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base1.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base2.png",  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base3.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 95,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Icone_MDS2.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.jpg" # PLACEHOLDER
             },
             3.0: {
                 "damage": 45.0, "range": 125.0, "cooldown": 1.4, "name_suffix": "Divino", # SUGESTÃO
@@ -100,15 +106,15 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv3.png", # PLACEHOLDER
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv3/DivinoFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv3/DivinoFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv3/DivinoFrame3.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv3/DivinoFrame4.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDaDescidaSanta/Ataque/Nv3/DivinoFrame5.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT3/AT3-base00.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT3/AT3-base10.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT3/AT3-base11.png",  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT3/AT3-base20.png", # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT3/AT3-base21.png",
                 ],
                 "animation_speed": 90,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Icone_MDS3.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E3.jpg" # PLACEHOLDER
             }
         }
 
