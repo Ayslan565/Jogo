@@ -29,7 +29,7 @@ class MachadoDaDescidaSanta(MachadoBase):
             attack_effect_sprite_path=initial_stats_for_super.get("effect_sprite_base", None),
             attack_effect_scale=initial_stats_for_super.get("effect_scale_base", 1.0),
             # Ícone da loja é "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg"
-            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites/Armas/Machados/MachadoDaDescidaSanta/Icone_MDS1.png") # PLACEHOLDER
+            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg") # PLACEHOLDER
         )
 
         # --- CONFIGURAÇÕES MODIFICÁVEIS POR NÍVEL ---
@@ -71,7 +71,8 @@ class MachadoDaDescidaSanta(MachadoBase):
             2.0: {
                 "damage": 32.0, "range": 105.0, "cooldown": 1.7, "name_suffix": "Purificador", # SUGESTÃO
                 "hitbox_dim": (95, 105), "hitbox_off": (0, 0),
-                "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png", # PLACEHOLDER
+                "effect_sprite_base": "Sprites/Armas/Machados/MachadoDa"
+                "DescidaSanta/Efeitos/ImpactoSagradoNv2.png", # PLACEHOLDER
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base0.png", # PLACEHOLDER

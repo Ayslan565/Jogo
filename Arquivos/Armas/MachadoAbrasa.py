@@ -29,7 +29,7 @@ class MachadoDoFogoAbrasador(MachadoBase):
             attack_effect_sprite_path=initial_stats_for_super.get("effect_sprite_base", None),
             attack_effect_scale=initial_stats_for_super.get("effect_scale_base", 1.0),
             # Ícone da loja é "Sprites/Armas/Machados/Machado do Fogo Abrasador/E1.jpg"
-            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Icone_MFA1.png") # PLACEHOLDER
+            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv1.png") # PLACEHOLDER
         )
 
         # --- CONFIGURAÇÕES MODIFICÁVEIS POR NÍVEL ---
@@ -42,13 +42,15 @@ class MachadoDoFogoAbrasador(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv1.png", # PLACEHOLDER
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv1/ChamaFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv1/ChamaFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv1/ChamaFrame3.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base0.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base1.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base2.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base3.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base4.png",  # PLACEHOLDER
                 ],
                 "animation_speed": 115,    # PLACEHOLDER (ms por frame)
                 "animation_display_scale": 1.2, # PLACEHOLDER
-                "ui_icon": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Icone_MFA1.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado do Fogo Abrasador/E1.jpg" # PLACEHOLDER
             },
             1.5: {
                 "damage": 34.0, "range": 100.0, "cooldown": 2.0, "name_suffix": "+1",
@@ -56,13 +58,15 @@ class MachadoDoFogoAbrasador(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv1.png", # PLACEHOLDER
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv1/ChamaFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv1/ChamaFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv1/ChamaFrame3.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base0.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base1.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base2.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base3.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT1/AT1-base4.png",# PLACEHOLDER
                 ],
                 "animation_speed": 110,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Icone_MFA1.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado do Fogo Abrasador/E1.jpg" # PLACEHOLDER
             },
             2.0: {
                 "damage": 42.0, "range": 110.0, "cooldown": 1.8, "name_suffix": "Infernal", # SUGESTÃO
@@ -70,14 +74,15 @@ class MachadoDoFogoAbrasador(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv2.png", # PLACEHOLDER
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame3.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame4.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base0.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base1.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base2.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base3.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 100,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Icone_MFA2.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado do Fogo Abrasador/E2.jpg" # PLACEHOLDER
             },
             2.5: {
                 "damage": 50.0, "range": 115.0, "cooldown": 1.7, "name_suffix": "Infernal +1",
@@ -85,14 +90,15 @@ class MachadoDoFogoAbrasador(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv2.png", # PLACEHOLDER
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame3.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv2/InfernalFrame4.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base0.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base1.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base2.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base3.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT2/AT2-base4.png",  # PLACEHOLDER
                 ],
                 "animation_speed": 95,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Icone_MFA2.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado do Fogo Abrasador/E2.jpg" # PLACEHOLDER
             },
             3.0: {
                 "damage": 60.0, "range": 130.0, "cooldown": 1.5, "name_suffix": "Cataclísmico", # SUGESTÃO
@@ -100,15 +106,15 @@ class MachadoDoFogoAbrasador(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv3.png", # PLACEHOLDER
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv3/CataclismoFrame1.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv3/CataclismoFrame2.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv3/CataclismoFrame3.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv3/CataclismoFrame4.png", # PLACEHOLDER
-                    "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Ataque/Nv3/CataclismoFrame5.png"  # PLACEHOLDER
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT3/AT3-base0.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT3/AT3-base1.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT3/AT3-base2.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT3/AT3-base3.png",
+                    "Sprites/Armas/Machados/Machado do Fogo Abrasador/Ataque/AT3/AT3-base4.png",  # PLACEHOLDER
                 ],
                 "animation_speed": 90,
                 "animation_display_scale": 1.3,
-                "ui_icon": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Icone_MFA3.png" # PLACEHOLDER
+                "ui_icon": "Sprites/Armas/Machados/Machado do Fogo Abrasador/E3.jpg" # PLACEHOLDER
             }
         }
 

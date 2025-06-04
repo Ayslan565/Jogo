@@ -44,13 +44,15 @@ class MachadoMarfim(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv1.png", # Exemplo
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv1/MarfimFrame1.png", # Exemplo
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv1/MarfimFrame2.png", # Exemplo
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv1/MarfimFrame3.png"  # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base2.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base3.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base4.png",  # Exemplo
                 ],
                 "animation_speed": 100,     # CONFIGURÁVEL (ms por frame)
                 "animation_display_scale": 1.15, # CONFIGURÁVEL
-                "ui_icon": "Sprites/Armas/Machados/MachadoMarfim/Icone_MMr1.png", # Exemplo (MMr para Marfim Resplendor)
+                "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E1.png", # Exemplo (MMr para Marfim Resplendor)
                 "description": "Um machado elegante feito de marfim polido, que brilha com uma luz suave.",
                 "rarity": "Épica",
                 "weapon_type": "Machado Nobre",
@@ -62,13 +64,15 @@ class MachadoMarfim(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv1/MarfimFrame1.png",
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv1/MarfimFrame2.png",
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv1/MarfimFrame3.png"
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base2.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base3.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 95,
                 "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Machados/MachadoMarfim/Icone_MMr1.png"
+                "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E1.png"
             },
             2.0: {
                 "damage": 65.0, "range": 110.0, "cooldown": 1.5, "name_suffix": "Iluminado",
@@ -76,14 +80,15 @@ class MachadoMarfim(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv2.png", 
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame1.png", 
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame2.png", 
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame3.png", 
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame4.png"
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base2.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base3.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 90,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoMarfim/Icone_MMr2.png" 
+                "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E2.png" 
             },
             2.5: {
                 "damage": 70.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Iluminado +1",
@@ -91,14 +96,15 @@ class MachadoMarfim(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame1.png",
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame2.png",
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame3.png",
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv2/IluminadoFrame4.png"
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base2.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base3.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 85,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoMarfim/Icone_MMr2.png"
+                "ui_icon": "Sprites\Armas\Machados\Machado do Marfim Resplendor\E2.png"
             },
             3.0: {
                 "damage": 85.0, "range": 130.0, "cooldown": 1.2, "name_suffix": "Divino",
@@ -106,15 +112,15 @@ class MachadoMarfim(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv3.png", 
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv3/DivinoFrame1.png", 
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv3/DivinoFrame2.png", 
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv3/DivinoFrame3.png", 
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv3/DivinoFrame4.png", 
-                    "Sprites/Armas/Machados/MachadoMarfim/Ataque/Nv3/DivinoFrame5.png"
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT3/AT3-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT3/AT3-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT3/AT3-base2.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT3/AT3-base3.png",
+                    "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT3/AT3-base4.png",
                 ],
                 "animation_speed": 80,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/MachadoMarfim/Icone_MMr3.png"
+                "ui_icon": "Sprites\Armas\Machados\Machado do Marfim Resplendor\E3.png"
             }
         }
 
