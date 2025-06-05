@@ -1,9 +1,11 @@
+# Game.py
 import pygame
 import random
 import sys
 import os
 
 # --- Configuração do sys.path ---
+# Adiciona o diretório do projeto ao sys.path para facilitar importações relativas
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
@@ -12,38 +14,52 @@ if project_root_dir not in sys.path:
     sys.path.insert(0, project_root_dir)
 
 # --- Pré-definição de Nomes Globais como Fallback ---
-Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, BarraInventario, ItemInventario, GerenciadorMoedas = (None,) * 16
+# Inicializa variáveis globais como None.
+# CORRIGIDO: O número de Nones agora corresponde ao número de variáveis (15).
+Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, ItemInventario, GerenciadorMoedas = (None,) * 15
 AdagaFogo, EspadaBrasas, MachadoCeruleo, MachadoMacabro, MachadoMarfim, MachadoBarbaro, EspadaFogoAzul, EspadaLua, EspadaCaida, EspadaPenitencia, MachadoBase = (None,) * 11
 LaminaDoCeuCentilhante, MachadoDaDescidaSanta, MachadoDoFogoAbrasador = (None,) * 3
 WeaponWheelUI = None
 Luta_boss = None
 
-# --- Importações Centralizadas ---
-# ATENÇÃO: Certifique-se de que 'importacoes.py' importa corretamente 'GerenciadorMoedas'
-# do arquivo 'gerenciador_moedas.py'. Exemplo em importacoes.py:
-# try:
-#     from gerenciador_moedas import GerenciadorMoedas
-# except ImportError:
-#     print("AVISO(importacoes): Módulo 'gerenciador_moedas.py' não encontrado.")
-#     GerenciadorMoedas = None
+# --- NOVA IMPORTAÇÃO DIRETA PARA BarraInventario ---
+# Como Game.py e inventario_barra.py estão em Jogo/Arquivos/,
+# tentamos uma importação direta.
+BarraInventario = None # Inicializa como None para o caso de falha na importação abaixo
 try:
-    from importacoes import * # Esta linha deve trazer GerenciadorMoedas se importado corretamente
-    if Luta_boss is None:
+    from inventario_barra import BarraInventario
+    if BarraInventario is None: # Checagem adicional se a importação ocorreu mas resultou em None
+         print("AVISO (Game.py): 'inventario_barra.BarraInventario' foi importado como None. Verifique o arquivo 'inventario_barra.py' por definições ou erros internos.")
+except ImportError as e_barra_inv:
+    print(f"ERRO CRÍTICO (Game.py): Falha ao importar 'BarraInventario' diretamente de 'inventario_barra.py': {e_barra_inv}")
+    import traceback
+    traceback.print_exc()
+except Exception as e_geral_barra_inv:
+    print(f"ERRO CRÍTICO (Game.py): Exceção geral ao importar 'BarraInventario': {e_geral_barra_inv}")
+    import traceback
+    traceback.print_exc()
+
+
+# --- Importações Centralizadas (todas as outras, via importacoes.py) ---
+try:
+    from importacoes import * # Esta linha DEVE trazer GerenciadorMoedas e outras dependências
+                              # mas BarraInventario agora é importada diretamente acima.
+    if Luta_boss is None: # Se Luta_boss não foi importado por 'importacoes'
         try:
-            import Luta_boss as LutaBossModule
+            import Luta_boss as LutaBossModule # Tenta importar Luta_boss diretamente
             Luta_boss = LutaBossModule
-        except ImportError: pass
-except ImportError:
+        except ImportError: pass # Ignora se a importação direta também falhar
+except ImportError: # Se 'importacoes.py' falhar completamente
     try:
-        if Luta_boss is None:
+        if Luta_boss is None: # Mesmo assim, tenta importar Luta_boss
             import Luta_boss as LutaBossModule
             Luta_boss = LutaBossModule
     except ImportError: pass
-except Exception: pass
+except Exception: pass # Captura outras exceções genéricas durante a importação
 
 try:
-    if Player is None:
-        from player import Player as PlayerLocal
+    if Player is None: # Se Player não foi importado por 'importacoes'
+        from player import Player as PlayerLocal # Tenta importar Player diretamente
         Player = PlayerLocal
 except ImportError: pass
 
@@ -61,12 +77,14 @@ DEATH_SCREEN_BACKGROUND_IMAGE = os.path.join(project_root_dir, "Sprites", "Backg
 game_music_volume = 0.3
 game_sfx_volume = 0.5
 
+# Variáveis globais
 jogador = None
 pause_manager = None
 xp_manager = None
-barra_inventario = None
+# barra_inventario será inicializado em inicializar_jogo usando a classe BarraInventario importada diretamente
+barra_inventario = None # Será instanciada em inicializar_jogo
 gerenciador_inimigos = None
-gerenciador_de_moedas = None # Será instanciado em inicializar_jogo
+gerenciador_de_moedas = None
 game_is_running_flag = True
 jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
@@ -74,14 +92,14 @@ musica_gameplay_atual_pos_ms = 0
 
 def inicializar_jogo(largura_tela, altura_tela):
     global jogador, game_music_volume, pause_manager, xp_manager, barra_inventario, gerenciador_inimigos, \
-           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas # gerenciador_de_moedas agora é global
+           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas
     tempo_inicio_func = pygame.time.get_ticks()
 
     if Luta_boss and hasattr(Luta_boss, 'configurar_musicas_chefe'):
         Luta_boss.configurar_musicas_chefe(MUSICAS_CHEFE_PARA_MODULO)
 
     if Player is None:
-        print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
+        print("ERRO CRÍTICO (Game.py - inicializar_jogo): Classe Player não carregada.")
         return None, None, None, [], [], set(), None, True, tempo_inicio_func, None, None
 
     jogador = Player(velocidade=5, vida_maxima=150)
@@ -92,21 +110,15 @@ def inicializar_jogo(largura_tela, altura_tela):
     if not hasattr(jogador, 'rect_colisao') and hasattr(jogador, 'rect'):
         jogador.rect_colisao = jogador.rect.inflate(-10,-10)
     elif not hasattr(jogador, 'rect'):
-        print("ERRO CRÍTICO (Game.py): Instância do Jogador não possui 'rect'.")
+        print("ERRO CRÍTICO (Game.py - inicializar_jogo): Instância do Jogador não possui 'rect'.")
         return None, None, None, [], [], set(), None, True, tempo_inicio_func, None, None
 
-    # Inicializar GerenciadorMoedas
     if GerenciadorMoedas is not None and Player is not None and hasattr(jogador, 'dinheiro'):
-        # ATENÇÃO: Passe o caminho para uma fonte .ttf se desejar uma fonte específica
-        # Ex: fonte_path=os.path.join(project_root_dir, "Fontes", "sua_fonte.ttf")
         gerenciador_de_moedas = GerenciadorMoedas(jogador_ref=jogador, fonte_path=None)
     else:
         gerenciador_de_moedas = None
-        if GerenciadorMoedas is None:
-            print("AVISO (Game.py): Classe GerenciadorMoedas não importada ou não definida. Sistema de moedas desabilitado.")
-        elif Player is None or not hasattr(jogador, 'dinheiro'):
-            print("AVISO (Game.py): Jogador ou atributo 'dinheiro' não definido. Sistema de moedas desabilitado.")
-
+        if GerenciadorMoedas is None: print("AVISO (Game.py - inicializar_jogo): Classe GerenciadorMoedas não disponível.")
+        elif Player is None or not hasattr(jogador, 'dinheiro'): print("AVISO (Game.py - inicializar_jogo): Jogador ou atributo 'dinheiro' não definido para GerenciadorMoedas.")
 
     if XPManager is not None:
         xp_manager = XPManager(player_ref=jogador, largura_tela=largura_tela, altura_tela=altura_tela)
@@ -116,17 +128,16 @@ def inicializar_jogo(largura_tela, altura_tela):
     if AdagaFogo is not None and hasattr(jogador, 'add_owned_weapon') and callable(jogador.add_owned_weapon):
         try:
             jogador.add_owned_weapon(AdagaFogo())
-        except Exception as e: print(f"AVISO (Game.py): Falha ao adicionar AdagaFogo: {e}")
+        except Exception as e: print(f"AVISO (Game.py - inicializar_jogo): Falha ao adicionar AdagaFogo: {e}")
 
     estacoes = Estacoes() if Estacoes is not None else None
     gramas, arvores, blocos_gerados = [], [], set()
 
-    # ATENÇÃO: Certifique-se que o __init__ de GerenciadorDeInimigos aceita 'gerenciador_moedas_ref'
     if GerenciadorDeInimigos is not None and estacoes is not None:
         gerenciador_inimigos = GerenciadorDeInimigos(estacoes_obj=estacoes,
                                                      tela_largura=largura_tela,
                                                      altura_tela=altura_tela,
-                                                     gerenciador_moedas_ref=gerenciador_de_moedas) # Passa a referência
+                                                     gerenciador_moedas_ref=gerenciador_de_moedas)
         if jogador and hasattr(jogador, 'rect') and hasattr(gerenciador_inimigos, 'spawn_inimigos_iniciais'):
             gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
     else: gerenciador_inimigos = None
@@ -138,7 +149,7 @@ def inicializar_jogo(largura_tela, altura_tela):
             largura_fundo_timer = fonte_timer.size("00:00")[0] + 20
             timer_pos_x = largura_tela // 2 - largura_fundo_timer // 2
             timer_obj = Timer(timer_pos_x, 25)
-        except Exception as e: print(f"AVISO (Game.py): Falha ao inicializar Timer: {e}")
+        except Exception as e: print(f"AVISO (Game.py - inicializar_jogo): Falha ao inicializar Timer: {e}")
 
     if shop_elements and hasattr(shop_elements, 'reset_shop_spawn'):
         shop_elements.reset_shop_spawn()
@@ -148,10 +159,19 @@ def inicializar_jogo(largura_tela, altura_tela):
                                          main, main, game_music_volume, game_sfx_volume)
     else: pause_manager = None
 
-    if BarraInventario and jogador and hasattr(jogador, 'owned_weapons'):
+    # Inicialização da barra_inventario usando a classe BarraInventario importada diretamente
+    # A variável global `barra_inventario` será definida aqui.
+    if BarraInventario and jogador and hasattr(jogador, 'owned_weapons'): # Verifica se BarraInventario foi importada com sucesso
         barra_inv_x, barra_inv_y = 25, altura_tela - 50 - 25
+        # A variável global `barra_inventario` é atualizada aqui
         barra_inventario = BarraInventario(barra_inv_x, barra_inv_y, largura_tela, altura_tela, num_slots_hud=4)
-    else: barra_inventario = None
+        print(f"DEBUG (Game.py - inicializar_jogo): BarraInventario INICIALIZADA com sucesso. Objeto: {barra_inventario}")
+    else:
+        # barra_inventario já é None por padrão (global), apenas loga o motivo
+        print("DEBUG (Game.py - inicializar_jogo): Falha ao inicializar BarraInventario (variável global permanece None). Condições:")
+        if not BarraInventario: print("  - Classe BarraInventario é None (importação falhou no topo do Game.py).")
+        if not jogador: print("  - Objeto jogador é None.")
+        elif not hasattr(jogador, 'owned_weapons'): print("  - Jogador não possui 'owned_weapons'.")
 
     vida_jogador_ref = getattr(jogador, 'vida', None)
     if vida_jogador_ref is None and Vida is not None:
@@ -159,7 +179,9 @@ def inicializar_jogo(largura_tela, altura_tela):
         if hasattr(jogador, 'vida'): jogador.vida = vida_jogador_ref
 
     musica_gameplay_atual_path = None; musica_gameplay_atual_pos_ms = 0
+    # Retorna a instância de barra_inventario criada (ou None)
     return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario
+
 
 def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista, estacoes_obj, blocos_ja_gerados_set):
     if not (jogador_obj and hasattr(jogador_obj, 'rect') and estacoes_obj and Grama and Arvore):
@@ -227,7 +249,7 @@ def verificar_colisoes_com_inimigos(gerenciador_inimigos_obj, jogador_obj):
                     jogador_obj.receber_dano(dano_contato_inimigo)
 
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
-                  gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui_obj,
+                  gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui_arg, # Renomeado para evitar conflito com global
                   cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms,
                   luta_boss_ativa_status):
     global xp_manager, Luta_boss, gerenciador_de_moedas
@@ -267,7 +289,6 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
             x_barra_vida_chefe = (janela_surf.get_width() - largura_barra_vida_chefe) / 2
             y_barra_vida_chefe = 30
             percentual_vida_chefe = max(0, chefe_para_ui.hp / chefe_para_ui.max_hp)
-
             pygame.draw.rect(janela_surf, (100,0,0), (x_barra_vida_chefe, y_barra_vida_chefe, largura_barra_vida_chefe, altura_barra_vida_chefe))
             pygame.draw.rect(janela_surf, (255,0,0), (x_barra_vida_chefe, y_barra_vida_chefe, largura_barra_vida_chefe * percentual_vida_chefe, altura_barra_vida_chefe))
             pygame.draw.rect(janela_surf, (255,255,255), (x_barra_vida_chefe, y_barra_vida_chefe, largura_barra_vida_chefe, altura_barra_vida_chefe), 2)
@@ -282,13 +303,12 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
             timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
         if xp_manager and hasattr(xp_manager, 'draw') and callable(xp_manager.draw):
             xp_manager.draw(janela_surf)
-        if barra_inventario_ui_obj and hasattr(barra_inventario_ui_obj, 'desenhar') and callable(barra_inventario_ui_obj.desenhar) and jogador_obj:
-            barra_inventario_ui_obj.desenhar(janela_surf, jogador_obj)
-        # Desenhar HUD de Moedas
+        # Usa barra_inventario_ui_arg que é passado como argumento
+        if barra_inventario_ui_arg and hasattr(barra_inventario_ui_arg, 'desenhar') and callable(barra_inventario_ui_arg.desenhar) and jogador_obj:
+            barra_inventario_ui_arg.desenhar(janela_surf, jogador_obj)
         if gerenciador_de_moedas and hasattr(gerenciador_de_moedas, 'desenhar_hud_moedas'):
             largura_tela_atual = janela_surf.get_width()
-            # Ajuste estas coordenadas para onde você quer que a HUD de moedas apareça
-            pos_x_moedas_hud = largura_tela_atual - 220 # Exemplo: Canto superior direito
+            pos_x_moedas_hud = largura_tela_atual - 220
             pos_y_moedas_hud = 20
             gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, pos_x_moedas_hud, pos_y_moedas_hud)
 
@@ -339,9 +359,11 @@ def main():
         if Menu is not None and 'menu_principal_obj' in locals() and hasattr(menu_principal_obj, 'parar_musica'):
             menu_principal_obj.parar_musica()
 
+        # A variável global `barra_inventario` será definida dentro de `inicializar_jogo`
         jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, \
         gerenciador_inimigos, jogador_morreu, tempo_inicio_jogo, timer_obj, \
-        barra_inventario = inicializar_jogo(largura_tela_jogo, altura_tela_jogo)
+        _ = inicializar_jogo(largura_tela_jogo, altura_tela_jogo) # O último valor retornado é a instância de barra_inventario
+
 
         if jogador is None: pygame.quit(); sys.exit()
         if mixer_initialized_successfully and Luta_boss and not Luta_boss.esta_luta_ativa():
@@ -381,7 +403,7 @@ def main():
                             elif action_pause == "quit": running_game_loop = False; game_is_running_flag = False; break
 
                     elif evento_jogo.key == pygame.K_TAB and game_state == "playing" and not luta_boss_ativa_main:
-                        if barra_inventario and jogador:
+                        if barra_inventario and jogador: # Usa a variável global barra_inventario
                             barra_inventario.toggle_visao_inventario(jogador)
                             jogo_pausado_para_inventario = barra_inventario.visao_inventario_aberta
                             if jogo_pausado_para_inventario:
@@ -401,7 +423,7 @@ def main():
                             print("ERRO (main.py): Falha ao iniciar luta contra chefe via F10.")
                             if mixer_initialized_successfully and not pygame.mixer.music.get_busy() and musica_gameplay_atual_path:
                                 tocar_musica_jogo()
-
+                # Usa a variável global barra_inventario
                 if barra_inventario and game_state == "playing" and jogador and not luta_boss_ativa_main:
                     barra_inventario.handle_input(evento_jogo, jogador)
 
@@ -507,8 +529,9 @@ def main():
             cam_y = jogador.rect.centery - altura_tela_jogo // 2 if jogador and hasattr(jogador, 'rect') else 0
             tempo_total_seg = (pygame.time.get_ticks() - tempo_inicio_jogo) // 1000 if tempo_inicio_jogo is not None else 0
 
+            # Passa a instância global 'barra_inventario' para desenhar_cena
             desenhar_cena(janela_principal, est, gramas, arvores, jogador, gerenciador_inimigos,
-                          vida_jogador_ref, barra_inventario,
+                          vida_jogador_ref, barra_inventario, 
                           cam_x, cam_y, tempo_total_seg, timer_obj, delta_time_ms,
                           luta_boss_ativa_main)
 
@@ -542,8 +565,9 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         if pygame.get_init():
-            if 'gerenciador_inimigos' in globals() and gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'):
+            if 'gerenciador_inimigos' in locals() and gerenciador_inimigos and hasattr(gerenciador_inimigos, 'stop_threads'):
                 gerenciador_inimigos.stop_threads()
             pygame.quit()
         input("Pressione Enter para sair após o erro fatal...")
         sys.exit(1)
+

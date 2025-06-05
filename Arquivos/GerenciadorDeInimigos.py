@@ -187,7 +187,7 @@ class GerenciadorDeInimigos:
     def __init__(self, estacoes_obj, tela_largura: int, altura_tela: int,
                  gerenciador_moedas_ref=None, # Parâmetro adicionado
                  intervalo_spawn_inicial: float = 3.0, spawns_iniciais: int = 5,
-                 limite_inimigos: int = 25, fator_exponencial_spawn: float = 0.020,
+                 limite_inimigos: int = 5000, fator_exponencial_spawn: float = 0.020,
                  intervalo_spawn_minimo: float = 0.5, atraso_spawn_estacao_seg: float = 2.0):
 
         self.estacoes = estacoes_obj

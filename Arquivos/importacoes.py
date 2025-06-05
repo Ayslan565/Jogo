@@ -1,6 +1,3 @@
-# Arquivo: importacoes.py
-# Este arquivo centraliza as importações comuns para o jogo.
-# print("DEBUG(importacoes): Módulo importacoes.py carregado.")
 
 import pygame
 import random
@@ -28,11 +25,22 @@ except ImportError:
 
 try:
     # Se inventario_barra.py está na mesma pasta que importacoes.py (Arquivos)
-    from inventario_barra import BarraInventario, ItemInventario
-except ImportError:
-    print("AVISO(importacoes): Falha ao importar BarraInventario ou ItemInventario de 'inventario_barra.py'.")
+    from inventario_barra import *
+    if BarraInventario is None: # Checagem adicional pós-importação bem-sucedida (sintaticamente)
+        print("AVISO(importacoes): BarraInventario foi importado como None de 'inventario_barra.py'. Verifique o arquivo 'inventario_barra.py' por erros internos.")
+except ImportError as e_ib:
+    print(f"AVISO(importacoes): Falha ao importar BarraInventario ou ItemInventario de 'inventario_barra.py'. Erro específico: {e_ib}")
+    import traceback
+    traceback.print_exc() # Imprime o traceback completo do ImportError
     BarraInventario = None
     ItemInventario = None
+except Exception as e_geral_ib: # Captura outros erros que não sejam ImportError
+    print(f"ERRO GERAL(importacoes): ao tentar importar de 'inventario_barra.py': {e_geral_ib}")
+    import traceback
+    traceback.print_exc()
+    BarraInventario = None
+    ItemInventario = None
+
 
 try:
     from Pause import PauseMenuManager
@@ -106,12 +114,9 @@ except ImportError:
     print("AVISO(importacoes): Módulo 'Luta_boss.py' não encontrado.")
     Luta_boss = None
 
-# --- Adicionada Importação do GerenciadorMoedas ---
-# Assumindo que gerenciador_moedas.py está na mesma pasta que importacoes.py (Jogo/Arquivos/)
 try:
     from .gerenciador_moedas import GerenciadorMoedas
 except ImportError:
-    # Fallback se a importação relativa falhar (ex: executando importacoes.py diretamente)
     try:
         from gerenciador_moedas import GerenciadorMoedas
     except ImportError:
@@ -120,56 +125,48 @@ except ImportError:
 
 
 # --- Classes Base de Armas ---
-# Assumindo que importacoes.py está em Jogo/Arquivos/
-# e a pasta Armas está em Jogo/Armas/ (um nível acima e depois para Armas)
 try:
     from .Armas.weapon import Weapon
 except ImportError:
-    # Fallback para caso a estrutura seja Jogo/Arquivos/Armas/
     try:
-        from .Armas.weapon import Weapon
+        from Armas.weapon import Weapon # Tentativa de importação se a estrutura for Jogo/Armas
     except ImportError:
         print("AVISO(importacoes): 'Armas/weapon.py' ou classe 'Weapon' não encontrada.")
         Weapon = None
 
 
 # --- Classes de Armas Específicas ---
-# Assumindo que os arquivos das armas estão em Jogo/Armas/
-# Portanto, de Jogo/Arquivos/importacoes.py, o caminho relativo é ..Armas.NomeDoArquivo
 try: from .Armas.AdagaFogo import AdagaFogo
-except ImportError: AdagaFogo = None; # print("AVISO(importacoes): AdagaFogo não encontrada.")
+except ImportError: AdagaFogo = None
 try: from .Armas.EspadaBrasas import EspadaBrasas
-except ImportError: EspadaBrasas = None; # print("AVISO(importacoes): EspadaBrasas não encontrada.")
+except ImportError: EspadaBrasas = None
 try: from .Armas.EspadaCaida import EspadaCaida
-except ImportError: EspadaCaida = None; # print("AVISO(importacoes): EspadaCaida não encontrada.")
+except ImportError: EspadaCaida = None
 try: from .Armas.EspadaFogoAzul import EspadaFogoAzul
-except ImportError: EspadaFogoAzul = None; # print("AVISO(importacoes): EspadaFogoAzul não encontrada.")
+except ImportError: EspadaFogoAzul = None
 try: from .Armas.EspadaLua import EspadaLua
-except ImportError: EspadaLua = None; # print("AVISO(importacoes): EspadaLua não encontrada.")
+except ImportError: EspadaLua = None
 try: from .Armas.EspadaPenitencia import EspadaPenitencia
-except ImportError: EspadaPenitencia = None; # print("AVISO(importacoes): EspadaPenitencia não encontrada.")
+except ImportError: EspadaPenitencia = None
 try: from .Armas.EspadaSacraDasBrasas import EspadaSacraDasBrasas
-except ImportError: EspadaSacraDasBrasas = None; # print("AVISO(importacoes): EspadaSacraDasBrasas não encontrada.")
+except ImportError: EspadaSacraDasBrasas = None
 try: from .Armas.EspadaSacraCerulea import EspadaSacraCerulea
-except ImportError: EspadaSacraCerulea = None; # print("AVISO(importacoes): EspadaSacraCerulea não encontrada.")
+except ImportError: EspadaSacraCerulea = None
 
 try: from .Armas.LaminaCeuCinti import LaminaDoCeuCentilhante
-except ImportError: LaminaDoCeuCentilhante = None; # print("AVISO(importacoes): LaminaDoCeuCentilhante não encontrada.")
+except ImportError: LaminaDoCeuCentilhante = None
 
 try: from .Armas.MachadoBase import MachadoBase
-except ImportError: MachadoBase = None; # print("AVISO(importacoes): MachadoBase não encontrado.")
+except ImportError: MachadoBase = None
 try: from .Armas.MachadoBarbaro import MachadoBarbaro
-except ImportError: MachadoBarbaro = None; # print("AVISO(importacoes): MachadoBarbaro não encontrado.")
+except ImportError: MachadoBarbaro = None
 try: from .Armas.MachadoCeruleo import MachadoCeruleo
-except ImportError: MachadoCeruleo = None; # print("AVISO(importacoes): MachadoCeruleo não encontrado.")
+except ImportError: MachadoCeruleo = None
 try: from .Armas.Machado_Santa import MachadoDaDescidaSanta
-except ImportError: MachadoDaDescidaSanta = None; # print("AVISO(importacoes): MachadoDaDescidaSanta não encontrado.")
+except ImportError: MachadoDaDescidaSanta = None
 try: from .Armas.MachadoAbrasa import MachadoDoFogoAbrasador
-except ImportError: MachadoDoFogoAbrasador = None; # print("AVISO(importacoes): MachadoDoFogoAbrasador não encontrado.")
+except ImportError: MachadoDoFogoAbrasador = None
 try: from .Armas.MachadoMarfim import MachadoMarfim
-except ImportError: MachadoMarfim = None; # print("AVISO(importacoes): MachadoMarfim não encontrado.")
+except ImportError: MachadoMarfim = None
 try: from .Armas.MachadoMacabro import MachadoMacabro
-except ImportError: MachadoMacabro = None; # print("AVISO(importacoes): MachadoMacabro não encontrado.")
-
-
-# print("AVISO(importacoes): Fim do carregamento do módulo importacoes.py.")
+except ImportError: MachadoMacabro = None
