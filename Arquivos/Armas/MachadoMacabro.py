@@ -44,15 +44,15 @@ class MachadoMacabro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png", # Exemplo
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base0.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base1.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base2.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base3.png",
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base4.png",  # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base0.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base1.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base2.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base3.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base4.png",  # Exemplo
                 ],
                 "animation_speed": 115,     # CONFIGURÁVEL (ms por frame)
                 "animation_display_scale": 1.2, # CONFIGURÁVEL
-                "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png", # Exemplo
+                "ui_icon": "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\E-1.png", # Exemplo
                 "description": "Um machado grotesco que parece faminto, com runas que pulsam com uma luz sinistra.",
                 "rarity": "Mítica",
                 "weapon_type": "Machado de Gula",
@@ -64,15 +64,15 @@ class MachadoMacabro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base0.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base1.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base2.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base3.png",
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base4.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base0.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base1.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base2.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base3.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT1\\AT1-base4.png",
                 ],
                 "animation_speed": 110,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png"
+                "ui_icon": "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\E-1.png"
             },
             2.0: {
                 "damage": 55.0, "range": 95.0, "cooldown": 1.7, "name_suffix": "Insaciável",
@@ -80,15 +80,15 @@ class MachadoMacabro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png", 
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base0.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base1.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base2.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base3.png",
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base4.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base0.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base1.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base2.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base3.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base4.png",
                 ],
                 "animation_speed": 105,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-2.png" 
+                "ui_icon": "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\E-2.png" 
             },
             2.5: {
                 "damage": 60.0, "range": 100.0, "cooldown": 1.6, "name_suffix": "Insaciável +1",
@@ -96,14 +96,14 @@ class MachadoMacabro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base0.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base2.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base2.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base3.png",
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base4.png",                ],
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base0.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base2.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base2.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base3.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT2\\AT2-base4.png",                ],
                 "animation_speed": 100,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-2.png"
+                "ui_icon": "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\E-2.png"
             },
             3.0: {
                 "damage": 75.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Devorador de Mundos",
@@ -111,15 +111,15 @@ class MachadoMacabro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv3.png", 
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT3/AT3-base0.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT3/AT3-base1.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT3/AT3-base2.png", # Exemplo
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT3/AT3-base3.png",
-                    "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT3/AT3-base4.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT3\\AT3-base0.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT3\\AT3-base1.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT3\\AT3-base2.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT3\\AT3-base3.png",
+                    "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\Ataque\\AT3\\AT3-base4.png",
                 ],
                 "animation_speed": 95,
                 "animation_display_scale": 1.3,
-                "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-3.png"
+                "ui_icon": "Sprites\\Armas\\Machados\\Machado Macabro da Gula Infinita\\E-3.png"
             }
         }
 

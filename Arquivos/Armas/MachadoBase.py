@@ -55,13 +55,13 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv1.png", # Exemplo
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv1/BarbaroFrame1.png", # Exemplo
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv1/BarbaroFrame2.png", # Exemplo
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv1/BarbaroFrame3.png"  # Exemplo
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv1\\BarbaroFrame1.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv1\\BarbaroFrame2.png", # Exemplo
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv1\\BarbaroFrame3.png"  # Exemplo
                 ],
                 "animation_speed": 120,     # CONFIGURÁVEL (ms por frame), machados podem ser mais lentos
                 "animation_display_scale": 1.2, # CONFIGURÁVEL, machados podem ser maiores
-                "ui_icon": "Sprites/Armas/Machados/MachadoBarbaro/Icone_MB1.png", # Exemplo
+                "ui_icon": "Sprites\\Armas\\Machados\\MachadoBarbaro\\Icone_MB1.png", # Exemplo
                 # Adicionando os atributos descritivos aqui também para consistência, embora _apply_level_stats não os use diretamente.
                 "description": "Um machado pesado e brutal, adornado com cravos ameaçadores.",
                 "rarity": "Comum",
@@ -74,13 +74,13 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv1/BarbaroFrame1.png",
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv1/BarbaroFrame2.png",
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv1/BarbaroFrame3.png"
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv1\\BarbaroFrame1.png",
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv1\\BarbaroFrame2.png",
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv1\\BarbaroFrame3.png"
                 ],
                 "animation_speed": 115,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/MachadoBarbaro/Icone_MB1.png"
+                "ui_icon": "Sprites\\Armas\\Machados\\MachadoBarbaro\\Icone_MB1.png"
             },
             2.0: {
                 "damage": 25.0, "range": 100.0, "cooldown": 1.9, "name_suffix": "Reforçado",
@@ -88,14 +88,14 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv2.png", 
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame1.png", 
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame2.png", 
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame3.png", 
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame4.png"
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame1.png", 
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame2.png", 
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame3.png", 
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame4.png"
                 ],
                 "animation_speed": 110,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/MachadoBarbaro/Icone_MB2.png" 
+                "ui_icon": "Sprites\\Armas\\Machados\\MachadoBarbaro\\Icone_MB2.png" 
             },
             2.5: {
                 "damage": 30.0, "range": 105.0, "cooldown": 1.8, "name_suffix": "Reforçado +1",
@@ -103,14 +103,14 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame1.png",
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame2.png",
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame3.png",
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv2/ReforcadoFrame4.png"
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame1.png",
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame2.png",
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame3.png",
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv2\\ReforcadoFrame4.png"
                 ],
                 "animation_speed": 105,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/MachadoBarbaro/Icone_MB2.png"
+                "ui_icon": "Sprites\\Armas\\Machados\\MachadoBarbaro\\Icone_MB2.png"
             },
             3.0: {
                 "damage": 35.0, "range": 120.0, "cooldown": 1.6, "name_suffix": "Brutal",
@@ -118,15 +118,15 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv3.png", 
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv3/BrutalFrame1.png", 
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv3/BrutalFrame2.png", 
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv3/BrutalFrame3.png", 
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv3/BrutalFrame4.png", 
-                    "Sprites/Armas/Machados/MachadoBarbaro/Ataque/Nv3/BrutalFrame5.png"
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv3\\BrutalFrame1.png", 
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv3\\BrutalFrame2.png", 
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv3\\BrutalFrame3.png", 
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv3\\BrutalFrame4.png", 
+                    "Sprites\\Armas\\Machados\\MachadoBarbaro\\Ataque\\Nv3\\BrutalFrame5.png"
                 ],
                 "animation_speed": 100,
                 "animation_display_scale": 1.3,
-                "ui_icon": "Sprites/Armas/Machados/MachadoBarbaro/Icone_MB3.png"
+                "ui_icon": "Sprites\\Armas\\Machados\\MachadoBarbaro\\Icone_MB3.png"
             }
         }
 
