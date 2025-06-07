@@ -3,7 +3,6 @@ import pygame
 import random
 import sys
 import os
-
 # --- Configuração do sys.path ---
 # Adiciona o diretório do projeto ao sys.path para facilitar importações relativas
 current_dir = os.path.dirname(os.path.abspath(__file__))

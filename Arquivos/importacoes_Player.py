@@ -4,11 +4,12 @@
 
 import pygame # Pygame pode ser útil para tipos ou inicializações, embora não diretamente para imports.
 import os # Para manipulação de caminhos, se necessário em contextos mais complexos.
+from player import *
 
 # --- Importação da Classe Vida ---
 try:
     # Assumindo que vida.py está na mesma pasta (Arquivos) que importacoes_Player.py
-    from .vida import Vida
+    from vida import *
 except ImportError:
     print("ALERTA(importacoes_Player): Módulo 'vida.py' ou classe 'Vida' não encontrado.")
     Vida = None
@@ -16,22 +17,11 @@ except ImportError:
 # --- Importação da Classe Base Weapon ---
 # Assumindo que importacoes_Player.py está em Jogo/Arquivos/
 # e weapon.py está em Jogo/Arquivos/Armas/
-try:
-    from .Armas.weapon import Weapon
-except ImportError as e:
-    print(f"ALERTA(importacoes_Player): Falha ao importar 'Weapon' de '.Armas.weapon': {e}. Verifique o caminho.")
-    # Fallback tentando um caminho diferente se a estrutura for Jogo/Armas/
-    try:
-        from .Armas.weapon import Weapon # Se Armas está um nível acima de Arquivos
-        print("INFO(importacoes_Player): 'Weapon' importada de '..Armas.weapon' como fallback.")
-    except ImportError:
-        print("ERRO CRÍTICO(importacoes_Player): Classe 'Weapon' não encontrada. Funcionalidade de armas comprometida.")
-        Weapon = None
 
 # --- Importação das Classes de Armas Específicas ---
 # Todas devem estar na pasta Armas, que é uma subpasta de Arquivos,
 # ou em Jogo/Armas/ se o fallback acima para Weapon foi usado.
-
+from Armas.weapon import Weapon
 # Adagas
 try:
     from .Armas.AdagaFogo import AdagaFogo
