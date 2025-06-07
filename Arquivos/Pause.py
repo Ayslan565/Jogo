@@ -10,11 +10,9 @@ import random
 current_music_volume = 0.5
 current_sfx_volume = 0.5
 
-# Caminho para a fonte arcade
+# Caminho para a fonte retro
 # ATENÇÃO: VERIFIQUE SE ESTE CAMINHO E NOME DE ARQUIVO ESTÃO CORRETOS PARA SUA FONTE!
-# O caminho deve ser relativo ao diretório onde o script Pause.py está,
-# ou um caminho absoluto.
-FONTE_ARCADE_PATH = "Fontes/Arcade.ttf" 
+FONTE_RETRO_PATH = "Fontes/Retro Gaming.ttf" 
 
 class PauseMenuManager:
     """
@@ -47,32 +45,31 @@ class PauseMenuManager:
         try:
             # Constrói o caminho absoluto para a fonte, assumindo que Pause.py está em 'Arquivos'
             # e 'Fontes' está no mesmo nível que 'Arquivos' (dentro de 'Jogo')
-            # Se a estrutura for diferente, ajuste este caminho.
             base_dir = os.path.dirname(os.path.abspath(__file__)) # Diretório de Pause.py (Arquivos)
             font_dir = os.path.join(os.path.dirname(base_dir), "Fontes") # Caminho para Jogo/Fontes
-            arcade_font_full_path = os.path.join(font_dir, "Arcade.ttf") # Caminho completo para Arcade.ttf
+            retro_font_full_path = os.path.join(font_dir, "Retro Gaming.ttf") # Caminho completo para a fonte
 
-            if os.path.exists(arcade_font_full_path):
-                self.font_title = pygame.font.Font(arcade_font_full_path, 80)
-                self.font_option = pygame.font.Font(arcade_font_full_path, 50)
-                self.font_slider_label = pygame.font.Font(arcade_font_full_path, 30)
-                print(f"DEBUG(PauseMenuManager): Fonte arcade carregada de: {arcade_font_full_path}")
-            else: # Tenta o caminho original se o construído falhar (para retrocompatibilidade ou estrutura diferente)
-                if os.path.exists(FONTE_ARCADE_PATH):
-                    self.font_title = pygame.font.Font(FONTE_ARCADE_PATH, 80)
-                    self.font_option = pygame.font.Font(FONTE_ARCADE_PATH, 50)
-                    self.font_slider_label = pygame.font.Font(FONTE_ARCADE_PATH, 30)
-                    print(f"DEBUG(PauseMenuManager): Fonte arcade carregada de (caminho original): {FONTE_ARCADE_PATH}")
+            if os.path.exists(retro_font_full_path):
+                self.font_title = pygame.font.Font(retro_font_full_path, 80)
+                self.font_option = pygame.font.Font(retro_font_full_path, 50)
+                self.font_slider_label = pygame.font.Font(retro_font_full_path, 30)
+                print(f"DEBUG(PauseMenuManager): Fonte retro carregada de: {retro_font_full_path}")
+            else: # Tenta o caminho original se o construído falhar
+                if os.path.exists(FONTE_RETRO_PATH):
+                    self.font_title = pygame.font.Font(FONTE_RETRO_PATH, 80)
+                    self.font_option = pygame.font.Font(FONTE_RETRO_PATH, 30)
+                    self.font_slider_label = pygame.font.Font(FONTE_RETRO_PATH, 60)
+                    print(f"DEBUG(PauseMenuManager): Fonte retro carregada de (caminho original): {FONTE_RETRO_PATH}")
                 else:
                     self.font_title = pygame.font.Font(None, 80)
                     self.font_option = pygame.font.Font(None, 50)
                     self.font_slider_label = pygame.font.Font(None, 30)
-                    print(f"DEBUG(PauseMenuManager): Aviso: Fonte arcade não encontrada em '{arcade_font_full_path}' ou '{FONTE_ARCADE_PATH}'. Usando fonte padrão.")
+                    print(f"DEBUG(PauseMenuManager): Aviso: Fonte retro não encontrada em '{retro_font_full_path}' ou '{FONTE_RETRO_PATH}'. Usando fonte padrão.")
         except Exception as e:
             self.font_title = pygame.font.Font(None, 80)
             self.font_option = pygame.font.Font(None, 50)
             self.font_slider_label = pygame.font.Font(None, 30)
-            print(f"DEBUG(PauseMenuManager): Erro ao carregar fonte arcade: {e}. Usando fonte padrão.")
+            print(f"DEBUG(PauseMenuManager): Erro ao carregar fonte retro: {e}. Usando fonte padrão.")
 
         self.current_menu_state = "pause" # "pause" ou "options"
         self.action_result = None # Para armazenar a ação do menu ("resume", "options", "main_menu", "quit")
@@ -100,18 +97,17 @@ class PauseMenuManager:
         Exibe o menu principal (pausa) e gerencia a transição para o menu de opções,
         tudo dentro da janela Pygame. Retorna a ação selecionada e os volumes.
         """
-        # Pausa a música do jogo se estiver tocando
         if pygame.mixer.music.get_busy():
             pygame.mixer.music.pause()
 
-        self.action_result = None # Reseta a ação
-        self.current_menu_state = "pause" # Começa no menu de pausa
+        self.action_result = None 
+        self.current_menu_state = "pause"
 
         running_menu = True
         while running_menu:
             self._draw_background_overlay() 
             
-            mouse_pos = pygame.mouse.get_pos() # Pega a posição do mouse uma vez por frame
+            mouse_pos = pygame.mouse.get_pos()
 
             if self.current_menu_state == "pause":
                 self._draw_pause_menu_elements(mouse_pos)
@@ -133,7 +129,7 @@ class PauseMenuManager:
                         elif self.current_menu_state == "options":
                             self.current_menu_state = "pause" 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1: # Botão esquerdo do mouse
+                    if event.button == 1:
                         if self.current_menu_state == "pause":
                             self._handle_pause_menu_click(event.pos)
                             if self.action_result is not None and self.action_result != "options": 
@@ -149,10 +145,10 @@ class PauseMenuManager:
                         self.dragging_sfx_slider = False
         
         if self.action_result == "resume":
-            if pygame.mixer.music.get_busy(): # Só despausa se estava tocando
+            if pygame.mixer.music.get_busy():
                  pygame.mixer.music.unpause()
         elif self.action_result == "main_menu" or self.action_result == "quit":
-            pygame.mixer.music.stop() # Para a música completamente
+            pygame.mixer.music.stop()
 
         return self.action_result, self.current_music_volume, self.current_sfx_volume
 
@@ -162,17 +158,17 @@ class PauseMenuManager:
         title_rect = title_text.get_rect(center=(self.largura_tela // 2, self.altura_tela // 4))
         self.pygame_janela.blit(title_text, title_rect)
 
-        options = ["Continuar", "Opções", "Menu Principal", "Sair"]
-        button_height = 60 # Altura do botão
-        button_spacing = 20 # Espaçamento entre botões
+        options = ["Continuar", "Opções", "Menu", "Sair"]
+        button_height = 60
+        button_spacing = 20
         total_button_height = len(options) * button_height + (len(options) - 1) * button_spacing
         
-        start_y = (self.altura_tela - total_button_height) // 2 + self.altura_tela // 10 # Desloca um pouco para baixo
+        start_y = (self.altura_tela - total_button_height) // 2 + self.altura_tela // 10
 
         self.pause_menu_buttons.clear()
 
         for i, option_text in enumerate(options):
-            button_rect = pygame.Rect(0, 0, 400, button_height) # Largura aumentada
+            button_rect = pygame.Rect(0, 0, 400, button_height)
             button_rect.center = (self.largura_tela // 2, start_y + i * (button_height + button_spacing))
             
             button_color = self.BUTTON_BG
@@ -195,8 +191,8 @@ class PauseMenuManager:
                     self.action_result = "resume"
                 elif option == "Opções":
                     self.current_menu_state = "options"
-                    self.action_result = "options" # Para que o loop principal não saia
-                elif option == "Voltar ao Menu Principal":
+                    self.action_result = "options"
+                elif option == "Menu":
                     self.action_result = "main_menu"
                 elif option == "Sair":
                     self.action_result = "quit"
@@ -205,13 +201,13 @@ class PauseMenuManager:
     def _draw_options_menu_elements(self, mouse_pos):
         """Desenha os elementos visuais do menu de opções diretamente no Pygame."""
         title_text = self.font_title.render("Opções", True, self.TEXT_COLOR)
-        title_rect = title_text.get_rect(center=(self.largura_tela // 2, self.altura_tela // 4 - 50)) # Um pouco mais para cima
+        title_rect = title_text.get_rect(center=(self.largura_tela // 2, self.altura_tela // 4 - 50))
         self.pygame_janela.blit(title_text, title_rect)
 
-        slider_width = 300 # Largura aumentada para os sliders
-        slider_height = 25
+        slider_width = 600
+        slider_height = 45
         knob_radius = 12
-        label_slider_spacing = 20 # Espaço entre o label e o slider
+        label_slider_spacing = 20
         slider_y_start = self.altura_tela // 2 - 50
 
         # Música
@@ -252,7 +248,7 @@ class PauseMenuManager:
         pygame.draw.circle(self.pygame_janela, knob_color_sfx, self.sfx_slider_knob_rect.center, knob_radius)
 
         # Botão Voltar
-        back_button_rect = pygame.Rect(0, 0, 200, 50) # Tamanho ajustado
+        back_button_rect = pygame.Rect(0, 0, 200, 50)
         back_button_rect.center = (self.largura_tela // 2, sfx_y_pos + 100)
         
         button_color_back = self.BUTTON_BG
@@ -268,67 +264,59 @@ class PauseMenuManager:
 
     def _handle_options_menu_click(self, mouse_pos):
         """Lida com cliques nos elementos do menu de opções."""
-        if self.music_slider_knob_rect and self.music_slider_knob_rect.collidepoint(mouse_pos): # Verifica se rect existe
+        if self.music_slider_knob_rect and self.music_slider_knob_rect.collidepoint(mouse_pos):
             self.dragging_music_slider = True
-            # Ajusta o volume imediatamente ao clicar no knob
             self._handle_options_menu_drag(mouse_pos) 
-        elif self.sfx_slider_knob_rect and self.sfx_slider_knob_rect.collidepoint(mouse_pos): # Verifica se rect existe
+        elif self.sfx_slider_knob_rect and self.sfx_slider_knob_rect.collidepoint(mouse_pos):
             self.dragging_sfx_slider = True
-            # Ajusta o volume imediatamente ao clicar no knob
             self._handle_options_menu_drag(mouse_pos)
-        elif self.options_back_button_rect and self.options_back_button_rect.collidepoint(mouse_pos): # Verifica se rect existe
+        elif self.options_back_button_rect and self.options_back_button_rect.collidepoint(mouse_pos):
             self.current_menu_state = "pause" 
 
     def _handle_options_menu_drag(self, mouse_pos):
         """Lida com o arrasto dos sliders de volume."""
-        if self.dragging_music_slider and self.music_slider_rect: # Verifica se rect existe
+        if self.dragging_music_slider and self.music_slider_rect:
             new_knob_x = max(self.music_slider_rect.x, min(mouse_pos[0], self.music_slider_rect.right))
             self.current_music_volume = (new_knob_x - self.music_slider_rect.x) / self.music_slider_rect.width
             self.set_music_volume(self.current_music_volume)
-        elif self.dragging_sfx_slider and self.sfx_slider_rect: # Verifica se rect existe
+        elif self.dragging_sfx_slider and self.sfx_slider_rect:
             new_knob_x = max(self.sfx_slider_rect.x, min(mouse_pos[0], self.sfx_slider_rect.right))
             self.current_sfx_volume = (new_knob_x - self.sfx_slider_rect.x) / self.sfx_slider_rect.width
             self.set_sfx_volume(self.current_sfx_volume)
 
     def set_music_volume(self, volume):
         """Define o volume global da música e aplica-o ao mixer do Pygame."""
-        self.current_music_volume = max(0.0, min(1.0, volume)) # Garante que o volume está entre 0 e 1
+        self.current_music_volume = max(0.0, min(1.0, volume))
         pygame.mixer.music.set_volume(self.current_music_volume)
 
     def set_sfx_volume(self, volume):
         """Define o volume global dos efeitos sonoros."""
-        self.current_sfx_volume = max(0.0, min(1.0, volume)) # Garante que o volume está entre 0 e 1
-        # A aplicação real do volume dos SFX dependerá de como você gerencia
-        # e reproduz os sons no seu jogo (ex: cada Sound object pode ter seu volume ajustado).
+        self.current_sfx_volume = max(0.0, min(1.0, volume))
         # print(f"DEBUG(PauseMenuManager): Volume SFX definido para: {self.current_sfx_volume:.2f}")
 
-
-# Exemplo de uso (para testar o arquivo em isolamento)
+# Exemplo de uso
 if __name__ == "__main__":
     pygame.init()
-    pygame.mixer.init() # Inicializa o mixer para música
+    pygame.mixer.init()
 
-    # Tenta obter as dimensões da tela cheia, ou usa um padrão
     try:
         info = pygame.display.Info()
         largura_tela = info.current_w
         altura_tela = info.current_h
         janela = pygame.display.set_mode((largura_tela, altura_tela), pygame.FULLSCREEN | pygame.SCALED)
-    except pygame.error: # Fallback para caso FULLSCREEN não seja suportado (ex: alguns ambientes virtuais)
+    except pygame.error:
         largura_tela = 1280
         altura_tela = 720
         janela = pygame.display.set_mode((largura_tela, altura_tela), pygame.RESIZABLE | pygame.SCALED)
 
     pygame.display.set_caption("Teste de Pausa (Pygame-only)")
 
-    # Carrega uma música de exemplo para testar o volume
-    # Crie uma pasta 'Musica/Gameplay' no mesmo nível que 'Arquivos' e coloque 'Faixa 1.mp3' lá.
     try:
         music_path_test = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Musica", "Gameplay", "Faixa 1.mp3")
         if os.path.exists(music_path_test):
             pygame.mixer.music.load(music_path_test) 
-            pygame.mixer.music.play(-1) # Toca em loop
-            pygame.mixer.music.set_volume(current_music_volume) # Define o volume inicial
+            pygame.mixer.music.play(-1)
+            pygame.mixer.music.set_volume(current_music_volume)
             print(f"Música de teste '{music_path_test}' carregada e tocando.")
         else:
             print(f"Música de teste não encontrada em '{music_path_test}'.")
@@ -347,11 +335,10 @@ if __name__ == "__main__":
     pygame.display.flip()
     print("Jogo em execução (simulado). Pressione ESC para pausar.")
 
-    # Cria a instância do gerenciador de menu
     pause_manager = PauseMenuManager(janela, largura_tela, altura_tela, dummy_game_loop, dummy_main_menu, current_music_volume, current_sfx_volume)
 
     running = True
-    game_paused = False # Para controlar o estado de pausa no loop de teste
+    game_paused = False
 
     while running:
         for event in pygame.event.get():
@@ -359,44 +346,36 @@ if __name__ == "__main__":
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    if not game_paused: # Se o jogo não está pausado, pausa e mostra o menu
+                    if not game_paused:
                         print("ESC pressionado. Chamando menu de pausa.")
                         game_paused = True
-                        # Salva o estado atual da tela para desenhar por baixo do overlay
-                        game_screen_capture = janela.copy() 
                         
                         action, music_vol, sfx_vol = pause_manager.show_menu()
                         
-                        # Atualiza os volumes globais (se necessário no seu jogo principal)
                         current_music_volume = music_vol
                         current_sfx_volume = sfx_vol
-                        # O volume da música já é ajustado dentro do PauseMenuManager
 
                         if action == "resume":
                             print("Ação: Continuar")
                             game_paused = False
                         elif action == "main_menu":
                             print("Ação: Voltar ao Menu Principal")
-                            # No jogo real, aqui você chamaria a função que reinicia o menu principal
-                            # dummy_main_menu() 
-                            running = False # Para este teste, sair do loop
+                            running = False
                         elif action == "quit":
                             print("Ação: Sair")
                             running = False
-                        else: # Se o menu foi fechado de outra forma (ex: clicando fora), retoma
+                        else:
                             game_paused = False
-                    else: # Se já estava pausado e ESC é pressionado novamente (pode ser tratado pelo show_menu)
+                    else:
                         pass 
             
             if not game_paused:
-                # Simula a atualização do jogo quando não está pausado
                 janela.fill((random.randint(0,50), random.randint(0,50), random.randint(100,200)))
-                # Adicione aqui o desenho do seu jogo real quando não estiver pausado
                 test_text = pause_manager.font_option.render("Jogo Rodando...", True, pause_manager.WHITE)
                 janela.blit(test_text, (50,50))
 
             pygame.display.flip()
-            pygame.time.Clock().tick(30) # Limita o FPS do loop de teste
+            pygame.time.Clock().tick(30)
 
     pygame.quit()
     sys.exit()

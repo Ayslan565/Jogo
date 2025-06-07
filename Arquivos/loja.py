@@ -1,29 +1,25 @@
-# Arquivo: loja_modulo.py (ou loja.py, conforme a sua estrutura)
+# Arquivo: loja_modulo.py
 import pygame
 import time
 import random
 import os
 
 # --- IMPORTAÇÃO ÚNICA DAS CLASSES DE ARMAS ---
-# Assume que importacoes.py está no mesmo diretório ou acessível via PYTHONPATH
-# e que ele define/importa todas as classes de armas necessárias.
 try:
-    from import_Loja import * # Importa todas as classes de armas definidas em importacoes.py
+    from importacoes import * # CORRIGIDO: Importa de 'importacoes.py'
     print("DEBUG(loja_modulo): Classes de armas e outros módulos importados de importacoes.py")
 except ImportError as e:
     print(f"ERRO CRÍTICO(loja_modulo): Não foi possível importar de importacoes.py. Verifique o arquivo e o caminho. Erro: {e}")
-    # Definir todas as classes de armas como None para evitar NameError mais tarde,
-    # embora o ideal seja corrigir a importação.
+    # Definir todas as classes de armas como None para evitar NameError mais tarde
     AdagaFogo = EspadaCaida = EspadaFogoAzul = EspadaLua = EspadaPenitencia = None
     EspadaSacraCerulea = EspadaSacraDasBrasas = LaminaDoCeuCentilhante = None
     MachadoBarbaro = MachadoCeruleo = MachadoDaDescidaSanta = MachadoDoFogoAbrasador = None
     MachadoMarfim = MachadoMacabro = None
     Cajado = None 
     Weapon = MachadoBase = None
-    # Outras classes de importacoes.py também seriam None aqui
-    Vida = Player = WeaponWheelUI = PauseMenuManager = XPManager = Menu = None
+    Vida = Player = RodaDeArmas = PauseMenuManager = XPManager = Menu = None
     GerenciadorDeInimigos = Estacoes = Grama = Arvore = Timer = shop_elements = None
-    run_death_screen = run_shop_scene = BarraInventario = ItemInventario = None
+    run_death_screen = BarraInventario = ItemInventario = None
 
 
 # --- Configuração para o ciclo de cores da borda dourada ---
@@ -36,6 +32,7 @@ color_cycle_speed = 5 # Frames por mudança de cor
 frame_count = 0
 border_thickness = 5
 border_radius = 10
+FONTE_RETRO_PATH = "Fontes/Retro Gaming.ttf"
 
 # --- Inicialização de variáveis globais para imagens e fontes ---
 fonte_placeholder = None
@@ -74,7 +71,7 @@ def tocar_musica_aleatoria(diretorio_musica_base):
     if musicas_validas:
         try:
             pygame.mixer.music.load(musicas_validas[0])
-            pygame.mixer.music.play() 
+            pygame.mixer.music.play(-1) # Tocar em loop
             print(f"DEBUG(Loja Modulo): Tocando música: {musicas_validas[0]}")
         except pygame.error as e:
             print(f"DEBUG(Loja Modulo): Erro ao tocar música {musicas_validas[0]}: {e}")
@@ -139,7 +136,9 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor_img=(600, 4
             except pygame.error as e:
                 print(f"DEBUG(Loja Modulo load_and_scale_image): Erro ao carregar '{full_path}': {e}")
                 return default_img
+        print(f"AVISO(Loja Modulo): Caminho não encontrado: {full_path}")
         return default_img
+        
     try:
         vendedor_path_rel = "Sprites/Vendedor/Vendedor1.png"
         imagem_vendedor = load_and_scale_image(vendedor_path_rel, tamanho_vendedor_img, imagem_vendedor_placeholder)
@@ -229,19 +228,20 @@ class Loja:
                 pos_x_texto_no_item = item_rect.left + padding_horizontal_texto_item
                 current_y_no_item = item_rect.top + padding_vertical_texto_item
                 try:
-                    nome_surf = self.fonte.render(item["nome"], True, (255, 255, 255))
+                    nome_surf = self.fonte.render(item.get("nome", "Item Desconhecido"), True, (255, 255, 255))
                     tela.blit(nome_surf, (pos_x_texto_no_item, current_y_no_item))
                     current_y_no_item += nome_surf.get_height() + espaco_entre_linhas
                     
-                    preco_render_temp = self.fonte.render(f"Preço: {item['preco']}g", True, (200, 255, 255)) 
+                    preco_render_temp = self.fonte.render(f"Preço: {item.get('preco', '??')}g", True, (200, 255, 255)) 
                     altura_preco = preco_render_temp.get_height()
                     preco_y_final_no_item = item_rect.bottom - altura_preco - padding_vertical_texto_item
                     limite_y_descricao_no_item = preco_y_final_no_item - espaco_entre_linhas 
                     
-                    if "descricao" in item and item["descricao"]: 
-                        palavras_descricao = item["descricao"].split(' ')
+                    descricao_item = item.get("descricao", "")
+                    if descricao_item: 
+                        palavras_descricao = descricao_item.split(' ')
                         linha_atual_desc_str = "" 
-                        largura_max_desc_no_item = item_rect.width - (2 * padding_horizontal_texto_item) 
+                        largura_max_desc_no_item = item_rect.width - (2 * padding_horizontal_texto_item)
                         altura_linha_fonte = self.fonte.get_height()
                         for palavra in palavras_descricao:
                             teste_linha_str = linha_atual_desc_str + palavra + " "
@@ -251,7 +251,7 @@ class Loja:
                                 if current_y_no_item + altura_linha_fonte <= limite_y_descricao_no_item:
                                     desc_surf_linha = self.fonte.render(linha_atual_desc_str.strip(), True, cor_descricao)
                                     tela.blit(desc_surf_linha, (pos_x_texto_no_item, current_y_no_item))
-                                    current_y_no_item += altura_linha_fonte + espaco_entre_linhas 
+                                    current_y_no_item += altura_linha_fonte 
                                     linha_atual_desc_str = palavra + " " 
                                 else: 
                                     linha_atual_desc_str = "" ; break 
@@ -263,6 +263,7 @@ class Loja:
                     preco_surf = preco_render_temp 
                     preco_x_pos_no_item = item_rect.right - preco_surf.get_width() - padding_horizontal_texto_item
                     tela.blit(preco_surf, (preco_x_pos_no_item, preco_y_final_no_item))
+
                 except pygame.error as e: print(f"DEBUG(Loja Modulo-DesenharItem): Erro render: {e}")
                 except KeyError as e: print(f"DEBUG(Loja Modulo-DesenharItem): Chave ausente: {e} - Item: {item}")
         tela.set_clip(clip_rect_original)
@@ -467,7 +468,7 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
     itens_data_global["Espadas"] = [
         {"nome": "Adaga do Fogo Contudente", "preco": 100, "imagem": imagem_Espada_1, "descricao": "Uma lâmina pequena, mas perigosa, sua ponta ao penetrar inimigos causa uma queimadura"},
         {"nome": "Espada de Fogo azul Sacra Cerulea", "preco": 150, "imagem": imagem_Espada_2, "descricao": "Lâmina de aço cintilante com punho dourado e uma gema safira-azul, forjada sob o calor das estrelas e abençoada com sabedoria celestia. Ela é Leal para os justos e forte para os destemidos."},
-        {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão  em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço."},
+        {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço."},
         {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Forjada sob a fúria de um Buraco Negro. Sua gema âmbar concede intuição aguçada para antecipar inimigos, sendo ideal para quem valoriza agilidade e estratégia, movendo-se como uma sombra para atacar com precisão."},
         {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares, encantada com o poder de uma estrela, ela guiará seus caminhos e voce jamais vai ficar na escuridão"},
         {"nome": "Lâmina do Ceu Centilhante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. "}
@@ -484,13 +485,25 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
         {"nome": "Poção de Cura", "preco": 50, "imagem": imagem_Pocao_Cura, "descricao": "Restaura uma pequena quantidade de vida quando você mais precisar."},
     ]
 
-    fonte_loja = None; tamanho_fonte_loja = 30 
-    try: fonte_loja = pygame.font.SysFont("Arcade", tamanho_fonte_loja)
-    except pygame.error:
-        try: fonte_loja = pygame.font.Font(None, tamanho_fonte_loja + 2) 
-        except pygame.error as e_fallback:
-            print(f"DEBUG(Loja Modulo-Run): Falha crítica ao carregar fontes: {e_fallback}")
-            fonte_loja = fonte_placeholder or pygame.font.Font(None, 24) 
+    fonte_loja = None; tamanho_fonte_loja = 24 # Tamanho base da fonte
+    try: 
+        caminho_base_fonte = os.getcwd()
+        if os.path.basename(caminho_base_fonte) == "Arquivos":
+            caminho_base_fonte = os.path.dirname(caminho_base_fonte)
+        caminho_fonte_completo = os.path.join(caminho_base_fonte, FONTE_RETRO_PATH.replace('\\', os.sep))
+
+        if os.path.exists(caminho_fonte_completo):
+            fonte_loja = pygame.font.Font(caminho_fonte_completo, tamanho_fonte_loja)
+            print(f"DEBUG(Loja Modulo-Run): Fonte retro '{FONTE_RETRO_PATH}' carregada para a loja.")
+        else:
+            raise FileNotFoundError(f"Fonte não encontrada: {caminho_fonte_completo}")
+    except (pygame.error, FileNotFoundError) as e:
+        print(f"AVISO(Loja Modulo-Run): Fonte retro não encontrada ou falhou: {e}. Tentando 'Arial'.")
+        try:
+            fonte_loja = pygame.font.SysFont("Arial", tamanho_fonte_loja)
+        except pygame.error:
+            print(f"AVISO(Loja Modulo-Run): Fonte 'Arial' não encontrada. Usando fonte padrão do Pygame.")
+            fonte_loja = pygame.font.Font(None, tamanho_fonte_loja)
 
     primeira_categoria_nome = list(itens_data_global.keys())[0] if itens_data_global else ""
     loja_inst = Loja(itens_data_global.get(primeira_categoria_nome, []), fonte_loja, largura_tela_atual, altura_tela_atual)

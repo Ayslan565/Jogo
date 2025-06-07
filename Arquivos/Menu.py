@@ -4,6 +4,9 @@ import sys
 import os # Importa os para ajudar a verificar o caminho
 import random # Importa random para tocar músicas aleatoriamente
 
+# NOVO: Importa a função de créditos
+from Creditos import exibir_creditos
+
 # Definindo as cores
 PRETO = (0, 0, 0)
 BRANCO = (255, 255, 255)
@@ -16,13 +19,13 @@ VERMELHO = (255, 255, 0) # Cor vermelha para "ASHAEL"
 # Nome do arquivo da fonte retro. Certifique-se de que este arquivo está na pasta correta!
 # Você pode baixar a fonte "Retro Gaming.ttf" ou "Press Start 2P" de sites como Google Fonts.
 # Lembre-se de que este caminho é RELATIVO ao diretório de onde você executa o script principal.
-FONTE_RETRO_PATH = "Fontes\Retro Gaming.ttf" # <--- VERIFIQUE ESTE CAMINHO!
+FONTE_RETRO_PATH = "Fontes/Retro Gaming.ttf" # <--- VERIFIQUE ESTE CAMINHO!
 
 # Nome do arquivo da imagem de fundo para as opções de menu
 IMAGEM_FUNDO_OPCAO_PATH = "Sprites/Menu/botao_menu.png" # <--- COLOQUE O CAMINHO CORRETO PARA A IMAGEM DO SEU BOTÃO AQUI
 
 # Nome do arquivo da imagem de fundo principal do menu
-IMAGEM_FUNDO_MENU_PATH = "Sprites\Menu\Menu.png" # <--- COLOQUE O CAMINHO CORRETO PARA A IMAGEM DE FUNDO DO MENU
+IMAGEM_FUNDO_MENU_PATH = "Sprites/Menu/Menu.png" # <--- COLOQUE O CAMINHO CORRETO PARA A IMAGEM DE FUNDO DO MENU
 
 # >>> LISTA DE ARQUIVOS DE MÚSICA PARA O MENU <<<
 # Certifique-se de que esses arquivos existam e os caminhos estejam corretos!
@@ -578,9 +581,9 @@ class Menu:
             return "carregar"
         if self.rect_fundo_opcoes.collidepoint(mouse_pos):
             return "opcoes"
-        if self.rect_creditos.collidepoint(mouse_pos):
+        if self.rect_fundo_creditos.collidepoint(mouse_pos):
             return "creditos"
-        if self.rect_sair.collidepoint(mouse_pos):
+        if self.rect_fundo_sair.collidepoint(mouse_pos):
             return "sair"
 
 
@@ -594,6 +597,9 @@ if __name__ == "__main__":
 
     tela = pygame.display.set_mode((largura, altura))
     pygame.display.set_caption("Teste do Menu")
+    
+    # NOVO: Cria o objeto clock para passar para os créditos
+    clock = pygame.time.Clock()
 
     # Cria uma instância do Menu
     menu = Menu(largura, altura)
@@ -624,22 +630,22 @@ if __name__ == "__main__":
                     pass
                 elif acao == "creditos":
                     print("Você clicou em Créditos!")
-                    # Adicione sua lógica para a tela de créditos aqui
-                    pass
+                    # --- NOVO: Chama a função de créditos ---
+                    exibir_creditos(tela, clock)
+                    # Retoma a música do menu após os créditos terminarem
+                    menu.tocar_proxima_musica()
+                    # ----------------------------------------
                 elif acao == "sair":
                     print("Saindo...")
                     menu.parar_musica() # Para a música do menu ao sair
                     rodando = False # Define rodando como False para sair do loop
 
         # Verifica se a música terminou e toca a próxima
-        # Isso é útil se você não estiver usando loop infinito (-1 no play)
-        # if not pygame.mixer.music.get_busy():
-        #     menu.tocar_proxima_musica() # Toca a próxima música quando a atual terminar
+        if not pygame.mixer.music.get_busy() and rodando:
+             menu.tocar_proxima_musica()
 
-
-        # Não precisa de pygame.display.update() ou flip() aqui, pois já está no menu.desenhar()
-        # pygame.display.update() # Removido
-        # pygame.time.Clock().tick(60) # Opcional: Controlar FPS no menu
+        # Controlar FPS no menu
+        clock.tick(60)
 
     pygame.quit() # Finaliza o Pygame
     sys.exit() # Sai do script
