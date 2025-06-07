@@ -1,152 +1,125 @@
-# Arquivo: importacoes.py
-# Este arquivo centraliza as importações comuns para o jogo.
+# Arquivo: importacoes_Player.py
+# Destinado a centralizar as importações necessárias para a classe Player.
+# Principalmente Vida, a classe base Weapon, e todas as classes de armas específicas.
 
-import pygame
-import random
-import math
-import os
-import time
-import threading # Adicionado para threading.Event em Roda_Armas
-import tkinter as tk # Adicionado para tk.TclError em Roda_Armas
+import pygame # Pygame pode ser útil para tipos ou inicializações, embora não diretamente para imports.
+import os # Para manipulação de caminhos, se necessário em contextos mais complexos.
+from player import *
 
-# --- Módulos do Jogo (no diretório Jogo/) ---
+# --- Importação da Classe Vida ---
 try:
-    from vida import Vida
+    # Assumindo que vida.py está na mesma pasta (Arquivos) que importacoes_Player.py
+    from vida import *
 except ImportError:
-    print("DEBUG(importacoes): 'vida.py' ou classe 'Vida' não encontrada.")
+    print("ALERTA(importacoes_Player): Módulo 'vida.py' ou classe 'Vida' não encontrado.")
     Vida = None
 
-try:
-    # inventario_barra.py is in Jogo/ according to the image
-    # The original "from inventario_barra import *" should make these available.
-    # If this specific named import fails, check inventario_barra.py for internal errors
-    # or ensure the classes BarraInventario and ItemInventario are correctly defined there.
-    from inventario_barra import BarraInventario, ItemInventario
-except ImportError:
-    print("DEBUG(importacoes): Falha ao importar BarraInventario, ItemInventario de 'inventario_barra.py'.")
-    BarraInventario = None
-    ItemInventario = None
+# --- Importação da Classe Base Weapon ---
+# Assumindo que importacoes_Player.py está em Jogo/Arquivos/
+# e weapon.py está em Jogo/Arquivos/Armas/
 
-# --- Classes Base de Armas ---
-try:
-    from Armas.weapon import Weapon # weapon.py is in Jogo/Armas/
-except ImportError:
-    print("DEBUG(importacoes): 'Armas/weapon.py' ou classe 'Weapon' não encontrada.")
-    Weapon = None
-
-# --- Classes de Armas Específicas (TODAS DEVEM VIR DE Armas.) ---
-# Removidas todas as referências a 'Arquivos.Armas.'
-
-# Adaga
+# --- Importação das Classes de Armas Específicas ---
+# Todas devem estar na pasta Armas, que é uma subpasta de Arquivos,
+# ou em Jogo/Armas/ se o fallback acima para Weapon foi usado.
+from Armas.weapon import Weapon
+# Adagas
 try:
     from .Armas.AdagaFogo import AdagaFogo
 except ImportError:
-    print("DEBUG(importacoes): Armas.AdagaFogo não encontrada.")
+    # print("ALERTA(importacoes_Player): '.Armas.AdagaFogo' não encontrada.")
     AdagaFogo = None
 
 # Espadas
 try:
-    from Armas.EspadaFogoAzul import EspadaFogoAzul
-except ImportError: EspadaFogoAzul = None; print("DEBUG(importacoes): Armas.EspadaFogoAzul não encontrada.")
+    from .Armas.EspadaBrasas import EspadaBrasas
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.EspadaBrasas' não encontrada.")
+    EspadaBrasas = None
 try:
-    from Armas.EspadaPenitencia import EspadaPenitencia
-except ImportError: EspadaPenitencia = None; print("DEBUG(importacoes): Armas.EspadaPenitencia não encontrada.")
+    from .Armas.EspadaCaida import EspadaCaida
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.EspadaCaida' não encontrada.")
+    EspadaCaida = None
 try:
-    from Armas.EspadaCaida import EspadaCaida
-except ImportError: EspadaCaida = None; print("DEBUG(importacoes): Armas.EspadaCaida não encontrada.")
+    from .Armas.EspadaFogoAzul import EspadaFogoAzul
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.EspadaFogoAzul' não encontrada.")
+    EspadaFogoAzul = None
 try:
-    from Armas.EspadaLua import EspadaLua
-except ImportError: EspadaLua = None; print("DEBUG(importacoes): Armas.EspadaLua não encontrada.")
+    from .Armas.EspadaLua import EspadaLua
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.EspadaLua' não encontrada.")
+    EspadaLua = None
 try:
-    from Armas.EspadaBrasas import EspadaBrasas # Previously under a different block
-except ImportError: EspadaBrasas = None; print("DEBUG(importacoes): Armas.EspadaBrasas não encontrada.")
+    from .Armas.EspadaPenitencia import EspadaPenitencia
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.EspadaPenitencia' não encontrada.")
+    EspadaPenitencia = None
+try:
+    from .Armas.EspadaSacraDasBrasas import EspadaSacraDasBrasas
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.EspadaSacraDasBrasas' não encontrada.")
+    EspadaSacraDasBrasas = None
+try:
+    from .Armas.EspadaSacraCerulea import EspadaSacraCerulea
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.EspadaSacraCerulea' não encontrada.")
+    EspadaSacraCerulea = None
 
-# Lâminas (Verifique o nome real do arquivo python para LaminaDoCeuCentilhante)
-try:
-    # Supondo que o arquivo seja LaminaDoCeuCentilhante.py ou LaminaCeuCinti.py
-    from Armas.LaminaCeuCinti import LaminaDoCeuCentilhante # Ou from Armas.LaminaDoCeuCentilhante import ...
-except ImportError: LaminaDoCeuCentilhante = None; print("DEBUG(importacoes): Armas.LaminaCeuCinti (ou similar) não encontrada.")
 
-# Machados (Verifique os nomes reais dos arquivos python)
+# Lâminas
 try:
-    from Armas.MachadoBarbaro import MachadoBarbaro
-except ImportError: MachadoBarbaro = None; print("DEBUG(importacoes): Armas.MachadoBarbaro não encontrada.")
-try:
-    from Armas.MachadoCeruleo import MachadoCeruleo
-except ImportError: MachadoCeruleo = None; print("DEBUG(importacoes): Armas.MachadoCeruleo não encontrada.")
-try:
-    # Supondo que o arquivo seja Machado_Santa.py ou MachadoDaDescidaSanta.py
-    from Armas.Machado_Santa import MachadoDaDescidaSanta # Ou from Armas.MachadoDaDescidaSanta import ...
-except ImportError: MachadoDaDescidaSanta = None; print("DEBUG(importacoes): Armas.Machado_Santa (ou similar) não encontrada.")
-try:
-    # Supondo que o arquivo seja MachadoAbrasa.py ou MachadoDoFogoAbrasador.py
-    from Armas.MachadoAbrasa import MachadoDoFogoAbrasador # Ou from Armas.MachadoDoFogoAbrasador import ...
-except ImportError: MachadoDoFogoAbrasador = None; print("DEBUG(importacoes): Armas.MachadoAbrasa (ou similar) não encontrada.")
-try:
-    from Armas.MachadoMarfim import MachadoMarfim
-except ImportError: MachadoMarfim = None; print("DEBUG(importacoes): Armas.MachadoMarfim não encontrada.")
-try:
-    from Armas.MachadoMacabro import MachadoMacabro
-except ImportError: MachadoMacabro = None; print("DEBUG(importacoes): Armas.MachadoMacabro não encontrada.")
+    # Assumindo que o nome da classe é LaminaDoCeuCentilhante e o arquivo LaminaCeuCinti.py
+    from .Armas.LaminaCeuCinti import LaminaDoCeuCentilhante
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.LaminaCeuCinti' ou classe 'LaminaDoCeuCentilhante' não encontrada.")
+    LaminaDoCeuCentilhante = None
 
-import Armas.AdagaFogo
-# --- Outros Módulos do Jogo (no diretório Jogo/) ---
+# Machados
+try:
+    from .Armas.MachadoBase import MachadoBase
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.MachadoBase' não encontrado.")
+    MachadoBase = None
+try:
+    from .Armas.MachadoBarbaro import MachadoBarbaro
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.MachadoBarbaro' não encontrado.")
+    MachadoBarbaro = None
+try:
+    from .Armas.MachadoCeruleo import MachadoCeruleo
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.MachadoCeruleo' não encontrado.")
+    MachadoCeruleo = None
+try:
+    # Assumindo que o nome da classe é MachadoDaDescidaSanta e o arquivo Machado_Santa.py
+    from .Armas.Machado_Santa import MachadoDaDescidaSanta
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.Machado_Santa' ou classe 'MachadoDaDescidaSanta' não encontrada.")
+    MachadoDaDescidaSanta = None
+try:
+    # Assumindo que o nome da classe é MachadoDoFogoAbrasador e o arquivo MachadoAbrasa.py
+    from .Armas.MachadoAbrasa import MachadoDoFogoAbrasador
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.MachadoAbrasa' ou classe 'MachadoDoFogoAbrasador' não encontrada.")
+    MachadoDoFogoAbrasador = None
+try:
+    from .Armas.MachadoMarfim import MachadoMarfim
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.MachadoMarfim' não encontrado.")
+    MachadoMarfim = None
+try:
+    from .Armas.MachadoMacabro import MachadoMacabro
+except ImportError:
+    # print("ALERTA(importacoes_Player): '.Armas.MachadoMacabro' não encontrado.")
+    MachadoMacabro = None
 
-try:
-    from Pause import PauseMenuManager
-except ImportError:
-    print("DEBUG(importacoes): 'Pause.py' ou classe 'PauseMenuManager' não encontrada.")
-    PauseMenuManager = None
-try:
-    from xp_manager import XPManager
-except ImportError:
-    print("DEBUG(importacoes): 'xp_manager.py' ou classe 'XPManager' não encontrada.")
-    XPManager = None
-try:
-    from Menu import Menu
-except ImportError:
-    print("DEBUG(importacoes): 'Menu.py' ou classe 'Menu' não encontrada.")
-    Menu = None
-try:
-    from GerenciadorDeInimigos import GerenciadorDeInimigos
-except ImportError:
-    print("DEBUG(importacoes): 'GerenciadorDeInimigos.py' não encontrado.")
-    GerenciadorDeInimigos = None
-try:
-    from Estacoes import Estacoes
-except ImportError:
-    print("DEBUG(importacoes): 'Estacoes.py' não encontrado.")
-    Estacoes = None
-try:
-    from grama import Grama
-except ImportError:
-    print("DEBUG(importacoes): 'grama.py' não encontrado.")
-    Grama = None
-try:
-    from arvores import Arvore
-except ImportError:
-    print("DEBUG(importacoes): 'arvores.py' não encontrado.")
-    Arvore = None
-try:
-    from timer1 import Timer
-except ImportError:
-    print("DEBUG(importacoes): 'timer1.py' não encontrado.")
-    Timer = None
-try:
-    import shop_elements # Se for um módulo com funções/classes globais
-except ImportError:
-    print("DEBUG(importacoes): 'shop_elements.py' não encontrado.")
-    shop_elements = None
-try:
-    from death_screen import run_death_screen
-except ImportError:
-    print("DEBUG(importacoes): 'death_screen.py' ou 'run_death_screen' não encontrado.")
-    run_death_screen = None
-try:
-    # Se loja.py contém run_shop_scene
-    from loja import run_shop_scene
-except ImportError:
-    print("DEBUG(importacoes): 'loja.py' ou função 'run_shop_scene' não encontrada.")
-    run_shop_scene = None
+# Adicione aqui outras classes de armas que você possa ter, seguindo o mesmo padrão.
+# Exemplo para Cajados (se existirem e forem armas):
+# try:
+#     from .Armas.CajadoDaFixacaoAmetista import CajadoDaFixacaoAmetista
+# except ImportError:
+#     # print("ALERTA(importacoes_Player): '.Armas.CajadoDaFixacaoAmetista' não encontrado.")
+#     CajadoDaFixacaoAmetista = None
 
-print("DEBUG(importacoes): Módulo importacoes.py carregado e atualizado (baseado na estrutura da imagem).")
+# print("INFO(importacoes_Player): Módulo importacoes_Player.py carregado.")

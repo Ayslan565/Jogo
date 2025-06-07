@@ -10,7 +10,7 @@ class Estacoes:
         self.indice_estacao_atual = random.randint(0, 3) # Começa em uma estação aleatória
         
         self.cor_atual = self._definir_cor_para_indice(self.indice_estacao_atual)
-        self.tempo_troca_estacao_seg = 5  # segundos (2 minutos) - Ajustado para um tempo mais longo
+        self.tempo_troca_estacao_seg = 120  # segundos (2 minutos) - Ajustado para um tempo mais longo
         self.ultimo_tempo_troca_timestamp = time.time()
         
         self.mensagem_estacao_atual = self.nomes_estacoes_ordem[self.indice_estacao_atual]

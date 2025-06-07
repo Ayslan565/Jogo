@@ -10,9 +10,9 @@ import time
 # Essa classe base é referenciada como 'InimigoBase' aqui.
 try:
     from .Inimigos import Inimigo as InimigoBase
-    print(f"DEBUG(Espantalho): Classe InimigoBase importada com sucesso de .Inimigos.")
+    # print(f"DEBUG(Espantalho): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
-    print(f"DEBUG(Espantalho): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
+    # print(f"DEBUG(Espantalho): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
     # Este é um placeholder MUITO SIMPLES. A classe base real deve ser mais completa
     # e ter o método _carregar_sprite principal.
     class InimigoBase(pygame.sprite.Sprite):
@@ -27,25 +27,25 @@ except ImportError as e:
             self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150
             self.hit_flash_color = (255, 255, 255, 128)
             self.contact_cooldown = 1000; self.last_contact_time = 0
-            self.sprites = [self.image]; self.sprite_index = 0; 
+            self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
-            print(f"DEBUG(InimigoBase Placeholder para Espantalho): Instanciado. Sprite path (não usado por este placeholder): {sprite_path}")
-        
+            # print(f"DEBUG(InimigoBase Placeholder para Espantalho): Instanciado. Sprite path (não usado por este placeholder): {sprite_path}")
+
         def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
         def esta_vivo(self): return self.hp > 0
         def mover_em_direcao(self, ax, ay, dt=None): pass
-        def atualizar_animacao(self): 
+        def atualizar_animacao(self):
             if self.sprites and len(self.sprites) > 0:
                 self.image = self.sprites[0] # Mostra o primeiro (e único) sprite do placeholder
         def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): self.atualizar_animacao()
-        def desenhar(self, janela, camera_x, camera_y): 
+        def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
                 janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
 
 
 class Espantalho(InimigoBase):
-    sprites_andar_carregados = None 
-    sprites_atacar_carregados = None 
+    sprites_andar_carregados = None
+    sprites_atacar_carregados = None
     tamanho_sprite_definido = (120, 160) # Ajuste o tamanho conforme necessário
 
     som_ataque_espantalho = None
@@ -67,48 +67,48 @@ class Espantalho(InimigoBase):
     def _carregar_som_espantalho(caminho_relativo_a_raiz_jogo):
         pasta_raiz_jogo = Espantalho._obter_pasta_raiz_jogo()
         caminho_completo = os.path.join(pasta_raiz_jogo, caminho_relativo_a_raiz_jogo.replace("\\", "/"))
-        
+
         if not os.path.exists(caminho_completo):
-            print(f"DEBUG(Espantalho._carregar_som): Arquivo de som NÃO ENCONTRADO: {caminho_completo}")
+            # print(f"DEBUG(Espantalho._carregar_som): Arquivo de som NÃO ENCONTRADO: {caminho_completo}")
             return None
         try:
             som = pygame.mixer.Sound(caminho_completo)
-            print(f"DEBUG(Espantalho._carregar_som): Som '{caminho_completo}' carregado.")
+            # print(f"DEBUG(Espantalho._carregar_som): Som '{caminho_completo}' carregado.")
             return som
         except pygame.error as e:
-            print(f"DEBUG(Espantalho._carregar_som): ERRO PYGAME ao carregar som '{caminho_completo}': {e}")
+            # print(f"DEBUG(Espantalho._carregar_som): ERRO PYGAME ao carregar som '{caminho_completo}': {e}")
             return None
 
     @staticmethod
     def _carregar_lista_sprites_estatico(caminhos_relativos_a_raiz_jogo, lista_destino, tamanho_sprite, nome_animacao):
         pasta_raiz_jogo = Espantalho._obter_pasta_raiz_jogo()
-        print(f"DEBUG(Espantalho._carregar_lista_sprites): Carregando sprites de '{nome_animacao}'. Raiz do jogo: {pasta_raiz_jogo}")
-        
+        # print(f"DEBUG(Espantalho._carregar_lista_sprites): Carregando sprites de '{nome_animacao}'. Raiz do jogo: {pasta_raiz_jogo}")
+
         if lista_destino is None: # Garante que a lista de destino exista
             lista_destino = []
 
         for path_relativo in caminhos_relativos_a_raiz_jogo:
             caminho_completo = os.path.join(pasta_raiz_jogo, path_relativo.replace("\\", "/"))
-            print(f"DEBUG(Espantalho._carregar_lista_sprites): Tentando carregar '{nome_animacao}' sprite: {caminho_completo}")
+            # print(f"DEBUG(Espantalho._carregar_lista_sprites): Tentando carregar '{nome_animacao}' sprite: {caminho_completo}")
             try:
                 if os.path.exists(caminho_completo):
                     sprite = pygame.image.load(caminho_completo).convert_alpha()
                     sprite = pygame.transform.scale(sprite, tamanho_sprite)
                     lista_destino.append(sprite)
-                    print(f"DEBUG(Espantalho._carregar_lista_sprites): Sprite '{caminho_completo}' carregado para '{nome_animacao}'.")
+                    # print(f"DEBUG(Espantalho._carregar_lista_sprites): Sprite '{caminho_completo}' carregado para '{nome_animacao}'.")
                 else:
-                    print(f"DEBUG(Espantalho._carregar_lista_sprites): ARQUIVO NÃO EXISTE para '{nome_animacao}': {caminho_completo}. Usando placeholder (marrom).")
+                    # print(f"DEBUG(Espantalho._carregar_lista_sprites): ARQUIVO NÃO EXISTE para '{nome_animacao}': {caminho_completo}. Usando placeholder (marrom).")
                     placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
                     placeholder.fill((139, 69, 19, 180)) # Cor de palha/marrom
                     lista_destino.append(placeholder)
             except pygame.error as e:
-                print(f"DEBUG(Espantalho._carregar_lista_sprites): ERRO PYGAME ao carregar '{nome_animacao}' sprite '{caminho_completo}': {e}. Usando placeholder (marrom).")
+                # print(f"DEBUG(Espantalho._carregar_lista_sprites): ERRO PYGAME ao carregar '{nome_animacao}' sprite '{caminho_completo}': {e}. Usando placeholder (marrom).")
                 placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
                 placeholder.fill((139, 69, 19, 180))
                 lista_destino.append(placeholder)
-        
+
         if not lista_destino: # Fallback se a lista ainda estiver vazia
-            print(f"DEBUG(Espantalho._carregar_lista_sprites): FALHA TOTAL em carregar sprites para '{nome_animacao}'. Usando placeholder final (marrom escuro).")
+            # print(f"DEBUG(Espantalho._carregar_lista_sprites): FALHA TOTAL em carregar sprites para '{nome_animacao}'. Usando placeholder final (marrom escuro).")
             placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
             placeholder.fill((100, 50, 10, 200))
             lista_destino.append(placeholder)
@@ -120,14 +120,14 @@ class Espantalho(InimigoBase):
         if Espantalho.sprites_andar_carregados is None: # Flag principal para carregar tudo uma vez
             Espantalho.sprites_andar_carregados = [] # Inicializa a lista
             caminhos_andar = [
-                "Sprites/Inimigos/Espantalho/Espantalho.png", 
+                "Sprites/Inimigos/Espantalho/Espantalho.png",
                 "Sprites/Inimigos/Espantalho/Espantalho 2.png",
                 "Sprites/Inimigos/Espantalho/Espantalho 3.png",
             ]
             Espantalho.sprites_andar_carregados = Espantalho._carregar_lista_sprites_estatico(
-                caminhos_andar, 
-                Espantalho.sprites_andar_carregados, 
-                Espantalho.tamanho_sprite_definido, 
+                caminhos_andar,
+                Espantalho.sprites_andar_carregados,
+                Espantalho.tamanho_sprite_definido,
                 "Andar/Idle"
             )
 
@@ -138,9 +138,9 @@ class Espantalho(InimigoBase):
             #     "Sprites/Inimigos/Espantalho/Espantalho_Atk2.png",
             # ]
             # Espantalho.sprites_atacar_carregados = Espantalho._carregar_lista_sprites_estatico(
-            #     caminhos_atacar, 
-            #     Espantalho.sprites_atacar_carregados, 
-            #     Espantalho.tamanho_sprite_definido, 
+            #     caminhos_atacar,
+            #     Espantalho.sprites_atacar_carregados,
+            #     Espantalho.tamanho_sprite_definido,
             #     "Atacar"
             # )
             # Fallback para ataque se não houver sprites específicos de ataque
@@ -154,21 +154,21 @@ class Espantalho(InimigoBase):
             Espantalho.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=1.3): 
+    def __init__(self, x, y, velocidade=1.3):
         Espantalho.carregar_recursos_espantalho() # Garante que os recursos da classe estão carregados
 
-        vida_espantalho = 85 
-        dano_contato_espantalho = 5 
+        vida_espantalho = 85
+        dano_contato_espantalho = 5
         xp_espantalho = 20
-        #moedas_dropadas = 11
-        
+        self.moedas_drop = 11 # Quantidade de moedas que o Espantalho dropa
+
         # O sprite_path principal deve ser relativo à pasta raiz do jogo.
         # A classe InimigoBase (herdada) usará seu método _carregar_sprite para carregá-lo.
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espantalho/Espantalho.png" 
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espantalho/Espantalho.png"
 
         super().__init__(
-            x, y, 
-            Espantalho.tamanho_sprite_definido[0], Espantalho.tamanho_sprite_definido[1], 
+            x, y,
+            Espantalho.tamanho_sprite_definido[0], Espantalho.tamanho_sprite_definido[1],
             vida_espantalho, velocidade, dano_contato_espantalho,
             xp_espantalho, sprite_path_principal_relativo_jogo
         )
@@ -179,10 +179,10 @@ class Espantalho(InimigoBase):
 
         # Define a lista de sprites atual (para o método atualizar_animacao da base)
         self.sprites = self.sprites_andar # Começa com animação de andar/idle
-        
+
         # Garante que self.image e self.sprites[0] são válidos após o super().__init__
         if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)):
-            print("DEBUG(Espantalho __init__): self.image não foi definido corretamente pelo super(). Usando primeiro sprite de animação.")
+            # print("DEBUG(Espantalho __init__): self.image não foi definido corretamente pelo super(). Usando primeiro sprite de animação.")
             if self.sprites and isinstance(self.sprites[0], pygame.Surface):
                 self.image = self.sprites[0]
             else: # Fallback crítico
@@ -193,23 +193,23 @@ class Espantalho(InimigoBase):
 
         self.rect = self.image.get_rect(topleft=(self.x, self.y)) # Reafirma o rect com a imagem correta
 
-        self.sprite_index = 0 
+        self.sprite_index = 0
         # self.tempo_ultimo_update_animacao já é inicializado na InimigoBase
-        self.intervalo_animacao_andar = 220 
-        self.intervalo_animacao_atacar = 150 
+        self.intervalo_animacao_andar = 220
+        self.intervalo_animacao_atacar = 150
         self.intervalo_animacao = self.intervalo_animacao_andar # Começa com o intervalo de andar
 
         # Atributos específicos de ataque do Espantalho (ataque corpo a corpo)
-        self.is_attacking = False 
+        self.is_attacking = False
         self.attack_duration = 0.6 # Duração da animação/hitbox de ataque (s)
-        self.attack_timer = 0.0 
+        self.attack_timer = 0.0
         self.attack_damage_especifico = 10 # Dano do ataque específico (não o de contato)
         self.attack_hitbox_size = (Espantalho.tamanho_sprite_definido[0] * 0.6, Espantalho.tamanho_sprite_definido[1] * 0.5) # Tamanho da hitbox de ataque
         self.attack_hitbox_offset_x = Espantalho.tamanho_sprite_definido[0] * 0.4 # Distância à frente para a hitbox
-        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
         self.attack_range = 80 # Distância para iniciar o ataque (pixels)
         self.attack_cooldown = 2.0 # Segundos entre ataques
-        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000) 
+        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
         self.hit_player_this_swing = False # Garante que o ataque acerta apenas uma vez por "swing"
 
     # O método receber_dano é herdado. Pode adicionar sons aqui.
@@ -239,18 +239,18 @@ class Espantalho(InimigoBase):
             return
 
         agora = pygame.time.get_ticks()
-        distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx, 
+        distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
                                          self.rect.centery - player.rect.centery)
 
         if not self.is_attacking and \
            distancia_ao_jogador <= self.attack_range and \
            (agora - self.last_attack_time >= self.attack_cooldown * 1000):
-            
+
             self.is_attacking = True
             self.attack_timer = agora # Inicia o timer da duração do ataque
             self.last_attack_time = agora # Reseta o cooldown para o próximo ataque
             self.hit_player_this_swing = False # Reseta a flag de acerto para este ataque
-            
+
             self.sprites = self.sprites_atacar # Muda para sprites de ataque
             self.intervalo_animacao = self.intervalo_animacao_atacar
             self.sprite_index = 0 # Reinicia a animação de ataque
@@ -263,11 +263,11 @@ class Espantalho(InimigoBase):
             return
 
         agora = pygame.time.get_ticks()
-        
+
         # Verifica se o jogador e seus atributos necessários existem
-        jogador_valido = (hasattr(player, 'rect') and 
-                          hasattr(player, 'vida') and 
-                          hasattr(player.vida, 'esta_vivo') and 
+        jogador_valido = (hasattr(player, 'rect') and
+                          hasattr(player, 'vida') and
+                          hasattr(player.vida, 'esta_vivo') and
                           hasattr(player, 'receber_dano'))
 
         # Lógica de Ataque
@@ -293,10 +293,10 @@ class Espantalho(InimigoBase):
             # Se não está atacando, tenta iniciar um ataque ou se move
             if jogador_valido:
                 self.atacar(player) # Tenta iniciar um ataque
-            
+
             if not self.is_attacking and jogador_valido: # Se não iniciou um ataque, move-se
                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            
+
             self.atualizar_animacao() # Animação de andar/idle
 
         # Dano de Contato (herdado da InimigoBase, mas precisa ser chamado se não estiver no update da base)
@@ -304,7 +304,7 @@ class Espantalho(InimigoBase):
            (agora - self.last_contact_time >= self.contact_cooldown):
             player.receber_dano(self.contact_damage)
             self.last_contact_time = agora
-            
+
         # Colisão com outros inimigos (se a lógica for implementada)
         # if outros_inimigos:
         #     for outro_inimigo in outros_inimigos:
@@ -320,4 +320,3 @@ class Espantalho(InimigoBase):
     #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox
     #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
     #         pygame.draw.rect(surface, (255, 0, 0, 100), debug_rect_onscreen, 1)
-
