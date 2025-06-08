@@ -48,12 +48,33 @@ class AdagaFogo(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoNv1.png",
                 "effect_scale_base": 0.8,
                 "animation_sprites": [
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv1/Frame1.png",
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv1/Frame2.png",
-                ],
-                "animation_speed": 70, # Animação rápida
-                "animation_display_scale": 0.9,
-                "ui_icon": "Sprites/Armas/Adagas/AdagaFogo/Icone_E1.png"
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT0-base0.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base1.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT2-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT3-base3.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT4-base4.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT5-base5.png",
+                ], 
+                "animation_speed": 60,
+                "animation_display_scale":0.4,
+                # Caminho RELATIVO à pasta 'Jogo/'
+                "ui_icon": "Sprites\\Armas\\Icones\\AdagaFogo_Nv1.png" # Exemplo de ícone para Nv1
+            },
+            1.5: {
+                "damage": 18.0, "range": 48.0, "cooldown": 0.75, "name_suffix": "+1",
+                "hitbox_dim": (32, 62), "hitbox_off": (0, 0),
+                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoLeveNv1.png",
+                "effect_scale_base": 0.85,
+                "animation_sprites": [
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT0-base0.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base1.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT2-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT3-base3.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT4-base4.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT5-base5.png",
+                ], 
+                "animation_speed": 55, "animation_display_scale": 0.42,
+                "ui_icon": "Sprites/Armas/Icones/AdagaFogo_Nv1.png" # Pode ser o mesmo ou diferente
             },
             # Nível 2.0
             2.0: {
@@ -66,13 +87,29 @@ class AdagaFogo(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoNv2.png",
                 "effect_scale_base": 0.9,
                 "animation_sprites": [
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv2/Frame1.png",
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv2/Frame2.png",
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv2/Frame3.png",
-                ],
-                "animation_speed": 65,
-                "animation_display_scale": 0.95,
-                "ui_icon": "Sprites/Armas/Adagas/AdagaFogo/Icone_E2.png"
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base0.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base1.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base3.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base4.png",
+                ], 
+                "animation_speed": 50, "animation_display_scale": 0.45,
+                "ui_icon": "Sprites\\Armas\\Icones\\AdagaFogo_Nv2.png" # Exemplo de ícone para Nv2
+            },
+            2.5: {
+                "damage": 25.0, "range": 52.0, "cooldown": 0.6, "name_suffix": " Afiada +1",
+                "hitbox_dim": (37, 67), "hitbox_off": (0, 0),
+                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoMedioNv2.png",
+                "effect_scale_base": 0.95,
+                "animation_sprites": [
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base0.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base1.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base3.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base4.png",
+                ], 
+                "animation_speed": 45, "animation_display_scale": 0.47,
+                "ui_icon": "Sprites/Armas/Icones/AdagaFogo_Nv2.png",
             },
             # Nível 3.0
             3.0: {
@@ -85,13 +122,15 @@ class AdagaFogo(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoNv3.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv3/Frame1.png",
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv3/Frame2.png",
-                    "Sprites/Armas/Adagas/AdagaFogo/Ataque/Nv3/Frame3.png",
-                ],
-                "animation_speed": 60,
-                "animation_display_scale": 1.0,
-                "ui_icon": "Sprites/Armas/Adagas/AdagaFogo/Icone_E3.png"
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base0.png", 
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base1.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base3.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base4.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base5.png",
+                ], 
+                "animation_speed": 40, "animation_display_scale": 0.5,
+                "ui_icon": "Sprites\\Armas\\Icones\\AdagaFogo_Nv3.png" # Exemplo de ícone para Nv3
             }
         }
 
