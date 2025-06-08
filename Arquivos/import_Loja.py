@@ -1,4 +1,4 @@
-# Arquivo: importacoes_armas.py
+# Arquivo: import_Loja.py
 # Este arquivo centraliza todas as importações de classes de armas para o jogo.
 
 print("DEBUG: Iniciando importação de todas as classes de armas...")
@@ -23,9 +23,6 @@ print("\n--- Importando Espadas ---")
 try:
     from Armas.AdagaFogo import AdagaFogo
     print("  (+) AdagaFogo importada.")
-except ImportError:
-    AdagaFogo = None
-    print("  (-) AVISO: AdagaFogo não encontrada.")
 except ImportError:
     AdagaFogo = None
     print("  (-) AVISO: AdagaFogo não encontrada.")
@@ -131,14 +128,35 @@ except ImportError:
     MachadoMacabro = None
     print("  (-) AVISO: MachadoMacabro não encontrado.")
 
-# --- CAJADOS ---
-# Adicione mais importações de cajados conforme necessário
-print("\n--- Importando Cajados ---")
+# --- CAJADOS E GRIMÓRIOS ---
+print("\n--- Importando Armas Mágicas ---")
 try:
     from Armas.Cajado import Cajado # Supondo que exista um Cajado.py com uma classe base ou específica
-    print("  (+) Cajado importado.")
+    print("  (+) Cajado (Base) importado.")
 except ImportError:
     Cajado = None
-    print("  (-) AVISO: Cajado não encontrado.")
+    print("  (-) AVISO: Cajado (Base) não encontrado.")
+
+try:
+    from Armas.CajadoDaFixacaoAmetista import CajadoDaFixacaoAmetista
+    print("  (+) CajadoDaFixacaoAmetista importado.")
+except ImportError:
+    CajadoDaFixacaoAmetista = None
+    print("  (-) AVISO: CajadoDaFixacaoAmetista não encontrado.")
+
+try:
+    from Armas.CajadoDaSantaNatureza import CajadoDaSantaNatureza
+    print("  (+) CajadoDaSantaNatureza importado.")
+except ImportError:
+    CajadoDaSantaNatureza = None
+    print("  (-) AVISO: CajadoDaSantaNatureza não encontrado.")
+
+try:
+    from Armas.LivroDosImpuros import LivroDosImpuros
+    print("  (+) LivroDosImpuros importado.")
+except ImportError:
+    LivroDosImpuros = None
+    print("  (-) AVISO: LivroDosImpuros não encontrado.")
+
 
 print("\nDEBUG: Importação de armas concluída.")

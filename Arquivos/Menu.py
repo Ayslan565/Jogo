@@ -32,9 +32,9 @@ IMAGEM_FUNDO_MENU_PATH = "Sprites/Menu/Menu.png" # <--- COLOQUE O CAMINHO CORRET
 # Formatos comuns incluem .mp3, .ogg, .wav
 # Caminhos atualizados com base na sua solicitação, usando barras normais
 MUSICAS_MENU = [
-    "Musica/Menu/Faixa 1.mp3",  # Exemplo de caminho
-    "Musica/Menu/Faixa 2.mp3",  # Exemplo de caminho
-    "Musica/Menu/Faixa 3.mp3",  # Exemplo de caminho
+    "Musica/Menu/Faixa 1.mp3",   # Exemplo de caminho
+    "Musica/Menu/Faixa 2.mp3",   # Exemplo de caminho
+    "Musica/Menu/Faixa 3.mp3",   # Exemplo de caminho
     # Adicione mais caminhos de música aqui conforme necessário
 ]
 
@@ -61,10 +61,9 @@ class Menu:
         # É importante inicializar o mixer antes de carregar qualquer som ou música
         try:
             pygame.mixer.init()
-            print("Menu: Mixer de audio inicializado com sucesso.")
-        except pygame.error as e:
-            print(f"Menu: Erro ao inicializar o mixer de audio: {e}")
+        except pygame.error:
             # Continue mesmo se o mixer falhar, mas a música não funcionará
+            pass
 
 
         # >>> DEFINE O ESPACAMENTO VERTICAL ENTRE AS OPÇÕES AQUI <<<
@@ -87,25 +86,8 @@ class Menu:
             # Tenta carregar a fonte retro
             self.font = pygame.font.Font(FONTE_RETRO_PATH, 72) # Ajuste o tamanho (72 para o título) conforme necessário
             self.font_opcoes = pygame.font.Font(FONTE_RETRO_PATH, 36) # Fonte menor para as opções
-            print(f"Menu: Fonte retro '{FONTE_RETRO_PATH}' carregada com sucesso.")
-        except FileNotFoundError:
-            # Captura especificamente o erro de arquivo não encontrado
-            print(f"Menu: Erro: Arquivo da fonte retro não encontrado em '{FONTE_RETRO_PATH}'.")
-            print(f"Menu: Diretorio de trabalho atual: {os.getcwd()}") # Imprime o diretório de trabalho para ajudar na depuração
-            print("Menu: Usando a fonte padrão do Pygame como fallback.")
-            self.font = pygame.font.Font(pygame.font.get_default_font(), 72) # Usa fonte padrão para título
-            self.font_opcoes = pygame.font.Font(pygame.font.get_default_font(), 36) # Usa fonte padrão para opções
-        except pygame.error as e:
-            # Captura outros erros de carregamento de fonte do Pygame
-            print(f"Menu: Erro do Pygame ao carregar a fonte retro: {FONTE_RETRO_PATH}.")
-            print(f"Menu: Detalhes do erro: {e}")
-            print("Menu: Usando a fonte padrão do Pygame como fallback.")
-            self.font = pygame.font.Font(pygame.font.get_default_font(), 72) # Usa fonte padrão para título
-            self.font_opcoes = pygame.font.Font(pygame.font.get_default_font(), 36) # Usa fonte padrão para opções
-        except Exception as e:
-            # Captura quaisquer outros erros inesperados
-            print(f"Menu: Ocorreu um erro inesperado ao carregar a fonte: {e}")
-            print("Menu: Usando a fonte padrão do Pygame como fallback.")
+        except (FileNotFoundError, pygame.error, Exception):
+            # Usa a fonte padrão do Pygame como fallback para qualquer erro
             self.font = pygame.font.Font(pygame.font.get_default_font(), 72) # Usa fonte padrão para título
             self.font_opcoes = pygame.font.Font(pygame.font.get_default_font(), 36) # Usa fonte padrão para opções
 
@@ -139,14 +121,9 @@ class Menu:
             self.imagem_fundo_opcao_original = pygame.image.load(IMAGEM_FUNDO_OPCAO_PATH).convert_alpha() # Use convert_alpha() para transparência
             # Opcional: Redimensionar a imagem de fundo da opção se necessário
             # self.imagem_fundo_opcao_original = pygame.transform.scale(self.imagem_fundo_opcao_original, (nova_largura, nova_altura))
-            print(f"Menu: Imagem de fundo da opção '{IMAGEM_FUNDO_OPCAO_PATH}' carregada com sucesso.")
             self.usar_imagem_fundo = True # Flag para indicar que a imagem foi carregada
             self.tamanho_fundo_original = self.imagem_fundo_opcao_original.get_size() # Armazena o tamanho original
-        except FileNotFoundError:
-            # Captura especificamente o erro de arquivo não encontrado para a imagem
-            print(f"Menu: Erro: Arquivo da imagem de fundo da opção não encontrado em '{IMAGEM_FUNDO_OPCAO_PATH}'.")
-            print(f"Menu: Diretorio de trabalho atual: {os.getcwd()}") # Imprime o diretório de trabalho para ajudar na depuração
-            print("Menu: Criando superficie de placeholder para o fundo da opção.")
+        except (FileNotFoundError, pygame.error, Exception):
             self.usar_imagem_fundo = False # Flag para indicar que a imagem NÃO foi carregada
             # Cria uma superfície de placeholder em caso de erro
             # Define um tamanho razoável para o placeholder, talvez baseado no tamanho do texto mais largo
@@ -156,38 +133,6 @@ class Menu:
             altura_placeholder = self.espacamento_opcoes - 20 # Altura baseada no espaçamento
             self.imagem_fundo_opcao_original = pygame.Surface((largura_placeholder, altura_placeholder), pygame.SRCALPHA)
             self.imagem_fundo_opcao_original.fill((CINZA_FUNDO_OPCAO[0], CINZA_FUNDO_OPCAO[1], CINZA_FUNDO_OPCAO[2], 0)) # Preenchimento transparente para placeholder
-
-
-            self.tamanho_fundo_original = self.imagem_fundo_opcao_original.get_size() # Armazena o tamanho do placeholder original
-
-
-        except pygame.error as e:
-            print(f"Menu: Erro do Pygame ao carregar a imagem de fundo da opção: {IMAGEM_FUNDO_OPCAO_PATH}.")
-            print(f"Menu: Detalhes do erro: {e}")
-            print("Menu: Criando superficie de placeholder para o fundo da opção.")
-            self.usar_imagem_fundo = False # Flag para indicar que a imagem NÃO foi carregada
-            # Cria uma superfície de placeholder em caso de erro
-            largura_placeholder = max(self.opcao_jogar_render.get_width(), self.opcao_carregar_render.get_width(),
-                                      self.opcao_opcoes_render.get_width(), self.opcao_creditos_render.get_width(),
-                                      self.opcao_sair_render.get_width()) + 40 # Adiciona um padding
-            altura_placeholder = self.espacamento_opcoes - 20 # Altura baseada no espaçamento
-            self.imagem_fundo_opcao_original = pygame.Surface((largura_placeholder, altura_placeholder), pygame.SRCALPHA)
-            self.imagem_fundo_opcao_original.fill((CINZA_FUNDO_OPCAO[0], CINZA_FUNDO_OPCAO[1], CINZA_FUNDO_OPCAO[2], 0)) # Preenchimento transparente para placeholder
-
-            self.tamanho_fundo_original = self.imagem_fundo_opcao_original.get_size() # Armazena o tamanho do placeholder original
-
-
-        except Exception as e:
-            print(f"Menu: Ocorreu um erro inesperado ao carregar a imagem de fundo da opção: {e}")
-            print("Menu: Criando superficie de placeholder para o fundo da opção.")
-            self.usar_imagem_fundo = False # Flag para indicar que a imagem NÃO foi carregada
-            largura_placeholder = max(self.opcao_jogar_render.get_width(), self.opcao_carregar_render.get_width(),
-                                      self.opcao_opcoes_render.get_width(), self.opcao_creditos_render.get_width(),
-                                      self.opcao_sair_render.get_width()) + 40 # Adiciona um padding
-            altura_placeholder = self.espacamento_opcoes - 20 # Altura baseada no espaçamento
-            self.imagem_fundo_opcao_original = pygame.Surface((largura_placeholder, altura_placeholder), pygame.SRCALPHA)
-            self.imagem_fundo_opcao_original.fill((CINZA_FUNDO_OPCAO[0], CINZA_FUNDO_OPCAO[1], CINZA_FUNDO_OPCAO[2], 0)) # Preenchimento transparente para placeholder
-
             self.tamanho_fundo_original = self.imagem_fundo_opcao_original.get_size() # Armazena o tamanho do placeholder original
 
 
@@ -196,9 +141,7 @@ class Menu:
             self.imagem = pygame.image.load(IMAGEM_FUNDO_MENU_PATH).convert() # Use convert() para otimizar
             # Redimensiona a imagem para cobrir a tela inteira
             self.imagem = pygame.transform.scale(self.imagem, (self.largura_tela, self.altura_tela))
-            print(f"Menu: Imagem de fundo do menu principal '{IMAGEM_FUNDO_MENU_PATH}' carregada com sucesso.")
-        except pygame.error as e:
-            print(f"Menu: Erro ao carregar a imagem de fundo do menu principal: {e}")
+        except pygame.error:
             # Cria uma superfície de placeholder em caso de erro
             self.imagem = pygame.Surface((self.largura_tela, self.altura_tela))
             self.imagem.fill(PRETO) # Preenche com preto
@@ -518,7 +461,6 @@ class Menu:
     def tocar_proxima_musica(self):
         """Carrega e toca uma música aleatória da lista em loop."""
         if not self.musicas:
-            print("Menu: Nenhuma música configurada para o menu.")
             return
 
         # Seleciona um índice aleatório
@@ -532,32 +474,23 @@ class Menu:
         self.musica_atual_index = novo_musica_index
         musica_path = self.musicas[self.musica_atual_index]
 
-        # Adicionado print para depuração
-        print(f"Menu: Tentando carregar música: {os.path.abspath(musica_path)}")
-
         try:
             pygame.mixer.music.load(musica_path)
             pygame.mixer.music.play(-1) # O -1 faz a música tocar em loop infinito
-            print(f"Menu: Tocando música: {musica_path}")
-        except pygame.error as e:
-            print(f"Menu: Erro ao carregar ou tocar a música '{musica_path}': {e}")
+        except pygame.error:
             # Tenta tocar outra música aleatória se houver um erro
             if len(self.musicas) > 1:
-                print("Menu: Tentando tocar outra música aleatória...")
-                # Remove a música com erro da lista para não tentar novamente
-                # Cuidado: Modificar a lista enquanto itera ou seleciona pode ser complicado.
                 # Uma abordagem mais segura é apenas tentar outra música aleatória sem remover.
                 # Se o erro persistir para todas as músicas, a mensagem final será exibida.
                 self.tocar_proxima_musica() # Chama recursivamente para tentar outra música
             else:
-                print("Menu: Nenhuma outra música disponível ou erro persistente.")
+                pass
 
 
     def parar_musica(self):
         """Para a música que está tocando."""
         if pygame.mixer.music.get_busy():
             pygame.mixer.music.stop()
-            print("Menu: Musica do menu parada.")
 
 
     def verificar_click(self, x, y):
@@ -616,27 +549,22 @@ if __name__ == "__main__":
                 # Passa as coordenadas do clique para verificar_click
                 acao = menu.verificar_click(*evento.pos)
                 if acao == "jogar":
-                    print("Você clicou em Jogar!")
                     menu.parar_musica() # Para a música do menu ao iniciar o jogo
                     # Adicione sua lógica para iniciar o jogo principal aqui
                     pass
                 elif acao == "carregar":
-                    print("Você clicou em Carregar!")
                     # Adicione sua lógica para carregar o jogo aqui
                     pass
                 elif acao == "opcoes":
-                    print("Você clicou em Opções!")
                     # Adicione sua lógica para o menu de opções aqui
                     pass
                 elif acao == "creditos":
-                    print("Você clicou em Créditos!")
                     # --- NOVO: Chama a função de créditos ---
                     exibir_creditos(tela, clock)
                     # Retoma a música do menu após os créditos terminarem
                     menu.tocar_proxima_musica()
                     # ----------------------------------------
                 elif acao == "sair":
-                    print("Saindo...")
                     menu.parar_musica() # Para a música do menu ao sair
                     rodando = False # Define rodando como False para sair do loop
 
