@@ -5,6 +5,7 @@ import sys
 import os
 
 # --- Configuração do sys.path ---
+# Adiciona o diretório do projeto ao sys.path para facilitar importações relativas
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
@@ -13,19 +14,22 @@ if project_root_dir not in sys.path:
     sys.path.insert(0, project_root_dir)
 
 # --- Importações Essenciais ---
+# Importa a função de créditos
 try:
     from Creditos import exibir_creditos
 except ImportError:
     print("AVISO (Game.py): Não foi possível importar 'exibir_creditos' do arquivo 'creditos.py'. A opção não funcionará.")
-    def exibir_creditos(tela, clock):
+    def exibir_creditos(tela, clock): # Função placeholder para evitar erros
         print("ERRO: A função de créditos não pôde ser carregada.")
         pass
 
+# Importa os módulos principais do jogo
 try:
     from importacoes import *
     from inventario_barra import BarraInventario
 except ImportError as e:
     print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
+    # Define fallbacks para evitar crashes imediatos
     Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, ItemInventario, GerenciadorMoedas = (None,) * 15
     AdagaFogo = None
     BarraInventario = None
@@ -61,15 +65,14 @@ def inicializar_jogo(largura_tela, altura_tela):
 
     if Player is None:
         print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
-        return None, None, None, [], [], set(), None, True, tempo_inicio_func, None, None, None
+        return None, None, None, [], [], set(), None, True, tempo_inicio_func, None, None
 
     jogador = Player(velocidade=5, vida_maxima=150)
     jogador.x = float(largura_tela // 2)
     jogador.y = float(altura_tela // 2)
     if hasattr(jogador, 'rect'):
         jogador.rect.center = (int(jogador.x), int(jogador.y))
-        if not hasattr(jogador, 'rect_colisao'): # Garante que rect_colisao exista
-            jogador.rect_colisao = jogador.rect.inflate(-10, -10)
+        jogador.rect_colisao = jogador.rect.inflate(-10, -10)
 
     if GerenciadorMoedas and hasattr(jogador, 'dinheiro'):
         gerenciador_de_moedas = GerenciadorMoedas(jogador_ref=jogador, fonte_path=None)
@@ -85,9 +88,6 @@ def inicializar_jogo(largura_tela, altura_tela):
     estacoes = Estacoes(largura_tela, altura_tela) if Estacoes else None
     
     gramas, arvores, blocos_gerados = [], [], set()
-
-    # Cria um grupo para os projéteis do jogador
-    projeteis_jogador = pygame.sprite.Group()
 
     if GerenciadorDeInimigos and estacoes:
         gerenciador_inimigos = GerenciadorDeInimigos(
@@ -129,8 +129,7 @@ def inicializar_jogo(largura_tela, altura_tela):
     
     musica_gameplay_atual_path = None
     musica_gameplay_atual_pos_ms = 0
-    
-    return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario, projeteis_jogador
+    return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario
 
 def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista, estacoes_obj, blocos_ja_gerados_set):
     if not all([jogador_obj, hasattr(jogador_obj, 'rect'), estacoes_obj, Grama, Arvore]):
@@ -200,7 +199,7 @@ def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
                         jogador_obj.receber_dano(dano_contato)
 
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
-                  gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui, projeteis_jogador_group,
+                  gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui,
                   cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms, jogo_pausado_inv):
     global xp_manager, gerenciador_de_moedas
 
@@ -217,14 +216,6 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     if gerenciador_inimigos_obj:
         gerenciador_inimigos_obj.desenhar_inimigos(janela_surf, cam_x, cam_y)
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
-    
-    # Desenha os projéteis do jogador
-    if projeteis_jogador_group:
-        for projetil in projeteis_jogador_group:
-            if hasattr(projetil, 'draw'):
-                projetil.draw(janela_surf, cam_x, cam_y)
-            else: # Fallback
-                janela_surf.blit(projetil.image, (projetil.rect.x - cam_x, projetil.rect.y - cam_y))
 
     if jogador_obj: jogador_obj.desenhar(janela_surf, cam_x, cam_y)
 
@@ -233,6 +224,7 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     if timer_ui_obj: timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
     if xp_manager: xp_manager.draw(janela_surf)
     
+    # Só desenha o HUD da barra se o inventário completo não estiver aberto
     if not jogo_pausado_inv and barra_inventario_ui and jogador_obj:
         barra_inventario_ui.desenhar(janela_surf, jogador_obj)
 
@@ -267,7 +259,7 @@ def main():
     pygame.display.set_caption("Lenda de Asrahel")
     clock = pygame.time.Clock()
 
-    while True:
+    while True: # Loop principal que controla o menu e o jogo
         menu_principal_obj = Menu(largura_tela_jogo, altura_tela_jogo) if Menu else None
         if not menu_principal_obj:
             print("ERRO CRÍTICO: Não foi possível criar o objeto do Menu. Saindo.")
@@ -295,17 +287,18 @@ def main():
             clock.tick(30)
 
         if acao_menu_principal == "sair":
-            break
+            break # Sai do loop principal do programa
 
+        # --- Início do Loop do Jogo ---
         if acao_menu_principal == "jogar":
             if menu_principal_obj:
                 menu_principal_obj.parar_musica()
 
             jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, \
             gerenciador_inimigos, jogador_morreu, tempo_inicio_jogo, timer_obj, \
-            barra_inventario, projeteis_jogador = inicializar_jogo(largura_tela_jogo, altura_tela_jogo)
+            barra_inventario = inicializar_jogo(largura_tela_jogo, altura_tela_jogo)
             
-            if jogador is None: break
+            if jogador is None: break # Falha na inicialização
 
             if mixer_initialized_successfully:
                 tocar_musica_jogo()
@@ -337,7 +330,7 @@ def main():
                                 game_music_volume, game_sfx_volume = new_music_vol, new_sfx_vol
                                 if mixer_initialized_successfully:
                                     pygame.mixer.music.set_volume(game_music_volume)
-                                    if action_pause == "resume":
+                                    if action_pause == "resume_game":
                                         pygame.mixer.music.unpause()
                                 if action_pause == "main_menu":
                                     running_game_loop = False 
@@ -379,14 +372,11 @@ def main():
                         gerenciador_inimigos.process_spawn_requests(jogador, delta_time_ms)
                         gerenciador_inimigos.update_inimigos(jogador, delta_time_ms)
                         gerenciador_inimigos.update_projeteis_inimigos(jogador, delta_time_ms)
-                    
-                    if projeteis_jogador:
-                        projeteis_jogador.update(gerenciador_inimigos.inimigos, delta_time_ms)
 
                     gerar_elementos_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados)
                     
                     if jogador and gerenciador_inimigos:
-                        jogador.atacar(list(gerenciador_inimigos.inimigos), projeteis_jogador, delta_time_ms)
+                        jogador.atacar(list(gerenciador_inimigos.inimigos), delta_time_ms)
 
                     if jogador and vida_jogador_ref:
                         verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
@@ -407,10 +397,11 @@ def main():
                 tempo_total_seg = (pygame.time.get_ticks() - tempo_inicio_jogo) // 1000
 
                 desenhar_cena(janela_principal, est, gramas, arvores, jogador, gerenciador_inimigos,
-                              vida_jogador_ref, barra_inventario, projeteis_jogador,
+                              vida_jogador_ref, barra_inventario, 
                               cam_x, cam_y, tempo_total_seg, timer_obj, delta_time_ms, jogo_pausado_para_inventario)
 
                 if jogo_pausado_para_inventario and barra_inventario:
+                    # CORREÇÃO: Chama o método 'desenhar' que sabemos que existe
                     barra_inventario.desenhar(janela_principal, jogador)
 
                 pygame.display.flip()

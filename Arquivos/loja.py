@@ -6,19 +6,18 @@ import os
 
 # --- IMPORTAÇÃO ÚNICA DAS CLASSES DE ARMAS ---
 try:
-    # CORRIGIDO: Agora importa do arquivo correto que centraliza as armas.
-    from import_Loja import *
-    print("DEBUG(loja_modulo): Classes de armas e outros módulos importados de import_Loja.py")
+    from importacoes import * # CORRIGIDO: Importa de 'importacoes.py'
+    print("DEBUG(loja_modulo): Classes de armas e outros módulos importados de importacoes.py")
 except ImportError as e:
-    print(f"ERRO CRÍTICO(loja_modulo): Não foi possível importar de import_Loja.py. Verifique o arquivo e o caminho. Erro: {e}")
+    print(f"ERRO CRÍTICO(loja_modulo): Não foi possível importar de importacoes.py. Verifique o arquivo e o caminho. Erro: {e}")
     # Definir todas as classes de armas como None para evitar NameError mais tarde
     AdagaFogo = EspadaCaida = EspadaFogoAzul = EspadaLua = EspadaPenitencia = None
     EspadaSacraCerulea = EspadaSacraDasBrasas = LaminaDoCeuCentilhante = None
     MachadoBarbaro = MachadoCeruleo = MachadoDaDescidaSanta = MachadoDoFogoAbrasador = None
     MachadoMarfim = MachadoMacabro = None
-    Cajado = CajadoDaFixacaoAmetista = CajadoDaSantaNatureza = LivroDosImpuros = None
+    Cajado = None 
     Weapon = MachadoBase = None
-    Vida = Player = PauseMenuManager = XPManager = Menu = None
+    Vida = Player = RodaDeArmas = PauseMenuManager = XPManager = Menu = None
     GerenciadorDeInimigos = Estacoes = Grama = Arvore = Timer = shop_elements = None
     run_death_screen = BarraInventario = ItemInventario = None
 
@@ -581,4 +580,3 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
         
         pygame.display.flip()
     return True
-

@@ -25,10 +25,10 @@ class Estacoes:
         # ATENÇÃO: Verifique se estes caminhos estão corretos e as imagens existem!
         # Os caminhos devem ser relativos à pasta raiz do seu projeto (pasta "Jogo").
         self.caminhos_imagens = {
-            "Primavera": "Sprites\\Chao\Primavera.png",
-            "Ver o": "Sprites\\Chao\Verao.png",
-            "Outono": "Sprites\\Chao\Primavera.png",
-            "Inverno": "Sprites\\Chao\Inverno.png"
+            "Primavera": "Sprites\\Chao\\Primavera.png",
+            "Ver o": "Sprites\\Chao\\Verao.png",
+            "Outono": "Sprites\\Chao\\Primavera.png",
+            "Inverno": "Sprites\\Chao\\Inverno.png"
         }
         
         self.imagem_fundo_atual = None  # Armazenará a imagem carregada

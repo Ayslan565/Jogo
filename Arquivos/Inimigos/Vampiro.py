@@ -215,10 +215,8 @@ class Vampiro(InimigoBase):
             Vampiro.sprites_atacar_carregados = []
             # Substitua pelos caminhos reais dos sprites de ataque do Vampiro
             caminhos_atacar = [
-                "Sprites/Inimigos/Vampiro/Vampiro1.png",
-                "Sprites/Inimigos/Vampiro/Vampiro2.png",
-                "Sprites/Inimigos/Vampiro/Vampiro3.png",
-
+                "Sprites/Inimigos/Vampiro/Vampiro_Atacar1.png",
+                "Sprites/Inimigos/Vampiro/Vampiro_Atacar2.png",
             ]
             pasta_raiz_temp = Vampiro._obter_pasta_raiz_jogo()
             primeiro_sprite_ataque_existe = False
