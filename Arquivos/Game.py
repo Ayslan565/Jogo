@@ -1,4 +1,3 @@
-# Game.py
 import pygame
 import random
 import sys
@@ -20,6 +19,7 @@ try:
 except ImportError:
     print("AVISO (Game.py): Não foi possível importar 'exibir_creditos' do arquivo 'creditos.py'. A opção não funcionará.")
     def exibir_creditos(tela, clock): # Função placeholder para evitar erros
+        
         print("ERRO: A função de créditos não pôde ser carregada.")
         pass
 
@@ -204,7 +204,10 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     global xp_manager, gerenciador_de_moedas
 
     janela_surf.fill((20, 20, 30))
-    if estacoes_obj: estacoes_obj.desenhar(janela_surf)
+    # --- MUDANÇA PRINCIPAL ---
+    # Agora passamos as coordenadas da câmera para o método desenhar das estações.
+    if estacoes_obj:
+        estacoes_obj.desenhar(janela_surf, cam_x, cam_y)
 
     elementos_cenario = gramas_lista + arvores_lista
     for elemento in elementos_cenario:
@@ -217,12 +220,19 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
         gerenciador_inimigos_obj.desenhar_inimigos(janela_surf, cam_x, cam_y)
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
 
-    if jogador_obj: jogador_obj.desenhar(janela_surf, cam_x, cam_y)
+    if jogador_obj:
+        # Assumindo que o método de desenhar do jogador também aceita a câmera
+        jogador_obj.desenhar(janela_surf, cam_x, cam_y) 
 
-    if vida_ui_obj: vida_ui_obj.desenhar(janela_surf, 20, 20)
-    if estacoes_obj: estacoes_obj.desenhar_mensagem_estacao(janela_surf)
-    if timer_ui_obj: timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
-    if xp_manager: xp_manager.draw(janela_surf)
+    # --- ELEMENTOS DE UI (NÃO USAM CÂMERA) ---
+    if vida_ui_obj:
+        vida_ui_obj.desenhar(janela_surf, 20, 20)
+    if estacoes_obj:
+        estacoes_obj.desenhar_mensagem_estacao(janela_surf)
+    if timer_ui_obj:
+        timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
+    if xp_manager:
+        xp_manager.draw(janela_surf)
     
     # Só desenha o HUD da barra se o inventário completo não estiver aberto
     if not jogo_pausado_inv and barra_inventario_ui and jogador_obj:
@@ -401,7 +411,6 @@ def main():
                               cam_x, cam_y, tempo_total_seg, timer_obj, delta_time_ms, jogo_pausado_para_inventario)
 
                 if jogo_pausado_para_inventario and barra_inventario:
-                    # CORREÇÃO: Chama o método 'desenhar' que sabemos que existe
                     barra_inventario.desenhar(janela_principal, jogador)
 
                 pygame.display.flip()
@@ -429,3 +438,4 @@ if __name__ == "__main__":
             pygame.quit()
         input("Pressione Enter para sair após o erro fatal...")
         sys.exit(1)
+

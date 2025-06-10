@@ -26,14 +26,14 @@ WEAPONS_DATA = [
     {
         "name": "Adaga do Fogo Contudente",
         "id": "adaga_fogo",
-        "image_path": "adaga_icone.png", # Ex: seu 'Adaga E-1.png' renomeado e colocado aqui
+        "image_path": "Sprites/Armas/Adagas/AdagaFogo/Icone_E1.png", # Ex: seu 'Adaga E-1.png' renomeado e colocado aqui
         "surface": None,
         "display_rect": None
     },
     {
         "name": "Machado Bárbaro Cravejado",
         "id": "machado_barbaro",
-        "image_path": "machado_icone.png", # Ex: seu 'Icone_MB1.png' renomeado e colocado aqui
+        "image_path": "Sprites/Armas/Machados/Icone_MB1.png", # Ex: seu 'Icone_MB1.png' renomeado e colocado aqui
         "surface": None,
         "display_rect": None
     }
