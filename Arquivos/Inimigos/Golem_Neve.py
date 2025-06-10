@@ -4,6 +4,8 @@ import os
 import math
 import time
 
+from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+
 # --- Importação da Classe Base Inimigo ---
 # Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
 # (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
@@ -66,8 +68,6 @@ class Golem_Neve(InimigoBase):
     def _obter_pasta_raiz_jogo():
         """Calcula e retorna o caminho para a pasta raiz do jogo (ex: 'Jogo/')."""
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
-        # Se Golem_Neve.py está em Jogo/Arquivos/Inimigos/
-        # Para chegar na pasta raiz "Jogo/", subimos dois níveis.
         pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
         return pasta_raiz_jogo
 
@@ -180,9 +180,8 @@ class Golem_Neve(InimigoBase):
         vida_golem = 120
         dano_contato_golem = 120 # Dano de contato alto
         xp_golem = 600
-        self.moedas_drop = 25 # Quantidade de moedas que o Golem de Neve dropa
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Golem Neve/GN1.png"
-
+        #moedas_dropadas = 25
 
         super().__init__(
             x, y,
@@ -269,8 +268,13 @@ class Golem_Neve(InimigoBase):
             #     Golem_Neve.som_ataque_golem.play()
 
 
-    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): 
         if not self.esta_vivo():
+            if not hasattr(self, "ouro_concedido") or not self.ouro_concedido:
+                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
+                    player.dinheiro += self.money_value
+                score_manager.adicionar_xp(self.xp_value)
+                self.ouro_concedido = True
             return
 
         agora = pygame.time.get_ticks()
@@ -286,7 +290,7 @@ class Golem_Neve(InimigoBase):
             if jogador_valido and not self.hit_player_this_attack_swing and \
                self.attack_hitbox.colliderect(player.rect):
                 player.receber_dano(self.attack_damage_especifico)
-                self.hit_player_this_attack_swing = True
+                self.hit_player_this_attack_swing = True 
                 # print(f"DEBUG(Golem_Neve): Ataque MELEE acertou jogador! Dano: {self.attack_damage_especifico}")
 
             if agora - self.attack_timer >= self.attack_duration * 1000:
@@ -324,3 +328,4 @@ class Golem_Neve(InimigoBase):
     #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox
     #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
     #         pygame.draw.rect(surface, (180, 200, 230, 100), debug_rect_onscreen, 1)
+

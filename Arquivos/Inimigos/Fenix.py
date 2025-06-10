@@ -4,6 +4,8 @@ import os
 import math
 import time
 
+from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+
 # --- Importação da Classe Base Inimigo ---
 # Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
 # (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
@@ -65,8 +67,6 @@ class Fenix(InimigoBase):
     def _obter_pasta_raiz_jogo():
         """Calcula e retorna o caminho para a pasta raiz do jogo (ex: 'Jogo/')."""
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
-        # Se Fenix.py está em Jogo/Arquivos/Inimigos/
-        # Para chegar na pasta raiz "Jogo/", subimos dois níveis.
         pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
         return pasta_raiz_jogo
 
@@ -153,20 +153,19 @@ class Fenix(InimigoBase):
             Fenix.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=2.8):
+    def __init__(self, x, y, velocidade=2.8): 
         Fenix.carregar_recursos_fenix()
 
-        vida_fenix = 110
-        dano_contato_fenix = 6
+        vida_fenix = 110 
+        dano_contato_fenix = 6 
         xp_fenix = 70
-        self.moedas_drop = 20 # Quantidade de moedas que a Fenix dropa
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Fenix/Fenix 1.png"
-
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Fenix/Fenix 1.png" 
+        # moedas_dropadas = 20
 
         super().__init__(
-            x, y,
-            Fenix.tamanho_sprite_definido[0], Fenix.tamanho_sprite_definido[1],
-            vida_fenix, velocidade, dano_contato_fenix,
+            x, y, 
+            Fenix.tamanho_sprite_definido[0], Fenix.tamanho_sprite_definido[1], 
+            vida_fenix, velocidade, dano_contato_fenix, 
             xp_fenix, sprite_path_principal_relativo_jogo
         )
 
@@ -219,14 +218,13 @@ class Fenix(InimigoBase):
 
         atk_w, atk_h = self.attack_hitbox_size
         self.attack_hitbox.height = atk_h # Largura pode variar com a direção
-
+        
         if self.facing_right:
             self.attack_hitbox.width = atk_w
             self.attack_hitbox.midleft = self.rect.midright
         else:
             self.attack_hitbox.width = atk_w
             self.attack_hitbox.midright = self.rect.midleft
-
 
     def atacar(self, player):
         if not (hasattr(player, 'rect') and self.esta_vivo()):
@@ -250,10 +248,15 @@ class Fenix(InimigoBase):
             self.sprite_index = 0
             # if Fenix.som_ataque_fenix: Fenix.som_ataque_fenix.play()
 
-
     def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+        # --- INTEGRAÇÃO DO SCORE ---
         if not self.esta_vivo():
-            # Garante que o som de voo para se morrer por outra razão (ex: removido pelo gerenciador)
+            if not hasattr(self, "ouro_concedido") or not self.ouro_concedido:
+                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
+                    player.dinheiro += self.money_value
+                if hasattr(self, "xp_value"):
+                    score_manager.adicionar_xp(self.xp_value)
+                self.ouro_concedido = True
             if self.canal_voo:
                 self.canal_voo.stop()
                 self.canal_voo = None
@@ -272,7 +275,7 @@ class Fenix(InimigoBase):
             if jogador_valido and not self.hit_player_this_attack_burst and \
                self.attack_hitbox.colliderect(player.rect):
                 player.receber_dano(self.attack_damage_especifico)
-                self.hit_player_this_attack_burst = True # Dano aplicado neste "burst" de ataque
+                self.hit_player_this_attack_burst = True
 
             if agora - self.attack_timer >= self.attack_duration * 1000:
                 self.is_attacking = False
@@ -300,7 +303,7 @@ class Fenix(InimigoBase):
         if self.esta_vivo():
             if vida_antes > self.hp and Fenix.som_dano_fenix:
                 Fenix.som_dano_fenix.play()
-        elif vida_antes > 0: # Morreu (hp <= 0 e vida_antes > 0)
+        elif vida_antes > 0:
             if Fenix.som_morte_fenix:
                 Fenix.som_morte_fenix.play()
             if self.canal_voo:
@@ -319,3 +322,4 @@ class Fenix(InimigoBase):
     #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox
     #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
     #         pygame.draw.rect(surface, (255, 100, 0, 100), debug_rect_onscreen, 1)
+

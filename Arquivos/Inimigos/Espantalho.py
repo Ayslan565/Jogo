@@ -4,6 +4,8 @@ import os
 import math
 import time
 
+from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+
 # --- Importação da Classe Base Inimigo ---
 # Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
 # (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
@@ -56,10 +58,7 @@ class Espantalho(InimigoBase):
     @staticmethod
     def _obter_pasta_raiz_jogo():
         """Calcula e retorna o caminho para a pasta raiz do jogo (ex: 'Jogo/')."""
-        # __file__ aqui se refere a Espantalho.py
         diretorio_script_espantalho = os.path.dirname(os.path.abspath(__file__))
-        # Se Espantalho.py está em Jogo/Arquivos/Inimigos/
-        # Para chegar na pasta raiz "Jogo/", subimos dois níveis.
         pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_espantalho, "..", ".."))
         return pasta_raiz_jogo
 
@@ -114,7 +113,6 @@ class Espantalho(InimigoBase):
             lista_destino.append(placeholder)
         return lista_destino
 
-
     @staticmethod
     def carregar_recursos_espantalho():
         if Espantalho.sprites_andar_carregados is None: # Flag principal para carregar tudo uma vez
@@ -154,62 +152,61 @@ class Espantalho(InimigoBase):
             Espantalho.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=1.3):
+    def __init__(self, x, y, velocidade=1.3): 
         Espantalho.carregar_recursos_espantalho() # Garante que os recursos da classe estão carregados
 
-        vida_espantalho = 85
-        dano_contato_espantalho = 5
+        vida_espantalho = 85 
+        dano_contato_espantalho = 5 
         xp_espantalho = 20
-        self.moedas_drop = 11 # Quantidade de moedas que o Espantalho dropa
-
+        #moedas_dropadas = 11
+        
         # O sprite_path principal deve ser relativo à pasta raiz do jogo.
         # A classe InimigoBase (herdada) usará seu método _carregar_sprite para carregá-lo.
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espantalho/Espantalho.png"
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espantalho/Espantalho.png" 
 
         super().__init__(
             x, y,
             Espantalho.tamanho_sprite_definido[0], Espantalho.tamanho_sprite_definido[1],
             vida_espantalho, velocidade, dano_contato_espantalho,
-            xp_espantalho, sprite_path_principal_relativo_jogo
+            self.xp_value, sprite_path_principal_relativo_jogo
         )
 
-        # Define os sprites para animação desta instância
         self.sprites_andar = Espantalho.sprites_andar_carregados
         self.sprites_atacar = Espantalho.sprites_atacar_carregados if Espantalho.sprites_atacar_carregados else self.sprites_andar
 
         # Define a lista de sprites atual (para o método atualizar_animacao da base)
         self.sprites = self.sprites_andar # Começa com animação de andar/idle
-
+        
         # Garante que self.image e self.sprites[0] são válidos após o super().__init__
         if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)):
             # print("DEBUG(Espantalho __init__): self.image não foi definido corretamente pelo super(). Usando primeiro sprite de animação.")
             if self.sprites and isinstance(self.sprites[0], pygame.Surface):
                 self.image = self.sprites[0]
-            else: # Fallback crítico
+            else:
                 placeholder_img = pygame.Surface(Espantalho.tamanho_sprite_definido, pygame.SRCALPHA)
-                placeholder_img.fill((100, 50, 10, 150)) # Marrom escuro para erro
+                placeholder_img.fill((100, 50, 10, 150))
                 self.image = placeholder_img
-                if not self.sprites: self.sprites = [self.image] # Garante que self.sprites não é None ou vazio
+                if not self.sprites: self.sprites = [self.image]
 
-        self.rect = self.image.get_rect(topleft=(self.x, self.y)) # Reafirma o rect com a imagem correta
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
-        self.sprite_index = 0
+        self.sprite_index = 0 
         # self.tempo_ultimo_update_animacao já é inicializado na InimigoBase
-        self.intervalo_animacao_andar = 220
-        self.intervalo_animacao_atacar = 150
+        self.intervalo_animacao_andar = 220 
+        self.intervalo_animacao_atacar = 150 
         self.intervalo_animacao = self.intervalo_animacao_andar # Começa com o intervalo de andar
 
         # Atributos específicos de ataque do Espantalho (ataque corpo a corpo)
-        self.is_attacking = False
+        self.is_attacking = False 
         self.attack_duration = 0.6 # Duração da animação/hitbox de ataque (s)
-        self.attack_timer = 0.0
+        self.attack_timer = 0.0 
         self.attack_damage_especifico = 10 # Dano do ataque específico (não o de contato)
         self.attack_hitbox_size = (Espantalho.tamanho_sprite_definido[0] * 0.6, Espantalho.tamanho_sprite_definido[1] * 0.5) # Tamanho da hitbox de ataque
         self.attack_hitbox_offset_x = Espantalho.tamanho_sprite_definido[0] * 0.4 # Distância à frente para a hitbox
-        self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
         self.attack_range = 80 # Distância para iniciar o ataque (pixels)
         self.attack_cooldown = 2.0 # Segundos entre ataques
-        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
+        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000) 
         self.hit_player_this_swing = False # Garante que o ataque acerta apenas uma vez por "swing"
 
     # O método receber_dano é herdado. Pode adicionar sons aqui.
@@ -219,19 +216,16 @@ class Espantalho(InimigoBase):
     def _atualizar_hitbox_ataque(self):
         """Atualiza a posição da hitbox de ataque baseada na direção do espantalho."""
         if not self.is_attacking:
-            self.attack_hitbox.size = (0,0) # Zera a hitbox se não estiver atacando
+            self.attack_hitbox.size = (0,0)
             return
 
         w, h = self.attack_hitbox_size
         if self.facing_right:
-            # Hitbox à direita do espantalho
             self.attack_hitbox.size = (w,h)
             self.attack_hitbox.midleft = (self.rect.right, self.rect.centery)
         else:
-            # Hitbox à esquerda do espantalho
             self.attack_hitbox.size = (w,h)
             self.attack_hitbox.midright = (self.rect.left, self.rect.centery)
-
 
     def atacar(self, player):
         """Inicia a sequência de ataque do Espantalho."""
@@ -250,61 +244,59 @@ class Espantalho(InimigoBase):
             self.attack_timer = agora # Inicia o timer da duração do ataque
             self.last_attack_time = agora # Reseta o cooldown para o próximo ataque
             self.hit_player_this_swing = False # Reseta a flag de acerto para este ataque
-
+            
             self.sprites = self.sprites_atacar # Muda para sprites de ataque
             self.intervalo_animacao = self.intervalo_animacao_atacar
-            self.sprite_index = 0 # Reinicia a animação de ataque
-            # print(f"DEBUG(Espantalho): Iniciando ataque! Dist: {distancia_ao_jogador:.0f}")
-            # if Espantalho.som_ataque_espantalho: Espantalho.som_ataque_espantalho.play()
-
+            self.sprite_index = 0
 
     def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+        # --- INTEGRAÇÃO DO SCORE ---
         if not self.esta_vivo():
+            if not self.ouro_concedido:
+                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
+                    player.dinheiro += self.money_value
+                if hasattr(self, "xp_value"):
+                    score_manager.adicionar_xp(self.xp_value)
+                self.ouro_concedido = True
             return
 
         agora = pygame.time.get_ticks()
-
+        
         # Verifica se o jogador e seus atributos necessários existem
-        jogador_valido = (hasattr(player, 'rect') and
-                          hasattr(player, 'vida') and
-                          hasattr(player.vida, 'esta_vivo') and
+        jogador_valido = (hasattr(player, 'rect') and 
+                          hasattr(player, 'vida') and 
+                          hasattr(player.vida, 'esta_vivo') and 
                           hasattr(player, 'receber_dano'))
 
-        # Lógica de Ataque
         if self.is_attacking:
-            self.atualizar_animacao() # Continua a animação de ataque
+            self.atualizar_animacao()
             self._atualizar_hitbox_ataque()
 
-            # Verifica colisão do ataque com o jogador
             if jogador_valido and not self.hit_player_this_swing and \
                self.attack_hitbox.colliderect(player.rect):
                 player.receber_dano(self.attack_damage_especifico)
                 self.hit_player_this_swing = True
-                # print(f"DEBUG(Espantalho): Ataque MELEE acertou jogador! Dano: {self.attack_damage_especifico}")
 
-            # Termina o estado de ataque após a duração
             if agora - self.attack_timer >= self.attack_duration * 1000:
                 self.is_attacking = False
-                self.sprites = self.sprites_andar # Volta para sprites de andar/idle
+                self.sprites = self.sprites_andar
                 self.intervalo_animacao = self.intervalo_animacao_andar
-                self.sprite_index = 0 # Reinicia animação de andar
-                self.attack_hitbox.size = (0,0) # Desativa a hitbox
+                self.sprite_index = 0
+                self.attack_hitbox.size = (0,0)
         else:
-            # Se não está atacando, tenta iniciar um ataque ou se move
             if jogador_valido:
                 self.atacar(player) # Tenta iniciar um ataque
-
+            
             if not self.is_attacking and jogador_valido: # Se não iniciou um ataque, move-se
                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-
+            
             self.atualizar_animacao() # Animação de andar/idle
 
-        # Dano de Contato (herdado da InimigoBase, mas precisa ser chamado se não estiver no update da base)
         if jogador_valido and self.rect.colliderect(player.rect) and \
            (agora - self.last_contact_time >= self.contact_cooldown):
             player.receber_dano(self.contact_damage)
             self.last_contact_time = agora
-
+            
         # Colisão com outros inimigos (se a lógica for implementada)
         # if outros_inimigos:
         #     for outro_inimigo in outros_inimigos:
@@ -320,3 +312,4 @@ class Espantalho(InimigoBase):
     #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox
     #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
     #         pygame.draw.rect(surface, (255, 0, 0, 100), debug_rect_onscreen, 1)
+

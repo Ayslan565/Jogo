@@ -4,18 +4,12 @@ import random
 import math # Importa math para a função hypot
 import time # Importa time para usar time.time() ou pygame.time.get_ticks()
 import os # Importa os para verificar a existência de arquivos
-# Tenta importar a classe base real
-# A importação de Inimigos foi removida do topo pois o placeholder abaixo a redefine.
-# Se a importação original de '.Inimigos import Inimigo' for necessária E funcionar,
-# ela deve ser mantida e o placeholder abaixo deve ser condicional ou removido.
+from Inimigos import Inimigo # Tenta importar a classe base real
 
-# --- Bloco de Importação da Classe Base Inimigo ---
-try:
-    from .Inimigos import Inimigo as InimigoBase
-    # print(f"DEBUG(Demonio): Classe InimigoBase importada com sucesso de .Inimigos.")
-except ImportError as e:
-    # print(f"DEBUG(Demonio): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local.")
-    class InimigoBase(pygame.sprite.Sprite):
+# Certifique-se de que Inimigo está acessível
+
+    # Placeholder para Inimigo, caso Inimigos.py não seja encontrado
+class Inimigo(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
             super().__init__()
             self.x = x
@@ -82,18 +76,35 @@ except ImportError as e:
                 dx = alvo_x - self.rect.centerx
                 dy = alvo_y - self.rect.centery
                 dist = math.hypot(dx, dy)
-                fator_tempo = (dt_ms / (1000.0 / 60.0)) if dt_ms and dt_ms > 0 else 1.0
 
-                if dist > self.velocidade * fator_tempo : # Só se move se não estiver muito perto
-                    mov_x = (dx / dist) * self.velocidade * fator_tempo
-                    mov_y = (dy / dist) * self.velocidade * fator_tempo
-                    self.rect.x += mov_x
-                    self.rect.y += mov_y
-                    if abs(dx) > 0.1 : self.facing_right = dx > 0 # Atualiza direção apenas se houver movimento horizontal significativo
-                elif dist > 0 : # Se estiver perto mas não exatamente no ponto, ajusta para o centro
-                    self.rect.center = (round(alvo_x), round(alvo_y))
+                fator_tempo = 1.0 # Se dt_ms não for usado, movimento é por frame
+                if dt_ms is not None and dt_ms > 0:
+                     # Converte velocidade para pixels por segundo se dt_ms for usado
+                     # Assume que self.velocidade é pixels por frame se dt_ms não for usado,
+                     # ou pixels por segundo se dt_ms for usado consistentemente.
+                     # Para simplificar, vamos assumir que self.velocidade é uma magnitude.
+                     # Se dt_ms é fornecido, ajustamos o movimento.
+                     # Se velocidade é px/frame @60fps, então velocidade_px_s = self.velocidade * 60
+                     # movimento = (direcao * velocidade_px_s) * (dt_ms / 1000.0)
+                     # Se self.velocidade já é px/s: movimento = direcao * self.velocidade * (dt_ms / 1000.0)
+                     # Vamos assumir que a classe base Inimigo tem uma velocidade definida em px/frame
+                     # e que o dt_ms é para ajustar isso a uma taxa de atualização variável.
+                     # Se o jogo roda a 60FPS, dt_ms seria ~16.66ms.
+                     # movimento_por_frame = self.velocidade
+                     # movimento_ajustado = self.velocidade * (dt_ms / (1000.0/60.0)) # Ajusta baseado em 60 FPS
+                     fator_tempo = (dt_ms / (1000.0 / 60.0)) if dt_ms else 1.0
 
 
+                if dist > 0:
+                    dx_norm = dx / dist
+                    dy_norm = dy / dist
+                    self.rect.x += dx_norm * self.velocidade * fator_tempo
+                    self.rect.y += dy_norm * self.velocidade * fator_tempo
+                    if dx > 0:
+                        self.facing_right = True
+                    elif dx < 0:
+                        self.facing_right = False
+        
         def atualizar_animacao(self):
             agora = pygame.time.get_ticks()
             if self.sprites and len(self.sprites) > 1 and self.esta_vivo():
@@ -110,7 +121,6 @@ except ImportError as e:
                     self.image = base_image.copy() # Usa cópia para não alterar o original na lista de sprites
             elif not hasattr(self, 'image') or self.image is None : # Fallback extremo
                 self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA); self.image.fill((255,0,255,100))
-
 
         def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
             if self.esta_vivo():
@@ -239,23 +249,24 @@ class Demonio(InimigoBase):
             Demonio.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=2.5):
-        Demonio.carregar_recursos_demonio()
+    def __init__(self, x, y, velocidade=2.5): # Velocidade ajustada para o Demônio
+        Demonio.carregar_recursos_demonio() # Garante que sprites e sons sejam carregados uma vez
 
         demonio_hp = 90
         demonio_contact_damage = 10
         demonio_xp_value = 75
-        self.moedas_drop = 12 # Quantidade de moedas que o Demônio dropa
+        # moedas_dropadas = 12
 
-        sprite_path_ref_base = "Sprites/Inimigos/Demonio/"
-        sprite_path_ref_nome = "20250521_1111_Demônio Pixel Art_simple_compose_01jvsjxvc7f8ca6npqkjaftsrv (1).png" # Primeiro frame como referência
-        sprite_path_ref = os.path.join(sprite_path_ref_base, sprite_path_ref_nome)
+        
+        # O sprite_path_principal é usado pela classe base, mas Demonio usa sua lista de sprites.
+        # Podemos passar o caminho do primeiro frame como referência.
+        sprite_path_ref = "Sprites/Inimigos/Demonio/" + Demonio.sprites_originais[0].get_at((0,0)) if Demonio.sprites_originais and Demonio.sprites_originais[0] else "Sprites/Inimigos/Demonio/placeholder_demonio.png"
 
 
         super().__init__(x, y,
                          Demonio.tamanho_sprite_definido[0], Demonio.tamanho_sprite_definido[1],
                          demonio_hp, velocidade, demonio_contact_damage,
-                         demonio_xp_value, sprite_path_ref)
+                         self.xp_value, sprite_path_ref)
 
         self.sprites = Demonio.sprites_originais
         self.sprite_index = 0
@@ -287,9 +298,9 @@ class Demonio(InimigoBase):
             Demonio.som_spawn_demonio.play()
 
 
-    def receber_dano(self, dano, fonte_dano_rect=None): # Adicionado fonte_dano_rect
+    def receber_dano(self, dano):
         vida_antes = self.hp
-        super().receber_dano(dano, fonte_dano_rect)
+        super().receber_dano(dano) # Chama o método da classe base
 
         if self.esta_vivo():
             if vida_antes > self.hp :
@@ -299,6 +310,10 @@ class Demonio(InimigoBase):
             if vida_antes > 0:
                 if Demonio.som_morte_demonio:
                     Demonio.som_morte_demonio.play()
+                # self.kill() # O GerenciadorDeInimigos deve cuidar de remover o sprite dos grupos
+
+    # atualizar_animacao e mover_em_direcao são herdados da classe base Inimigo
+    # e já devem funcionar corretamente com self.sprites, self.velocidade, etc.
 
     def atacar(self, player):
         if not hasattr(player, 'rect'):
@@ -313,10 +328,12 @@ class Demonio(InimigoBase):
 
             if distancia_ao_jogador <= self.attack_range:
                 self.is_attacking = True
-                self.attack_timer = current_time
-                self.last_attack_time = current_time
-                self.hit_by_player_this_attack = False # Resetado aqui também
+                self.attack_timer = current_time # Inicia o timer da duração do ataque
+                self.last_attack_time = current_time # Reseta o cooldown
+                self.hit_by_player_this_attack = False # Reseta flag de dano para este ataque
 
+                # Configura a hitbox de ataque (pode ser um golpe físico, baforada, etc.)
+                # A posição será atualizada no update se o Demônio se mover
                 attack_hitbox_width = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[0]
                 attack_hitbox_height = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[1]
                 self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
@@ -325,8 +342,8 @@ class Demonio(InimigoBase):
                 if Demonio.som_ataque_demonio:
                     Demonio.som_ataque_demonio.play()
 
-
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+        # Validação básica do jogador
         if not hasattr(player, 'rect') or not hasattr(player, 'vida') or \
            not hasattr(player.vida, 'esta_vivo') or not hasattr(player, 'receber_dano'):
             if self.esta_vivo(): self.atualizar_animacao()
@@ -342,17 +359,30 @@ class Demonio(InimigoBase):
 
                 if current_time_ataque - self.attack_timer >= self.attack_duration:
                     self.is_attacking = False
-                    self.hit_by_player_this_attack = False # Resetado ao final do ciclo de ataque
+                    self.hit_by_player_this_attack = False
+                    # print(f"DEBUG(Demonio): Demônio terminou ciclo de ataque.")
                 else:
                     if not self.hit_by_player_this_attack and \
                        hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0 and \
                        self.attack_hitbox.colliderect(player.rect):
                         if player.vida.esta_vivo():
-                            player.receber_dano(self.attack_damage, self.rect) # Passa rect do demônio como fonte
-                            self.hit_by_player_this_attack = True
-
+                            player.receber_dano(self.attack_damage)
+                            self.hit_by_player_this_attack = True # Garante dano uma vez por ataque
+                            # print(f"DEBUG(Demonio): Demônio atingiu jogador com ataque especial.")
+            
+            # Se não estiver atacando, tenta iniciar um novo ataque
             if not self.is_attacking:
                 self.atacar(player)
+        # else: self.kill() # Se morrer, o gerenciador deve cuidar da remoção.
 
-    # def desenhar(self, surface, camera_x, camera_y):
-    #     super().desenhar(surface, camera_x, camera_y)
+    def desenhar(self, surface, camera_x, camera_y):
+        super().desenhar(surface, camera_x, camera_y) # Chama o desenhar da classe base (imagem, flash, barra de vida)
+        
+        # Opcional: Desenhar a hitbox de ataque para debug
+        # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
+        #     debug_hitbox_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
+        #     # Cria uma surface semi-transparente para a hitbox
+        #     s = pygame.Surface((self.attack_hitbox.width, self.attack_hitbox.height), pygame.SRCALPHA)
+        #     s.fill((255, 100, 0, 100))  # Cor laranja semi-transparente
+        #     surface.blit(s, (debug_hitbox_rect_onscreen.x, debug_hitbox_rect_onscreen.y))
+        #     # pygame.draw.rect(surface, (255, 100, 0, 100), debug_hitbox_rect_onscreen, 1) # Borda

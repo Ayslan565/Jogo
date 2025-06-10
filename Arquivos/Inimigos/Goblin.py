@@ -4,6 +4,8 @@ import os
 import math
 import time
 
+from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+
 # --- Importação da Classe Base Inimigo ---
 # Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
 # (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
@@ -65,8 +67,6 @@ class Goblin(InimigoBase):
     def _obter_pasta_raiz_jogo():
         """Calcula e retorna o caminho para a pasta raiz do jogo (ex: 'Jogo/')."""
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
-        # Se Goblin.py está em Jogo/Arquivos/Inimigos/
-        # Para chegar na pasta raiz "Jogo/", subimos dois níveis.
         pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
         return pasta_raiz_jogo
 
@@ -155,8 +155,8 @@ class Goblin(InimigoBase):
                     Goblin.tamanho_sprite_definido,
                     "Atacar"
                 )
-
-            if not Goblin.sprites_atacar_carregados:
+            
+            if not Goblin.sprites_atacar_carregados: # Fallback se ataque não carregou ou não existia
                 if Goblin.sprites_andar_carregados and len(Goblin.sprites_andar_carregados) > 0 :
                     Goblin.sprites_atacar_carregados = [Goblin.sprites_andar_carregados[0]]
                     # print("DEBUG(Goblin.carregar_recursos): Usando primeiro sprite de andar como fallback para ataque.")
@@ -174,21 +174,20 @@ class Goblin(InimigoBase):
             Goblin.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=2.2):
-        Goblin.carregar_recursos_goblin()
+    def __init__(self, x, y, velocidade=2.2): 
+        Goblin.carregar_recursos_goblin() 
 
         vida_goblin = 50
         dano_contato_goblin = 7
         xp_goblin = 18
-        self.moedas_drop = 5 # Quantidade de moedas que o Goblin dropa
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Goblin/goblin1.png"
-
+        # moedas_dropadas = 5
 
         super().__init__(
             x, y,
             Goblin.tamanho_sprite_definido[0], Goblin.tamanho_sprite_definido[1],
             vida_goblin, velocidade, dano_contato_goblin,
-            xp_goblin, sprite_path_principal_relativo_jogo
+            self.xp_value, sprite_path_principal_relativo_jogo
         )
 
         self.sprites_andar = Goblin.sprites_andar_carregados
@@ -269,8 +268,14 @@ class Goblin(InimigoBase):
             #     Goblin.som_ataque_goblin.play()
 
 
-    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): 
         if not self.esta_vivo():
+            if not hasattr(self, "ouro_concedido") or not self.ouro_concedido:
+                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
+                    player.dinheiro += self.money_value
+                if hasattr(self, "xp_value"):
+                    score_manager.adicionar_xp(self.xp_value)
+                self.ouro_concedido = True
             return
 
         agora = pygame.time.get_ticks()
@@ -286,7 +291,7 @@ class Goblin(InimigoBase):
             if jogador_valido and not self.hit_player_this_attack_swing and \
                self.attack_hitbox.colliderect(player.rect):
                 player.receber_dano(self.attack_damage_especifico)
-                self.hit_player_this_attack_swing = True
+                self.hit_player_this_attack_swing = True 
                 # print(f"DEBUG(Goblin): Ataque MELEE acertou jogador! Dano: {self.attack_damage_especifico}")
 
             if agora - self.attack_timer >= self.attack_duration * 1000:
@@ -304,7 +309,6 @@ class Goblin(InimigoBase):
 
             self.atualizar_animacao() # Animação de andar
 
-        # Dano de contato (da InimigoBase, mas precisa ser chamado se não estiver no update da base)
         if jogador_valido and self.rect.colliderect(player.rect) and \
            (agora - self.last_contact_time >= self.contact_cooldown):
             player.receber_dano(self.contact_damage)
@@ -325,3 +329,4 @@ class Goblin(InimigoBase):
     #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox
     #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
     #         pygame.draw.rect(surface, (0, 150, 0, 100), debug_rect_onscreen, 1)
+

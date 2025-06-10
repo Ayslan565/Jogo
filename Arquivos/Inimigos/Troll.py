@@ -4,12 +4,15 @@ import os
 import math
 import time
 
+from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+
 # --- Importação da Classe Base Inimigo ---
 try:
     from .Inimigos import Inimigo as InimigoBase
     # print(f"DEBUG(Troll): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
-    # print(f"DEBUG(Troll): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
+    print(f"DEBUG(Troll): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
+    # Este é um placeholder MUITO SIMPLES. A classe base real deve ser mais completa.
     class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
@@ -24,13 +27,10 @@ except ImportError as e:
             self.contact_cooldown = 1000; self.last_contact_time = 0
             self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
-            self.x = float(x) # Adicionado para consistência
-            self.y = float(y) # Adicionado para consistência
-            # print(f"DEBUG(InimigoBase Placeholder para Troll): Instanciado. Sprite path (não usado): {sprite_path}")
-
-        def _carregar_sprite(self, path, tamanho):
-            caminho_log = os.path.normpath(path)
-            # print(f"DEBUG(InimigoBase Placeholder _carregar_sprite): Tentando carregar '{caminho_log}' (não implementado). Retornando placeholder.")
+            print(f"DEBUG(InimigoBase Placeholder para Troll): Instanciado. Sprite path (não usado): {sprite_path}")
+        
+        def _carregar_sprite(self, path, tamanho): # Placeholder _carregar_sprite na base
+            print(f"DEBUG(InimigoBase Placeholder _carregar_sprite): Tentando carregar '{path}' (não implementado). Retornando placeholder.")
             img = pygame.Surface(tamanho, pygame.SRCALPHA)
             img.fill((0,80,0, 128))
             return img
@@ -40,88 +40,18 @@ except ImportError as e:
              if hasattr(self, 'last_hit_time'): # Para o efeito de flash
                  self.last_hit_time = pygame.time.get_ticks()
         def esta_vivo(self): return self.hp > 0
-        def mover_em_direcao(self, ax, ay, dt_ms=None):
-            if self.esta_vivo() and self.velocidade > 0:
-                dx = ax - self.rect.centerx
-                dy = ay - self.rect.centery
-                dist = math.hypot(dx, dy)
-                fator_tempo = (dt_ms / (1000.0 / 60.0)) if dt_ms and dt_ms > 0 else 1.0
-
-                if dist > self.velocidade * fator_tempo :
-                    mov_x = (dx / dist) * self.velocidade * fator_tempo
-                    mov_y = (dy / dist) * self.velocidade * fator_tempo
-                    self.rect.x += mov_x
-                    self.rect.y += mov_y
-                    self.x = float(self.rect.x)
-                    self.y = float(self.rect.y)
-                    if abs(dx) > 0.1 : self.facing_right = dx > 0
-                elif dist > 0 :
-                    self.rect.center = (round(ax), round(ay))
-                    self.x = float(self.rect.x)
-                    self.y = float(self.rect.y)
-
-        def atualizar_animacao(self):
-            agora = pygame.time.get_ticks()
-            if self.sprites and len(self.sprites) > 1 and self.esta_vivo():
-                if agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao:
-                    self.tempo_ultimo_update_animacao = agora
-                    self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
-
-            if self.sprites and len(self.sprites) > 0:
-                idx = int(self.sprite_index % len(self.sprites))
-                base_image = self.sprites[idx]
-                if isinstance(base_image, pygame.Surface):
-                    self.image = base_image.copy()
-                    if hasattr(self, 'facing_right') and not self.facing_right:
-                        self.image = pygame.transform.flip(self.image, True, False)
-                else: # Fallback se o sprite na lista não for uma Surface
-                    self.image = pygame.Surface((self.largura if hasattr(self, 'largura') else 32, self.altura if hasattr(self, 'altura') else 32), pygame.SRCALPHA)
-                    self.image.fill((0,70,0,150)) # Cor do placeholder original
-
-        def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-            if self.esta_vivo():
-                if hasattr(player, 'rect') and player.rect is not None:
-                    self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-                self.atualizar_animacao()
-                # Dano de contato
-                agora_contato = pygame.time.get_ticks()
-                if hasattr(player, 'rect') and player.rect is not None and \
-                   hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
-                   self.rect.colliderect(player.rect) and \
-                   (agora_contato - self.last_contact_time >= self.contact_cooldown):
-                    if hasattr(player, 'receber_dano'):
-                        player.receber_dano(self.contact_damage, self.rect)
-                        self.last_contact_time = agora_contato
-
-        def desenhar(self, janela, camera_x, camera_y):
-            if not (hasattr(self, 'image') and self.image and isinstance(self.image, pygame.Surface)):
-                self.image = pygame.Surface((getattr(self,'largura',32), getattr(self,'altura',32)), pygame.SRCALPHA)
-                self.image.fill((0,70,0,150)) # Cor do placeholder original
-            if not (hasattr(self, 'rect') and isinstance(self.rect, pygame.Rect)):
-                 self.rect = self.image.get_rect(topleft=(getattr(self,'x',0), getattr(self,'y',0)))
-
-            screen_x = self.rect.x - camera_x
-            screen_y = self.rect.y - camera_y
-            janela.blit(self.image, (screen_x, screen_y))
-
-            current_time_flash = pygame.time.get_ticks()
-            if hasattr(self, 'last_hit_time') and current_time_flash - self.last_hit_time < self.hit_flash_duration:
-                flash_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
-                flash_surface.fill(self.hit_flash_color)
-                janela.blit(flash_surface, (screen_x, screen_y)) # Adiciona o special_flags que faltava
-
-            if self.hp < self.max_hp and self.hp > 0:
-                bar_width = self.rect.width
-                bar_height = 5
-                health_percentage = self.hp / self.max_hp
-                current_bar_width = int(bar_width * health_percentage)
-                bar_x = screen_x
-                bar_y = screen_y - bar_height - 5
-                pygame.draw.rect(janela, (200,0,0), (bar_x, bar_y, bar_width, bar_height), border_radius=2)
-                pygame.draw.rect(janela, (0,200,0), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2)
-                pygame.draw.rect(janela, (255,255,255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2)
-
-        def kill(self):
+        def mover_em_direcao(self, ax, ay, dt_ms=None): # Adicionado dt_ms
+            pass 
+        def atualizar_animacao(self): 
+            if self.sprites and len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface):
+                self.image = self.sprites[0]
+                if hasattr(self, 'facing_right') and not self.facing_right:
+                    self.image = pygame.transform.flip(self.image, True, False)
+        def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): self.atualizar_animacao()
+        def desenhar(self, janela, camera_x, camera_y): 
+            if self.image and self.rect:
+                janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        def kill(self): 
             super().kill()
 
 
@@ -146,8 +76,7 @@ class Troll(InimigoBase):
     def _carregar_som_troll(caminho_relativo_a_raiz_jogo):
         pasta_raiz_jogo = Troll._obter_pasta_raiz_jogo()
         caminho_completo = os.path.join(pasta_raiz_jogo, caminho_relativo_a_raiz_jogo.replace("\\", "/"))
-        caminho_log = os.path.normpath(caminho_completo)
-
+        
         if not os.path.exists(caminho_completo):
             # print(f"DEBUG(Troll._carregar_som): Arquivo de som NÃO ENCONTRADO: {caminho_log}")
             return None
@@ -162,9 +91,8 @@ class Troll(InimigoBase):
     @staticmethod
     def _carregar_lista_sprites_estatico(caminhos_relativos_a_raiz_jogo, lista_destino_existente, tamanho_sprite, nome_animacao):
         pasta_raiz_jogo = Troll._obter_pasta_raiz_jogo()
-        # print(f"DEBUG(Troll._carregar_lista_sprites): Carregando sprites de '{nome_animacao}'. Raiz do jogo: {os.path.normpath(pasta_raiz_jogo)}")
-        if lista_destino_existente is None: lista_destino_existente = []
-
+        print(f"DEBUG(Troll._carregar_lista_sprites): Carregando sprites de '{nome_animacao}'. Raiz do jogo: {pasta_raiz_jogo}")
+        
         for path_relativo in caminhos_relativos_a_raiz_jogo:
             caminho_completo = os.path.join(pasta_raiz_jogo, path_relativo.replace("\\", os.sep))
             caminho_log = os.path.normpath(caminho_completo)
@@ -185,9 +113,9 @@ class Troll(InimigoBase):
                 placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
                 placeholder.fill((0, 80, 0, 180))
                 lista_destino_existente.append(placeholder)
-
-        if not lista_destino_existente:
-            # print(f"DEBUG(Troll._carregar_lista_sprites): FALHA TOTAL em carregar sprites para '{nome_animacao}'. Usando placeholder final.")
+        
+        if not lista_destino_existente: 
+            print(f"DEBUG(Troll._carregar_lista_sprites): FALHA TOTAL em carregar sprites para '{nome_animacao}'. Usando placeholder final (verde bem escuro).")
             placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
             placeholder.fill((0, 50, 0, 200))
             lista_destino_existente.append(placeholder)
@@ -223,14 +151,14 @@ class Troll(InimigoBase):
                 caminho_primeiro_ataque = os.path.join(pasta_raiz_temp, caminhos_atacar[0].replace("\\", "/"))
                 if os.path.exists(caminho_primeiro_ataque):
                     primeiro_sprite_ataque_existe = True
-
+            
             if primeiro_sprite_ataque_existe:
                 Troll._carregar_lista_sprites_estatico(
                     caminhos_atacar, Troll.sprites_atacar_carregados,
                     Troll.tamanho_sprite_definido, "Atacar"
                 )
-
-            if not Troll.sprites_atacar_carregados:
+            
+            if not Troll.sprites_atacar_carregados: 
                 if Troll.sprites_andar_carregados and len(Troll.sprites_andar_carregados) > 0 :
                     Troll.sprites_atacar_carregados = [Troll.sprites_andar_carregados[0]]
                     # print("DEBUG(Troll.carregar_recursos): Usando primeiro sprite de andar como fallback para ataque.")
@@ -238,8 +166,8 @@ class Troll(InimigoBase):
                     placeholder_ataque = pygame.Surface(Troll.tamanho_sprite_definido, pygame.SRCALPHA)
                     placeholder_ataque.fill((0,70,0, 180))
                     Troll.sprites_atacar_carregados = [placeholder_ataque]
-                    # print("DEBUG(Troll.carregar_recursos): Usando placeholder de cor para ataque.")
-
+                    print("DEBUG(Troll.carregar_recursos): Usando placeholder de cor para ataque.")
+        
         if not Troll.sons_carregados:
             # Troll.som_ataque_troll = Troll._carregar_som_troll("Sons/Troll/ataque_paulada.wav")
             # Troll.som_dano_troll = Troll._carregar_som_troll("Sons/Troll/dano_grunhido.wav")
@@ -248,20 +176,20 @@ class Troll(InimigoBase):
             Troll.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=1.0):
-        Troll.carregar_recursos_troll()
+    def __init__(self, x, y, velocidade=1.0): # Trolls são geralmente lentos mas fortes
+        Troll.carregar_recursos_troll() 
 
         vida_troll = 120
         dano_contato_troll = 18
         xp_troll = 90
-        self.moedas_drop = 20 # Quantidade de moedas que o Troll dropa
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Troll/Troll1.png"
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Troll/Troll_Andar1.png"
+        #moedas_dropadas = 18
 
         super().__init__(
             x, y,
             Troll.tamanho_sprite_definido[0], Troll.tamanho_sprite_definido[1],
             vida_troll, velocidade, dano_contato_troll,
-            xp_troll, sprite_path_principal_relativo_jogo
+            self.xp_value, sprite_path_principal_relativo_jogo
         )
         self.x = float(x) # Garante que x e y são floats
         self.y = float(y)
@@ -293,9 +221,9 @@ class Troll(InimigoBase):
         self.is_attacking = False
         self.attack_duration = 1.0
         self.attack_timer = 0.0
-        self.attack_damage_especifico = 35
-        self.attack_range = 100
-        self.attack_cooldown = 3.2
+        self.attack_damage_especifico = 35 
+        self.attack_range = 100  # Alcance do ataque com clava
+        self.attack_cooldown = 3.2 
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
 
         self.attack_hitbox_largura = Troll.tamanho_sprite_definido[0] * 0.7
@@ -303,7 +231,7 @@ class Troll(InimigoBase):
         self.attack_hitbox_offset_x = 25
         self.attack_hitbox = pygame.Rect(0,0,0,0)
         self.hit_player_this_attack_swing = False
-
+        
         # if Troll.som_spawn_troll:
         #     Troll.som_spawn_troll.play()
 
@@ -322,7 +250,6 @@ class Troll(InimigoBase):
         else:
             self.attack_hitbox.right = self.rect.left + self.attack_hitbox_offset_x
             self.attack_hitbox.centery = self.rect.centery
-
 
     def atacar(self, player):
         if not (hasattr(player, 'rect') and self.esta_vivo()):
@@ -345,15 +272,20 @@ class Troll(InimigoBase):
 
             self.sprites = self.sprites_atacar
             self.intervalo_animacao = self.intervalo_animacao_atacar
-            self.sprite_index = 0
-            self.tempo_ultimo_update_animacao = agora # Reseta o timer da animação de ataque
-
+            self.sprite_index = 0 
+            
             # if Troll.som_ataque_troll:
             #     Troll.som_ataque_troll.play()
 
 
-    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): 
         if not self.esta_vivo():
+            if not hasattr(self, "ouro_concedido") or not self.ouro_concedido:
+                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
+                    player.dinheiro += self.money_value
+                if hasattr(self, "xp_value"):
+                    score_manager.adicionar_xp(self.xp_value)
+                self.ouro_concedido = True
             return
 
         agora = pygame.time.get_ticks()
@@ -379,8 +311,8 @@ class Troll(InimigoBase):
 
             if jogador_valido and not self.hit_player_this_attack_swing and \
                self.attack_hitbox.colliderect(player.rect):
-                player.receber_dano(self.attack_damage_especifico, self.rect) # Passa o rect do Troll como fonte
-                self.hit_player_this_attack_swing = True
+                player.receber_dano(self.attack_damage_especifico)
+                self.hit_player_this_attack_swing = True 
                 # print(f"DEBUG(Troll): Ataque MELEE acertou jogador! Dano: {self.attack_damage_especifico}")
 
             if agora - self.attack_timer >= self.attack_duration * 1000:
@@ -405,18 +337,8 @@ class Troll(InimigoBase):
            (agora - self.last_contact_time >= self.contact_cooldown):
             player.receber_dano(self.contact_damage, self.rect) # Passa o rect do Troll
             self.last_contact_time = agora
-            
-        # Assegura que a imagem correta (com flip) é usada para desenhar APÓS todas as atualizações
-        if self.sprites and len(self.sprites) > 0: # Verifica se há sprites
-            idx = int(self.sprite_index % len(self.sprites))
-            current_sprite_image = self.sprites[idx]
-            if not self.facing_right:
-                self.image = pygame.transform.flip(current_sprite_image, True, False)
-            else:
-                self.image = current_sprite_image # Já deve ser a versão virada para a direita
 
-
-    def receber_dano(self, dano, fonte_dano_rect=None):
+    def receber_dano(self, dano, fonte_dano_rect=None): # Adicionado fonte_dano_rect
         vida_antes = self.hp
         super().receber_dano(dano, fonte_dano_rect)
         if self.esta_vivo():
@@ -427,3 +349,7 @@ class Troll(InimigoBase):
 
     # def desenhar(self, surface, camera_x, camera_y):
     #     super().desenhar(surface, camera_x, camera_y)
+    #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox
+    #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
+    #         pygame.draw.rect(surface, (0, 100, 0, 100), debug_rect_onscreen, 1)
+

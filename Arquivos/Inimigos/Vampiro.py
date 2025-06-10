@@ -1,68 +1,157 @@
 # Vampiro.py
 import pygame
-import os
-import math
-import time
+import random
+import math # Importa math para a função hypot
+import time # Importa time para usar time.time() ou pygame.time.get_ticks()
+import os # Importa os para verificar a existência de arquivos
 
-# --- Importação da Classe Base Inimigo ---
-# Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
-# (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
-# Essa classe base é referenciada como 'InimigoBase' aqui.
+# Certifique-se de que Inimigo está acessível
 try:
-    from .Inimigos import Inimigo as InimigoBase
-    # print(f"DEBUG(Vampiro): Classe InimigoBase importada com sucesso de .Inimigos.")
-except ImportError as e:
-    # print(f"DEBUG(Vampiro): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
-    class InimigoBase(pygame.sprite.Sprite):
-        def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
+    # Tenta importar a classe base real.
+    # Assumimos que 'Inimigos.py' está no mesmo diretório ou acessível via PYTHONPATH.
+    from Inimigos import Inimigo 
+    print("DEBUG(Vampiro): Classe base Inimigo importada com sucesso.")
+except ImportError:
+    print("DEBUG(Vampiro): ERRO: Módulo 'Inimigos.py' não encontrado. Usando classe Inimigo placeholder.")
+    # Placeholder para Inimigo, caso Inimigos.py não seja encontrado
+    class Inimigo(pygame.sprite.Sprite):
+        def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
             super().__init__()
-            self.rect = pygame.Rect(x, y, largura, altura)
-            self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
-            self.image.fill((50, 0, 0, 100)) # Placeholder vermelho escuro para Vampiro
-            pygame.draw.rect(self.image, (100,0,0), self.image.get_rect(), 1) # Borda vermelha
-            self.hp = vida_maxima; self.max_hp = vida_maxima; self.velocidade = velocidade
-            self.contact_damage = dano_contato; self.xp_value = xp_value
-            self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150
-            self.hit_flash_color = (255, 255, 255, 128)
-            self.contact_cooldown = 1000; self.last_contact_time = pygame.time.get_ticks() - self.contact_cooldown
-            self.sprites = [self.image]; self.sprite_index = 0;
-            self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
-            self.x = float(x)
-            self.y = float(y)
-            # print(f"DEBUG(InimigoBase Placeholder para Vampiro): Instanciado. Sprite path (não usado): {sprite_path}")
+            self.x = x
+            self.y = y
+            self.largura = largura
+            self.altura = altura
+            self.hp = vida_maxima
+            self.max_hp = vida_maxima
+            self.velocidade = velocidade
+            self.contact_damage = dano_contato
+            self.xp_value = xp_value
+            self.sprite_path_base = sprite_path # Store the base path for reference
+
+            # Path for _carregar_sprite should be relative to the script if this placeholder is used from Vampiro.py
+            # However, Vampiro.py passes sprite_path_ref which is already "Sprites/Inimigos/Vampiro/..."
+            # This placeholder's _carregar_sprite needs to handle that if it's to be truly general.
+            # For now, it assumes 'sprite_path' is directly loadable or a simple file name.
+            if os.path.exists(sprite_path): # Basic check if it's a direct file path
+                try:
+                    self.image = pygame.image.load(sprite_path).convert_alpha()
+                    self.image = pygame.transform.scale(self.image, (largura, altura))
+                except pygame.error:
+                    self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
+                    pygame.draw.rect(self.image, (100, 100, 100), (0, 0, largura, altura)) # Placeholder color
+            else: # If not a direct path, or if it was a directory like "Sprites/Inimigos/Vampiro/"
+                  # Use the _carregar_sprite logic which expects a path relative to Vampiro.py's location
+                  # This part is tricky because sprite_path_ref can be a directory.
+                  # For simplicity, the placeholder will just draw a rect if complex path.
+                self.image = self._carregar_sprite(sprite_path if not sprite_path.endswith('/') else sprite_path + "some_default_image.png", (largura, altura))
+
+
+            self.rect = self.image.get_rect(topleft=(x, y))
+
+            self.last_hit_time = 0
+            self.hit_flash_duration = 150 # milliseconds
+            self.hit_flash_color = (255, 255, 255, 128) # White flash with alpha
+
+            self.is_attacking = False
+            self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
+            self.hit_by_player_this_attack = False 
+            self.contact_cooldown = 1000 # milliseconds
+            self.last_contact_time = pygame.time.get_ticks() # Initialize last contact time
+            self.facing_right = True # Default facing direction
+
+            # Animation attributes
+            self.sprites = [self.image] # Default to a single sprite if not overridden
+            self.sprite_index = 0 
+            self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
+            self.intervalo_animacao = 200 # milliseconds
 
         def _carregar_sprite(self, path, tamanho):
-            caminho_log = os.path.normpath(path)
-            # print(f"DEBUG(InimigoBase Placeholder _carregar_sprite): Tentando carregar '{caminho_log}' (não implementado). Retornando placeholder.")
-            img = pygame.Surface(tamanho, pygame.SRCALPHA)
-            img.fill((80,0,0, 128)) # Cor vermelha escura para placeholder do _carregar_sprite
-            return img
+            """
+            Carrega um sprite de imagem do caminho especificado.
+            Se o sprite não for encontrado ou houver um erro, retorna um placeholder.
+            A resolução do caminho é relativa ao diretório deste arquivo (Vampiro.py, if called from there).
+            IMPORTANT: This placeholder's loader assumes 'path' is relative to THIS SCRIPT's location,
+            or it's a full path. Vampiro.py passes "Sprites/Inimigos/Vampiro[/filename.png]",
+            which implies it should be relative to an asset root.
+            """
+            # This path logic is tricky for a generic placeholder when used by Vampiro.py's specific structure.
+            # For robust loading, this should ideally know the game_assets_root_dir.
+            # For this placeholder, we'll try a simple relative load from script dir.
+            
+            # Heuristic: if path starts with "Sprites/" or "Sons/", it's likely relative to an asset root.
+            # This placeholder is too simple to correctly guess the asset root if Vampiro.py is nested.
+            # It will likely fail to load complex paths like "Sprites/Inimigos/Vampiro/Imagem.png"
+            # unless Vampiro.py is in the asset root itself.
+            
+            # Get the directory of the current file (Vampiro.py if this class is defined and used there)
+            base_dir = os.path.dirname(os.path.abspath(__file__)) 
+            
+            # This placeholder assumes 'path' is relative to where Vampiro.py is.
+            # This will NOT work correctly if Vampiro.py is in "Jogo/Inimigos" and 'path' is "Sprites/..."
+            # because it will look for "Jogo/Inimigos/Sprites/..."
+            # The Vampiro class itself has better loading logic.
+            full_path = os.path.join(base_dir, path.replace("/", os.sep))
 
-        def receber_dano(self, dano, fonte_dano_rect=None):
-             self.hp = max(0, self.hp - dano)
-             if hasattr(self, 'last_hit_time'):
-                 self.last_hit_time = pygame.time.get_ticks()
-        def esta_vivo(self): return self.hp > 0
-        def mover_em_direcao(self, ax, ay, dt_ms=None):
+            if not os.path.exists(full_path):
+                # Attempt to find it one level up if it looks like an asset path
+                # This is a hack for the placeholder.
+                if path.startswith("Sprites" + os.sep) or path.startswith("Sons" + os.sep):
+                    alt_full_path = os.path.join(os.path.dirname(base_dir), path.replace("/", os.sep))
+                    if os.path.exists(alt_full_path):
+                        full_path = alt_full_path
+                    else:
+                        print(f"DEBUG(InimigoPlaceholder): Sprite não encontrado em '{full_path}' ou '{alt_full_path}'. Usando placeholder.")
+                        img = pygame.Surface(tamanho, pygame.SRCALPHA)
+                        pygame.draw.rect(img, (100,100,100), (0, 0, tamanho[0], tamanho[1]))
+                        return img
+                else:
+                    print(f"DEBUG(InimigoPlaceholder): Sprite não encontrado em '{full_path}'. Usando placeholder.")
+                    img = pygame.Surface(tamanho, pygame.SRCALPHA)
+                    pygame.draw.rect(img, (100,100,100), (0, 0, tamanho[0], tamanho[1]))
+                    return img
+            try:
+                img = pygame.image.load(full_path).convert_alpha()
+                img = pygame.transform.scale(img, tamanho)
+                return img
+            except pygame.error as e:
+                print(f"DEBUG(InimigoPlaceholder): Erro ao carregar sprite '{full_path}': {e}. Usando placeholder.")
+                img = pygame.Surface(tamanho, pygame.SRCALPHA)
+                pygame.draw.rect(img, (100,100,100), (0, 0, tamanho[0], tamanho[1]))
+                return img
+
+        def receber_dano(self, dano):
+            self.hp -= dano
+            self.last_hit_time = pygame.time.get_ticks() # Record time of hit for flash effect
+            if self.hp <= 0:
+                self.hp = 0
+                # self.kill() # Pygame sprite group removal
+
+        def esta_vivo(self):
+            return self.hp > 0
+
+        def mover_em_direcao(self, alvo_x, alvo_y, dt_ms=None): 
             if self.esta_vivo() and self.velocidade > 0:
                 dx = ax - self.rect.centerx
                 dy = ay - self.rect.centery
                 dist = math.hypot(dx, dy)
-                fator_tempo = (dt_ms / (1000.0 / 60.0)) if dt_ms and dt_ms > 0 else 1.0
+                
+                fator_tempo = 1.0 # Default if dt_ms is not provided
+                if dt_ms is not None and dt_ms > 0:
+                    # Normalize speed based on delta time, assuming base speed is pixels per frame at 60 FPS
+                    fator_tempo = (dt_ms / (1000.0 / 60.0)) 
 
-                if dist > self.velocidade * fator_tempo :
-                    mov_x = (dx / dist) * self.velocidade * fator_tempo
-                    mov_y = (dy / dist) * self.velocidade * fator_tempo
-                    self.rect.x += mov_x
-                    self.rect.y += mov_y
-                    self.x = float(self.rect.x)
-                    self.y = float(self.rect.y)
-                    if abs(dx) > 0.1 : self.facing_right = dx > 0
-                elif dist > 0 : # Snap to position if very close
-                    self.rect.center = (round(ax), round(ay))
-                    self.x = float(self.rect.x)
-                    self.y = float(self.rect.y)
-
+                if dist > 0: # Check if not already at the target
+                    dx_norm = dx / dist
+                    dy_norm = dy / dist
+                    self.rect.x += dx_norm * self.velocidade * fator_tempo
+                    self.rect.y += dy_norm * self.velocidade * fator_tempo
+                    
+                    # Update facing direction based on movement
+                    if dx > 0:
+                        self.facing_right = True
+                    elif dx < 0:
+                        self.facing_right = False
+        
         def atualizar_animacao(self):
             agora = pygame.time.get_ticks()
             if self.sprites and len(self.sprites) > 1 and self.esta_vivo():
@@ -70,68 +159,96 @@ except ImportError as e:
                     self.tempo_ultimo_update_animacao = agora
                     self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
             
-            if self.sprites and len(self.sprites) > 0:
-                idx = int(self.sprite_index % len(self.sprites))
-                base_image = self.sprites[idx]
-                if isinstance(base_image, pygame.Surface):
-                    self.image = base_image.copy() # Use a copy to avoid modifying the original in the list
+            if self.sprites: # Ensure there are sprites to animate
+                idx = int(self.sprite_index % len(self.sprites)) if len(self.sprites) > 0 else 0
+                if idx < len(self.sprites):
+                    base_image = self.sprites[idx]
                     if hasattr(self, 'facing_right') and not self.facing_right:
-                        self.image = pygame.transform.flip(self.image, True, False)
-                else: # Fallback if the sprite in the list is not a Surface
-                    self.image = pygame.Surface((self.largura if hasattr(self, 'largura') else 32, self.altura if hasattr(self, 'altura') else 32), pygame.SRCALPHA)
-                    self.image.fill((50,0,0,150)) # Original placeholder color for Vampiro
+                        self.image = pygame.transform.flip(base_image, True, False)
+                    else:
+                        self.image = base_image
+                elif len(self.sprites) > 0: # Fallback to first sprite if index is somehow out of bounds (should not happen with %)
+                    self.image = self.sprites[0]
+                # If self.sprites is empty, self.image remains as initialized (or from _carregar_sprite)
+            elif not hasattr(self, 'image') or self.image is None: # Ensure self.image exists
+                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                pygame.draw.rect(self.image, (100,100,100), (0,0,self.largura,self.altura))
 
-        def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+
+        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+            """
+            Atualiza o estado do inimigo.
+            Move em direção ao jogador e lida com dano por contato.
+            """
             if self.esta_vivo():
-                if hasattr(player, 'rect') and player.rect is not None:
+                if hasattr(player, 'rect'): # Check if player object is valid
                     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
                 self.atualizar_animacao()
-                # Dano de contato
-                agora_contato = pygame.time.get_ticks()
-                if hasattr(player, 'rect') and player.rect is not None and \
-                   hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
+                
+                # Contact damage logic
+                current_ticks = pygame.time.get_ticks()
+                if hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo() and \
                    self.rect.colliderect(player.rect) and \
                    (agora_contato - self.last_contact_time >= self.contact_cooldown):
                     if hasattr(player, 'receber_dano'):
-                        player.receber_dano(self.contact_damage, self.rect)
-                        self.last_contact_time = agora_contato
+                        player.receber_dano(self.contact_damage)
+                        self.last_contact_time = current_ticks # Reset cooldown timer
 
         def desenhar(self, janela, camera_x, camera_y):
-            if not (hasattr(self, 'image') and self.image and isinstance(self.image, pygame.Surface)):
-                self.image = pygame.Surface((getattr(self,'largura',32), getattr(self,'altura',32)), pygame.SRCALPHA)
-                self.image.fill((50,0,0,150)) # Original placeholder color for Vampiro
-            if not (hasattr(self, 'rect') and isinstance(self.rect, pygame.Rect)):
-                 self.rect = self.image.get_rect(topleft=(getattr(self,'x',0), getattr(self,'y',0)))
+            """
+            Desenha o inimigo na tela, aplicando o deslocamento da câmera.
+            Inclui lógica para flash de dano e barra de vida.
+            """
+            if not hasattr(self, 'image') or self.image is None: # Ensure image exists
+                # Fallback: Create a placeholder image if none is loaded
+                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+                pygame.draw.rect(self.image, (100,100,100), (0,0,self.largura,self.altura))
+                if not hasattr(self, 'rect'): # Ensure rect exists
+                    self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
             screen_x = self.rect.x - camera_x
             screen_y = self.rect.y - camera_y
             janela.blit(self.image, (screen_x, screen_y))
 
-            current_time_flash = pygame.time.get_ticks()
-            if hasattr(self, 'last_hit_time') and current_time_flash - self.last_hit_time < self.hit_flash_duration:
-                flash_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
-                flash_surface.fill(self.hit_flash_color)
-                janela.blit(flash_surface, (screen_x, screen_y), special_flags=pygame.BLEND_RGBA_ADD)
+            # Damage flash effect
+            current_time = pygame.time.get_ticks()
+            if current_time - self.last_hit_time < self.hit_flash_duration:
+                # Create a temporary surface for the flash effect
+                flash_image_overlay = self.image.copy()
+                # Fill with the flash color (RGB part) and use BLEND_RGB_ADD to lighten
+                flash_image_overlay.fill(self.hit_flash_color[:3] + (0,), special_flags=pygame.BLEND_RGB_ADD) 
+                # Set the alpha of the overlay for transparency
+                flash_image_overlay.set_alpha(self.hit_flash_color[3]) 
+                janela.blit(flash_image_overlay, (screen_x, screen_y))
 
-            if self.hp < self.max_hp and self.hp > 0:
-                bar_width = self.rect.width
+            # Health bar
+            if self.hp < self.max_hp and self.hp > 0: # Only draw if damaged but alive
+                bar_width = self.largura
                 bar_height = 5
                 health_percentage = self.hp / self.max_hp
                 current_bar_width = int(bar_width * health_percentage)
                 bar_x = screen_x
-                bar_y = screen_y - bar_height - 5
-                pygame.draw.rect(janela, (200,0,0), (bar_x, bar_y, bar_width, bar_height), border_radius=2)
-                pygame.draw.rect(janela, (0,200,0), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2)
-                pygame.draw.rect(janela, (255,255,255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2)
+                bar_y = screen_y - bar_height - 5 # Position above the sprite
+                
+                # Background of the health bar (red)
+                pygame.draw.rect(janela, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height), border_radius=2) 
+                # Current health (green)
+                pygame.draw.rect(janela, (0, 255, 0), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2) 
+                # Border for the health bar (white)
+                pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2) 
 
-        def kill(self):
-            super().kill()
 
-
-class Vampiro(InimigoBase):
-    sprites_andar_carregados = None
-    sprites_atacar_carregados = None # Poderia ser 'transformar_morcego', 'mordida', etc.
-    tamanho_sprite_definido = (70, 100) # Ajuste para o Vampiro
+"""
+Classe para o inimigo Vampiro.
+Herda da classe base Inimigo.
+"""
+class Vampiro(Inimigo):
+    # Variáveis de classe para armazenar sprites e sons carregados uma única vez
+    sprites_originais = None 
+    sprites_andar = None
+    sprites_atacar = None
+    sprites_idle = None # Opcional
+    tamanho_sprite_definido = (80, 90) # Definir um tamanho padrão para os sprites do Vampiro
 
     som_ataque_vampiro = None
     som_dano_vampiro = None
@@ -140,20 +257,34 @@ class Vampiro(InimigoBase):
     sons_carregados = False
 
     @staticmethod
-    def _obter_pasta_raiz_jogo():
-        diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
-        pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
-        return pasta_raiz_jogo
-
-    @staticmethod
-    def _carregar_som_vampiro(caminho_relativo_a_raiz_jogo):
-        pasta_raiz_jogo = Vampiro._obter_pasta_raiz_jogo()
-        caminho_completo = os.path.join(pasta_raiz_jogo, caminho_relativo_a_raiz_jogo.replace("\\", "/"))
-        caminho_log = os.path.normpath(caminho_completo)
-
-        if not os.path.exists(caminho_completo):
-            # print(f"DEBUG(Vampiro._carregar_som): Arquivo de som NÃO ENCONTRADO: {caminho_log}")
-            return None
+    def _carregar_som_vampiro(caminho_relativo_a_raiz_assets):
+        """
+        Carrega um arquivo de som.
+        O caminho_relativo_a_raiz_assets é relativo à pasta raiz de assets do jogo 
+        (ex: 'Sons/Vampiro/som.wav').
+        """
+        current_script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Assume que este script (Vampiro.py) está em uma subpasta (ex: 'Inimigos')
+        # da pasta raiz do jogo onde 'Sons' está localizada.
+        # Ex: Jogo/
+        #     ├── Sons/
+        #     └── Inimigos/  <-- Vampiro.py está aqui
+        #         └── Vampiro.py
+        # game_assets_root_dir aponta para 'Jogo/'
+        game_assets_root_dir = os.path.abspath(os.path.join(current_script_dir, ".."))
+        
+        full_path = os.path.join(game_assets_root_dir, caminho_relativo_a_raiz_assets.replace("/", os.sep))
+        
+        if not os.path.exists(full_path):
+            print(f"DEBUG(Vampiro): Arquivo de som não encontrado: {full_path}")
+            # Try an alternative path if the script is in the root asset folder itself
+            alt_full_path = os.path.join(current_script_dir, caminho_relativo_a_raiz_assets.replace("/", os.sep))
+            if os.path.exists(alt_full_path):
+                full_path = alt_full_path
+            else:
+                print(f"DEBUG(Vampiro): Tentativa alternativa de caminho de som também falhou: {alt_full_path}")
+                return None
+                
         try:
             som = pygame.mixer.Sound(caminho_completo)
             # print(f"DEBUG(Vampiro._carregar_som): Som '{caminho_log}' carregado.")
@@ -163,262 +294,361 @@ class Vampiro(InimigoBase):
             return None
 
     @staticmethod
-    def _carregar_lista_sprites_estatico(caminhos_relativos_a_raiz_jogo, lista_destino_existente, tamanho_sprite, nome_animacao):
-        pasta_raiz_jogo = Vampiro._obter_pasta_raiz_jogo()
-        # print(f"DEBUG(Vampiro._carregar_lista_sprites): Carregando sprites de '{nome_animacao}'. Raiz do jogo: {os.path.normpath(pasta_raiz_jogo)}")
-        if lista_destino_existente is None: lista_destino_existente = [] # Garante que a lista exista
-
-        for path_relativo in caminhos_relativos_a_raiz_jogo:
-            caminho_completo = os.path.join(pasta_raiz_jogo, path_relativo.replace("\\", os.sep))
-            caminho_log = os.path.normpath(caminho_completo)
-            # print(f"DEBUG(Vampiro._carregar_lista_sprites): Tentando carregar '{nome_animacao}' sprite: {caminho_log}")
+    def _carregar_lista_sprites_estatico(caminhos_relativos_a_raiz_assets, lista_destino, tamanho, tipo_animacao):
+        """
+        Método auxiliar estático para carregar uma lista de sprites.
+        caminhos_relativos_a_raiz_assets são relativos à pasta raiz de assets do jogo 
+        (ex: ['Sprites/Inimigos/Vampiro/img1.png', 'Sprites/Inimigos/Vampiro/img2.png']).
+        """
+        current_script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Mesma lógica de game_assets_root_dir como em _carregar_som_vampiro
+        game_assets_root_dir = os.path.abspath(os.path.join(current_script_dir, ".."))
+        
+        for path_rel_a_assets in caminhos_relativos_a_raiz_assets:
+            full_path = os.path.join(game_assets_root_dir, path_rel_a_assets.replace("/", os.sep))
+            
+            sprite_carregado = False
+            if not os.path.exists(full_path):
+                # Try an alternative path if the script is in the root asset folder itself
+                # This makes it more flexible if Vampiro.py is in Jogo/ or Jogo/Inimigos/
+                alt_full_path = os.path.join(current_script_dir, path_rel_a_assets.replace("/", os.sep))
+                if os.path.exists(alt_full_path):
+                    full_path = alt_full_path # Use alternative path
+                else: # If both paths fail
+                    print(f"DEBUG(Vampiro): Sprite {tipo_animacao} não encontrado em '{full_path}' ou '{alt_full_path}'. Usando placeholder.")
+                    placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
+                    pygame.draw.rect(placeholder, (100, 100, 120), placeholder.get_rect()) # Cor placeholder distinta
+                    lista_destino.append(placeholder)
+                    continue # Próximo sprite na lista
+            
             try:
-                if os.path.exists(caminho_completo):
-                    sprite = pygame.image.load(caminho_completo).convert_alpha()
-                    sprite = pygame.transform.scale(sprite, tamanho_sprite)
-                    lista_destino_existente.append(sprite)
-                    # print(f"DEBUG(Vampiro._carregar_lista_sprites): Sprite '{caminho_log}' carregado para '{nome_animacao}'.")
-                else:
-                    # print(f"DEBUG(Vampiro._carregar_lista_sprites): ARQUIVO NÃO EXISTE para '{nome_animacao}': {caminho_log}. Usando placeholder vermelho escuro.")
-                    placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-                    placeholder.fill((80, 0, 0, 180)) # Placeholder vermelho escuro
-                    lista_destino_existente.append(placeholder)
+                sprite = pygame.image.load(full_path).convert_alpha()
+                sprite = pygame.transform.scale(sprite, tamanho)
+                lista_destino.append(sprite)
+                sprite_carregado = True
+                print(f"DEBUG(Vampiro): Sprite {tipo_animacao} carregado: {full_path}")
             except pygame.error as e:
-                # print(f"DEBUG(Vampiro._carregar_lista_sprites): ERRO PYGAME ao carregar '{nome_animacao}' sprite '{caminho_log}': {e}. Usando placeholder vermelho escuro.")
-                placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-                placeholder.fill((80, 0, 0, 180))
-                lista_destino_existente.append(placeholder)
-
-        if not lista_destino_existente:
-            # print(f"DEBUG(Vampiro._carregar_lista_sprites): FALHA TOTAL em carregar sprites para '{nome_animacao}'. Usando placeholder final vermelho muito escuro.")
-            placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-            placeholder.fill((50, 0, 0, 200))
-            lista_destino_existente.append(placeholder)
-        # A lista é modificada no local, não precisa retornar se for um atributo de classe
-
+                print(f"DEBUG(Vampiro): Erro ao carregar sprite {tipo_animacao} '{full_path}': {e}. Usando placeholder.")
+                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
+                pygame.draw.rect(placeholder, (100, 100, 120), placeholder.get_rect())
+                lista_destino.append(placeholder)
+        
+        if not lista_destino: # Se, após todas as tentativas, a lista ainda estiver vazia
+            print(f"DEBUG(Vampiro): Nenhum sprite de {tipo_animacao} carregado. Usando placeholder final para {tipo_animacao}.")
+            placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
+            # Cor placeholder ainda mais distinta para "falha total"
+            pygame.draw.rect(placeholder, (80, 80, 100), placeholder.get_rect()) 
+            lista_destino.append(placeholder)
 
     @staticmethod
     def carregar_recursos_vampiro():
-        if Vampiro.sprites_andar_carregados is None:
-            Vampiro.sprites_andar_carregados = []
-            # Substitua pelos caminhos reais dos sprites do Vampiro
-            caminhos_andar = [
-                "Sprites\\Inimigos\\Vampiro\\Imagem.png",
-                "Sprites\\Inimigos\\Vampiro\\Imagem1.png",
-            ]
+        """
+        Carrega todos os recursos (sprites e sons) do Vampiro.
+        Este método é estático e garante que os recursos sejam carregados apenas uma vez.
+        Os caminhos para sprites e sons são relativos à pasta raiz de assets do jogo.
+        """
+        if Vampiro.sprites_andar is None: # Usando sprites_andar como flag principal para carregar sprites
+            # Caminho base para os sprites do vampiro, relativo à pasta raiz de assets (ex: Jogo/)
+            base_sprite_path_rel_assets = "Sprites/Inimigos/Vampiro/" 
+            
+            nomes_sprites_andar = ["Imagem.png", "Imagem1.png"] 
+            Vampiro.sprites_andar = []
             Vampiro._carregar_lista_sprites_estatico(
-                caminhos_andar, Vampiro.sprites_andar_carregados,
-                Vampiro.tamanho_sprite_definido, "Andar"
+                [base_sprite_path_rel_assets + nome for nome in nomes_sprites_andar], 
+                Vampiro.sprites_andar, Vampiro.tamanho_sprite_definido, "Andar"
             )
 
-        if Vampiro.sprites_atacar_carregados is None:
-            Vampiro.sprites_atacar_carregados = []
-            # Substitua pelos caminhos reais dos sprites de ataque do Vampiro
-            caminhos_atacar = [
-                "Sprites/Inimigos/Vampiro/Vampiro_Atacar1.png",
-                "Sprites/Inimigos/Vampiro/Vampiro_Atacar2.png",
-            ]
-            pasta_raiz_temp = Vampiro._obter_pasta_raiz_jogo()
-            primeiro_sprite_ataque_existe = False
-            if caminhos_atacar:
-                caminho_primeiro_ataque = os.path.join(pasta_raiz_temp, caminhos_atacar[0].replace("\\", "/"))
-                if os.path.exists(caminho_primeiro_ataque):
-                    primeiro_sprite_ataque_existe = True
+            nomes_sprites_atacar = ["Imagem.png", "Imagem1.png"] # Usar os mesmos por enquanto
+            Vampiro.sprites_atacar = []
+            Vampiro._carregar_lista_sprites_estatico(
+                [base_sprite_path_rel_assets + nome for nome in nomes_sprites_atacar],
+                Vampiro.sprites_atacar, Vampiro.tamanho_sprite_definido, "Atacar"
+            )
+            if not Vampiro.sprites_atacar and Vampiro.sprites_andar:
+                Vampiro.sprites_atacar = [Vampiro.sprites_andar[0]] # Fallback
 
-            if primeiro_sprite_ataque_existe:
-                Vampiro._carregar_lista_sprites_estatico(
-                    caminhos_atacar, Vampiro.sprites_atacar_carregados,
-                    Vampiro.tamanho_sprite_definido, "Atacar"
-                )
+            # Opcional: Sprites Idle
+            # nomes_sprites_idle = ["Vampiro_Idle_1.png", "Vampiro_Idle_2.png"]
+            # Vampiro.sprites_idle = []
+            # Vampiro._carregar_lista_sprites_estatico(
+            #     [base_sprite_path_rel_assets + nome for nome in nomes_sprites_idle],
+            #     Vampiro.sprites_idle, Vampiro.tamanho_sprite_definido, "Idle"
+            # )
+            # if not Vampiro.sprites_idle and Vampiro.sprites_andar:
+            #     Vampiro.sprites_idle = [Vampiro.sprites_andar[0]]
 
-            if not Vampiro.sprites_atacar_carregados: # Fallback
-                if Vampiro.sprites_andar_carregados and len(Vampiro.sprites_andar_carregados) > 0 :
-                    Vampiro.sprites_atacar_carregados = [Vampiro.sprites_andar_carregados[0]]
-                else:
-                    placeholder_ataque = pygame.Surface(Vampiro.tamanho_sprite_definido, pygame.SRCALPHA)
-                    placeholder_ataque.fill((50,0,0, 180))
-                    Vampiro.sprites_atacar_carregados = [placeholder_ataque]
 
         if not Vampiro.sons_carregados:
-            # Vampiro.som_ataque_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/mordida.wav")
-            # Vampiro.som_dano_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/dano_vampiro.wav")
-            # Vampiro.som_morte_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/morte_poeira.wav")
-            # Vampiro.som_transformacao_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/transformacao_morcego.wav")
+            # Caminhos relativos à pasta raiz de assets (ex: Jogo/)
+            Vampiro.som_ataque_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/ataque_mordida.wav") 
+            Vampiro.som_dano_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/dano.wav")
+            Vampiro.som_morte_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/morte_poeira.wav")
+            Vampiro.som_spawn_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/spawn_risada.wav") 
+            Vampiro.som_teleporte_vampiro = Vampiro._carregar_som_vampiro("Sons/Vampiro/teleporte_fumaca.wav")
             Vampiro.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=2.0):
-        Vampiro.carregar_recursos_vampiro()
+    def __init__(self, x, y, velocidade=3.5): 
+        Vampiro.carregar_recursos_vampiro() # Garante que os recursos sejam carregados
 
-        vida_vampiro = 100
-        dano_contato_vampiro = 10 # Dano baixo se o ataque principal for mordida
-        xp_vampiro = 80
-        self.moedas_drop = 15 # Exemplo de valor
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Vampiro/Vampiro_Andar1.png" # Exemplo
+        vampiro_hp = 90
+        vampiro_contact_damage = 8 
+        vampiro_xp_value = 60
+        sprite_path_ref = "Sprites/Inimigos/Vampiro/Vampiro_Walk_1.png" if Vampiro.sprites_andar else "placeholder_vampiro.png"
 
-        super().__init__(
-            x, y,
-            Vampiro.tamanho_sprite_definido[0], Vampiro.tamanho_sprite_definido[1],
-            vida_vampiro, velocidade, dano_contato_vampiro,
-            xp_vampiro, sprite_path_principal_relativo_jogo
-        )
-        self.x = float(x)
-        self.y = float(y)
+        super().__init__(x, y,
+                         Vampiro.tamanho_sprite_definido[0], Vampiro.tamanho_sprite_definido[1],
+                         vampiro_hp, velocidade, vampiro_contact_damage,
+                         vampiro_xp_value, sprite_path_ref)
 
-        self.sprites_andar = Vampiro.sprites_andar_carregados
-        self.sprites_atacar = Vampiro.sprites_atacar_carregados
-        self.sprites = self.sprites_andar
-
-        if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)) or \
-           (self.sprites and len(self.sprites) > 0 and self.image is self.sprites[0] and self.sprites[0].get_size() != Vampiro.tamanho_sprite_definido):
-            if self.sprites and isinstance(self.sprites[0], pygame.Surface):
-                self.image = self.sprites[0].copy()
-            else:
-                placeholder_img = pygame.Surface(Vampiro.tamanho_sprite_definido, pygame.SRCALPHA)
-                placeholder_img.fill((50, 0, 0, 150))
-                self.image = placeholder_img
-                if not self.sprites: self.sprites = [self.image]
-        self.rect = self.image.get_rect(topleft=(self.x, self.y))
-
-
+        self.sprites = Vampiro.sprites_andar if Vampiro.sprites_andar else [self.image] # Começa com animação de andar
         self.sprite_index = 0
         self.intervalo_animacao_andar = 150
         self.intervalo_animacao_atacar = 100
         self.intervalo_animacao = self.intervalo_animacao_andar
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
+        self.intervalo_animacao_andar = 120 
+        self.intervalo_animacao_atacar = 90 # Ataque mais rápido
+        self.intervalo_animacao = self.intervalo_animacao_andar # Padrão para andar
 
-        self.is_attacking = False
-        self.attack_duration = 0.6 # Duração da mordida
-        self.attack_timer = 0.0
-        self.attack_damage_especifico = 25 # Dano da mordida
-        self.attack_range = 60  # Curto alcance para mordida
-        self.attack_cooldown = 1.8
-        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
+        self.is_attacking = False 
+        self.attack_duration = 0.4 # segundos
+        self.attack_timer = 0.0  # Usar time.time()
+        self.attack_damage = 25   
+        self.life_steal_percent = 0.3 
+        self.attack_hitbox_size = (50, 50) # Largura, Altura da hitbox de ataque
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) # Será inicializada no ataque
+        self.attack_range = 80    # Distância para iniciar o ataque
+        self.attack_cooldown = 1.8 # segundos
+        self.last_attack_time = time.time() - self.attack_cooldown # Para poder atacar imediatamente
 
-        self.attack_hitbox_largura = Vampiro.tamanho_sprite_definido[0] * 0.6
-        self.attack_hitbox_altura = Vampiro.tamanho_sprite_definido[1] * 0.4
-        self.attack_hitbox_offset_x = Vampiro.tamanho_sprite_definido[0] * 0.3 # Quão à frente a mordida alcança
-        self.attack_hitbox = pygame.Rect(0,0,0,0)
-        self.hit_player_this_attack_swing = False
+        self.can_dash = True
+        self.dash_cooldown = 5.0 # segundos
+        self.last_dash_time = time.time() - self.dash_cooldown # Para poder dar dash imediatamente
+        self.dash_range = 200 # Distância do dash
+        self.is_dashing = False
+        self.dash_duration = 0.2 # segundos (duração do estado de dash)
+        self.dash_timer = 0.0 # Usar time.time()
+        self.dash_target_pos = None # Para onde o dash está indo (x, y)
 
-        # Comportamentos específicos do Vampiro podem ser adicionados aqui
-        # Ex: self.pode_transformar_morcego = True
-        # self.tempo_ultima_transformacao = 0
+        # Define a imagem inicial do sprite com base nos sprites carregados
+        if self.sprites and len(self.sprites) > 0:
+            idx = int(self.sprite_index % len(self.sprites))
+            self.image = self.sprites[idx]
+        # Se self.sprites estiver vazio (falha no carregamento), self.image já foi definido pelo super().__init__
+        # ou pelo placeholder Inimigo. Se ainda assim for None, criar um Surface.
+        elif not hasattr(self, 'image') or self.image is None:
+            self.image = pygame.Surface(Vampiro.tamanho_sprite_definido, pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (100,100,120), (0,0,self.largura,self.altura)) # Cor de Vampiro placeholder
+            if not hasattr(self, 'rect'): # Garante que o rect exista
+                self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        
+        # Atualiza o rect se a imagem mudou
+        if hasattr(self, 'image') and self.image is not None:
+             self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
 
 
-    def _atualizar_hitbox_ataque(self):
-        if not self.is_attacking:
-            self.attack_hitbox.size = (0,0)
-            return
+        if Vampiro.som_spawn_vampiro:
+            Vampiro.som_spawn_vampiro.play()
 
-        self.attack_hitbox.width = self.attack_hitbox_largura
-        self.attack_hitbox.height = self.attack_hitbox_altura
+    def receber_dano(self, dano):
+        vida_antes = self.hp
+        super().receber_dano(dano) 
+        if self.esta_vivo():
+            if vida_antes > self.hp and Vampiro.som_dano_vampiro:
+                Vampiro.som_dano_vampiro.play()
+        else: # Morreu
+            if vida_antes > 0 and Vampiro.som_morte_vampiro: # Toca som de morte apenas uma vez
+                Vampiro.som_morte_vampiro.play()
+                # Poderia adicionar self.kill() aqui se estiver em um grupo de sprites e quiser remover
+                # self.kill() 
 
-        if self.facing_right:
-            self.attack_hitbox.left = self.rect.centerx # Ajuste para a mordida começar mais à frente
-            self.attack_hitbox.centery = self.rect.centery
-        else:
-            self.attack_hitbox.right = self.rect.centerx
-            self.attack_hitbox.centery = self.rect.centery
+    def _perform_dash(self, player_x, player_y):
+        self.is_dashing = True
+        self.dash_timer = time.time() # Início do dash
+        self.last_dash_time = self.dash_timer # Reseta cooldown do dash
+        self.can_dash = False 
+
+        if Vampiro.som_teleporte_vampiro:
+            Vampiro.som_teleporte_vampiro.play()
+
+        dx = player_x - self.rect.centerx
+        dy = player_y - self.rect.centery
+        dist_to_player = math.hypot(dx, dy)
+
+        if dist_to_player > 0:
+            # Dash na direção do jogador, até o dash_range
+            self.dash_target_pos = (
+                self.rect.centerx + (dx / dist_to_player) * self.dash_range,
+                self.rect.centery + (dy / dist_to_player) * self.dash_range
+            )
+        else: # Se já estiver em cima do jogador, dash para uma posição aleatória próxima
+            angle = random.uniform(0, 2 * math.pi)
+            self.dash_target_pos = (
+                self.rect.centerx + self.dash_range * 0.5 * math.cos(angle), # Dash mais curto
+                self.rect.centery + self.dash_range * 0.5 * math.sin(angle)
+            )
+        # print(f"DEBUG(Vampiro): Dash para {self.dash_target_pos}")
 
 
     def atacar(self, player):
         if not (hasattr(player, 'rect') and self.esta_vivo()):
             return
 
-        agora = pygame.time.get_ticks()
-        distancia_ao_jogador = float('inf')
-        if hasattr(player, 'rect') and player.rect is not None:
-             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
+        current_time = time.time()
+        if self.esta_vivo() and not self.is_attacking and not self.is_dashing and \
+           (current_time - self.last_attack_time >= self.attack_cooldown):
+            
+            distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
                                              self.rect.centery - player.rect.centery)
 
-        if not self.is_attacking and \
-           distancia_ao_jogador <= self.attack_range and \
-           (agora - self.last_attack_time >= self.attack_cooldown * 1000):
+            if distancia_ao_jogador <= self.attack_range:
+                self.is_attacking = True
+                self.attack_timer = current_time # Início do ataque
+                self.last_attack_time = current_time # Reseta cooldown do ataque
+                self.hit_by_player_this_attack = False # Reseta flag de acerto por ataque
 
-            self.is_attacking = True
-            self.attack_timer = agora
-            self.last_attack_time = agora
-            self.hit_player_this_attack_swing = False
+                self.sprites = Vampiro.sprites_atacar if Vampiro.sprites_atacar else Vampiro.sprites_andar # Fallback
+                self.intervalo_animacao = self.intervalo_animacao_atacar
+                self.sprite_index = 0 # Reinicia animação de ataque
 
-            self.sprites = self.sprites_atacar
-            self.intervalo_animacao = self.intervalo_animacao_atacar
-            self.sprite_index = 0
-            self.tempo_ultimo_update_animacao = agora
+                # Inicializa a hitbox de ataque com o tamanho definido
+                attack_hitbox_width = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[0]
+                attack_hitbox_height = getattr(self, 'attack_hitbox_size', (self.rect.width, self.rect.height))[1]
+                self.attack_hitbox = pygame.Rect(0, 0, attack_hitbox_width, attack_hitbox_height)
+                # A hitbox será posicionada no update do ataque
+                
+                if Vampiro.som_ataque_vampiro:
+                    Vampiro.som_ataque_vampiro.play()
 
-            # if Vampiro.som_ataque_vampiro:
-            #     Vampiro.som_ataque_vampiro.play()
-
-
-    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        if not self.esta_vivo():
+    def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+        if not (hasattr(player, 'rect') and hasattr(player, 'vida') and 
+                hasattr(player.vida, 'esta_vivo') and hasattr(player, 'receber_dano')):
+            if self.esta_vivo(): self.atualizar_animacao() 
+            # print("DEBUG(Vampiro): Objeto player inválido ou faltando atributos.")
             return
 
-        agora = pygame.time.get_ticks()
-        if dt_ms is None:
-            dt_ms = agora - getattr(self, '_last_update_time', agora)
-            self._last_update_time = agora
-            if dt_ms <= 0 : dt_ms = 16
+        current_time_sec = time.time() # Tempo em segundos para timers de cooldown/duração
+        dt_sec = dt_ms / 1000.0 if dt_ms is not None and dt_ms > 0 else (1.0/60.0) # Delta time em segundos
 
-        jogador_valido = (player is not None and hasattr(player, 'rect') and player.rect is not None and
-                          hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and
-                          hasattr(player, 'receber_dano'))
+        if not self.can_dash and (current_time_sec - self.last_dash_time >= self.dash_cooldown):
+            self.can_dash = True
 
-        if jogador_valido:
-            if player.rect.centerx < self.rect.centerx:
-                self.facing_right = False
-            else:
-                self.facing_right = True
+        if self.is_dashing:
+            if self.dash_target_pos:
+                target_x, target_y = self.dash_target_pos
+                dx = target_x - self.rect.centerx
+                dy = target_y - self.rect.centery
+                dist_to_target = math.hypot(dx, dy)
+                
+                # Velocidade de dash muito alta para parecer teleporte, ajustada por dt_sec
+                # A "velocidade" aqui é mais um fator de quão rápido ele chega ao alvo dentro da dash_duration
+                # Movimento linear simples para o alvo durante o dash
+                dash_speed_pixels_per_sec = self.dash_range / self.dash_duration 
+                
+                move_x = (dx / dist_to_target) * dash_speed_pixels_per_sec * dt_sec if dist_to_target > 0 else 0
+                move_y = (dy / dist_to_target) * dash_speed_pixels_per_sec * dt_sec if dist_to_target > 0 else 0
 
-        if self.is_attacking:
+                # Evitar overshoot
+                if abs(move_x) > abs(dx): move_x = dx
+                if abs(move_y) > abs(dy): move_y = dy
+                
+                self.rect.x += move_x
+                self.rect.y += move_y
+
+                # Checa se chegou perto o suficiente ou se o tempo de dash acabou
+                if dist_to_target < 10 or (current_time_sec - self.dash_timer >= self.dash_duration): # 10 pixels de tolerância
+                    self.rect.centerx = target_x # Snap para o final
+                    self.rect.centery = target_y
+                    self.is_dashing = False
+                    self.dash_target_pos = None
+                    self.sprites = Vampiro.sprites_andar if Vampiro.sprites_andar else [self.image]
+                    self.intervalo_animacao = self.intervalo_animacao_andar
+            
+            # Garantir que o dash termine após a duração máxima
+            if current_time_sec - self.dash_timer >= self.dash_duration:
+                self.is_dashing = False
+                self.dash_target_pos = None # Limpa o alvo
+                if not self.is_attacking: # Só muda se não estiver no meio de um ataque
+                    self.sprites = Vampiro.sprites_andar if Vampiro.sprites_andar else [self.image]
+                    self.intervalo_animacao = self.intervalo_animacao_andar
+            
             self.atualizar_animacao()
-            self._atualizar_hitbox_ataque()
+            return # Não faz mais nada durante o dash
 
-            if jogador_valido and not self.hit_player_this_attack_swing and \
-               self.attack_hitbox.colliderect(player.rect):
-                player.receber_dano(self.attack_damage_especifico, self.rect)
-                self.hit_player_this_attack_swing = True
-
-            if agora - self.attack_timer >= self.attack_duration * 1000:
-                self.is_attacking = False
-                self.sprites = self.sprites_andar
-                self.intervalo_animacao = self.intervalo_animacao_andar
-                self.sprite_index = 0
-                self.tempo_ultimo_update_animacao = agora
-                self.attack_hitbox.size = (0,0)
-        else:
-            if jogador_valido:
-                self.atacar(player)
-
-            if not self.is_attacking and self.velocidade > 0:
-                if jogador_valido:
-                     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-
+        # Comportamento normal (movimento e ataque) se não estiver em dash
+        if not self.is_attacking:
+            # Chama o update da classe base para movimento normal e dano de contato
+            # A classe base Inimigo (placeholder ou real) deve lidar com dt_ms ou dt_sec
+            # Passando dt_ms para manter consistência com a assinatura original
+            super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
+        else: # Se estiver atacando, apenas atualiza a animação de ataque (movimento é pausado)
             self.atualizar_animacao()
 
 
-        if jogador_valido and self.rect.colliderect(player.rect) and \
-           (agora - self.last_contact_time >= self.contact_cooldown):
-            player.receber_dano(self.contact_damage, self.rect)
-            self.last_contact_time = agora
-
-        if self.sprites and len(self.sprites) > 0:
-            idx = int(self.sprite_index % len(self.sprites))
-            current_sprite_image = self.sprites[idx]
-            if not self.facing_right:
-                self.image = pygame.transform.flip(current_sprite_image, True, False)
-            else:
-                self.image = current_sprite_image
-
-
-    def receber_dano(self, dano, fonte_dano_rect=None):
-        vida_antes = self.hp
-        super().receber_dano(dano, fonte_dano_rect)
         if self.esta_vivo():
-            if vida_antes > self.hp and Vampiro.som_dano_vampiro:
-                Vampiro.som_dano_vampiro.play()
-        elif vida_antes > 0 and Vampiro.som_morte_vampiro:
-            Vampiro.som_morte_vampiro.play()
+            dist_to_player = math.hypot(self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery)
+            
+            # Lógica para iniciar o dash
+            # O vampiro dá dash se puder, não estiver atacando, e o jogador estiver a uma distância específica.
+            if self.can_dash and not self.is_attacking and \
+               dist_to_player > self.attack_range * 1.5 and dist_to_player < self.dash_range * 1.2: # Ajustar ranges
+                # Chance de dash, ajustada pelo delta time para consistência
+                # (0.02 chance per frame at 60fps) -> 0.02 * 60 = 1.2 chances per second on average
+                if random.random() < (1.2 * dt_sec): 
+                    self._perform_dash(player.rect.centerx, player.rect.centery)
+                    return # Retorna para processar o dash no próximo frame
 
-    # def desenhar(self, surface, camera_x, camera_y):
-    #     super().desenhar(surface, camera_x, camera_y)
+            # Lógica de ataque
+            if self.is_attacking:
+                # Posiciona a hitbox de ataque à frente do vampiro
+                offset_x_hitbox = self.attack_hitbox_size[0] / 3 # Quão à frente a hitbox fica
+                if self.facing_right:
+                    self.attack_hitbox.centerx = self.rect.centerx + self.rect.width / 2 # Começa na borda do vampiro
+                    self.attack_hitbox.centerx += offset_x_hitbox 
+                else:
+                    self.attack_hitbox.centerx = self.rect.centerx - self.rect.width / 2
+                    self.attack_hitbox.centerx -= offset_x_hitbox
+                self.attack_hitbox.centery = self.rect.centery
+
+                # Verifica se o ataque terminou
+                if current_time_sec - self.attack_timer >= self.attack_duration:
+                    self.is_attacking = False
+                    self.hit_by_player_this_attack = False # Reseta para o próximo ataque
+                    self.sprites = Vampiro.sprites_andar if Vampiro.sprites_andar else [self.image]
+                    self.intervalo_animacao = self.intervalo_animacao_andar
+                else:
+                    # Aplica dano e roubo de vida se a hitbox colidir com o jogador
+                    if not self.hit_by_player_this_attack and self.attack_hitbox.colliderect(player.rect):
+                        if player.vida.esta_vivo():
+                            player.receber_dano(self.attack_damage)
+                            vida_roubada = int(self.attack_damage * self.life_steal_percent)
+                            self.hp = min(self.max_hp, self.hp + vida_roubada)
+                            self.hit_by_player_this_attack = True # Só acerta uma vez por animação de ataque
+            
+            # Tenta atacar se não estiver em dash e não estiver já atacando
+            if not self.is_attacking: # and not self.is_dashing (já tratado acima)
+                # Garante que o sprite de andar seja usado se não houver idle específico
+                # ou se acabou de sair de um ataque/dash
+                current_animation_set = self.sprites
+                expected_animation_set = Vampiro.sprites_idle if Vampiro.sprites_idle else Vampiro.sprites_andar
+                
+                if current_animation_set != expected_animation_set and \
+                   current_animation_set != Vampiro.sprites_atacar : # Evita trocar se já estiver em ataque
+                    self.sprites = expected_animation_set if expected_animation_set else [self.image]
+                    self.intervalo_animacao = self.intervalo_animacao_andar # Ou um intervalo_animacao_idle
+                    self.sprite_index = 0 # Reset animation
+
+                self.atacar(player) # Tenta iniciar um novo ataque
+
+    def desenhar(self, surface, camera_x, camera_y):
+        super().desenhar(surface, camera_x, camera_y) # Desenha o sprite e a barra de vida base
+        
+        # Opcional: Desenhar a hitbox de ataque para debug
+        # if self.is_attacking and hasattr(self, 'attack_hitbox') and self.attack_hitbox.width > 0:
+        #     debug_hitbox_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
+        #     # Cria uma surface para a hitbox com transparência
+        #     s = pygame.Surface((self.attack_hitbox.width, self.attack_hitbox.height), pygame.SRCALPHA)
+        #     s.fill((180, 0, 0, 100))  # Vermelho semi-transparente
+        #     surface.blit(s, (debug_hitbox_rect_onscreen.x, debug_hitbox_rect_onscreen.y))
+

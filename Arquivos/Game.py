@@ -34,6 +34,14 @@ except ImportError as e:
     AdagaFogo = None
     BarraInventario = None
 
+# --- Importação do ScoreManager ---
+try:
+    from score import ScoreManager
+    score_manager = ScoreManager()
+except ImportError:
+    print("AVISO: Não foi possível importar ScoreManager.")
+    score_manager = None
+
 # --- Constantes e Configurações Globais do Jogo ---
 MUSICAS_JOGO = [
     os.path.join(project_root_dir, "Musica", "Gameplay", "Faixa 1.mp3"),
@@ -238,9 +246,16 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     if not jogo_pausado_inv and barra_inventario_ui and jogador_obj:
         barra_inventario_ui.desenhar(janela_surf, jogador_obj)
 
-    if gerenciador_de_moedas:
+    # --- EXIBE O SCORE NO LUGAR DAS MOEDAS ---
+    if score_manager:
         largura_tela_atual = janela_surf.get_width()
-        gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, largura_tela_atual - 220, 20)
+        fonte_score = pygame.font.Font(None, 48)
+        score_text = fonte_score.render(f"Score: {score_manager.get_score()}", True, (255, 215, 0))
+        janela_surf.blit(score_text, (largura_tela_atual - 220, 20))
+    # Se quiser remover moedas, não desenhe o HUD de moedas:
+    # if gerenciador_de_moedas:
+    #     largura_tela_atual = janela_surf.get_width()
+    #     gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, largura_tela_atual - 220, 20)
 
 def main():
     global jogador, game_music_volume, game_sfx_volume, pause_manager, game_is_running_flag, \
@@ -438,4 +453,3 @@ if __name__ == "__main__":
             pygame.quit()
         input("Pressione Enter para sair após o erro fatal...")
         sys.exit(1)
-
