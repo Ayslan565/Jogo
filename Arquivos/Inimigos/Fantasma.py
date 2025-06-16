@@ -5,7 +5,7 @@ import math
 import time
 import random
 
-from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+from Arquivos.Inimigos.score import score_manager  # <-- INTEGRAÇÃO DO SCORE
 
 # --- Importação da Classe Base Inimigo ---
 # Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este

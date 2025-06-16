@@ -4,14 +4,14 @@ import os
 import math
 import time
 
-from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+from Arquivos.Inimigos.score import score_manager  # <-- INTEGRAÇÃO DO SCORE
 
 # --- Importação da Classe Base Inimigo ---
 # Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
 # (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
 # Essa classe base é referenciada como 'InimigoBase' aqui.
 try:
-    from .Inimigos import Inimigo as InimigoBase
+    from Inimigos import Inimigo as InimigoBase
     # print(f"DEBUG(Goblin): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
     # print(f"DEBUG(Goblin): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")

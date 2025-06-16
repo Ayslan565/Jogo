@@ -36,7 +36,7 @@ except ImportError as e:
 
 # --- Importação do ScoreManager ---
 try:
-    from score import ScoreManager
+    from Arquivos.Inimigos.score import ScoreManager
     score_manager = ScoreManager()
 except ImportError:
     print("AVISO: Não foi possível importar ScoreManager.")

@@ -166,7 +166,7 @@ class Inimigo(pygame.sprite.Sprite):
                 pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2)
 
 
-class Demonio(InimigoBase):
+class Demonio(Inimigo):
     sprites_originais = None
     tamanho_sprite_definido = (96, 96)
 

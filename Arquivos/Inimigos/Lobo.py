@@ -6,7 +6,7 @@ import time
 
 # --- Importação da Classe Base Inimigo ---
 try:
-    from .Inimigos import Inimigo as InimigoBase
+    from Inimigos import Inimigo as InimigoBase
     # print(f"DEBUG(Lobo): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
     print(f"DEBUG(Lobo): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
@@ -283,7 +283,7 @@ class Lobo(InimigoBase):
                     player.dinheiro += self.money_value
                 if hasattr(self, "xp_value"):
                     score_manager.adicionar_xp(self.xp_value)
-                self.ouro_concedido = True
+            self.ouro_concedido = True
             return
 
         agora = pygame.time.get_ticks()

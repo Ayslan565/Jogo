@@ -4,6 +4,7 @@ import os
 import time 
 import math 
 import random # Adicionado para o fallback de _resolver_colisao
+from Inimigos import Inimigo as InimigoBase
 
 class Inimigo(pygame.sprite.Sprite): 
     """
