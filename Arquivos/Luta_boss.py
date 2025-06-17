@@ -7,26 +7,59 @@ import sys
 import inspect 
 
 # --- Configurações ---
-DIMENSOES_ARENA_CHEFE = (800, 600)  
+# Define as dimensões padrão para a arena de batalha do chefe.
+DIMENSOES_ARENA_CHEFE = (800, 600) 
+# Lista para armazenar os caminhos das músicas de chefe. Será preenchida por 'configurar_musicas_chefe'.
 MUSICA_CHEFE_DEFAULT = []
 
 # --- Variáveis de Estado do Módulo ---
-_luta_ativa = False
-_arena_rect = None
-_chefe_atual = None
-_musica_normal_anterior_pos = None
-_musica_normal_anterior_path = None
+# Essas variáveis controlam o estado global da luta contra o chefe no jogo.
+_luta_ativa = False  # Flag booleana que indica se uma luta contra chefe está em andamento.
+_arena_rect = None  # Objeto pygame.Rect que define os limites da arena da luta.
+_chefe_atual = None  # Mantém a instância do objeto do chefe ativo.
+_musica_normal_anterior_pos = None  # Armazena a posição (em ms) da música de fundo normal antes da luta.
+_musica_normal_anterior_path = None # Armazena o caminho do arquivo da música de fundo normal.
 
 # --- Funções de Gerenciamento da Luta ---
 
 def configurar_musicas_chefe(lista_musicas_chefe_projeto):
+    """
+    Configura a lista de músicas que podem ser tocadas durante as lutas contra chefes.
+    Esta função deve ser chamada uma vez no início do jogo.
+
+    Args:
+        lista_musicas_chefe_projeto (list): Uma lista de strings, onde cada string é o caminho para um arquivo de música.
+    """
     global MUSICA_CHEFE_DEFAULT
     MUSICA_CHEFE_DEFAULT = lista_musicas_chefe_projeto
     # print(f"DEBUG (Luta_boss.py): Músicas do chefe configuradas: {MUSICA_CHEFE_DEFAULT}")
 
 def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_obj, tela_largura, tela_altura, musica_atual_path=None, musica_atual_pos_ms=None):
+    """
+    Inicia a sequência de luta contra o chefe.
+    Esta função é o coração do módulo, responsável por:
+    - Limpar inimigos normais.
+    - Definir a arena de batalha.
+    - Spawna o chefe específico da estação.
+    - Pausar a música normal e tocar a música do chefe.
+    - Pausar o spawn de inimigos normais.
+
+    Args:
+        jogador (Player): A instância do jogador.
+        indice_estacao (int): O índice da estação atual, para determinar qual chefe spawnar.
+        gerenciador_inimigos (GerenciadorDeInimigos): A instância do gerenciador de inimigos.
+        estacoes_obj (Estacoes): A instância do gerenciador de estações.
+        tela_largura (int): Largura atual da tela.
+        tela_altura (int): Altura atual da tela.
+        musica_atual_path (str, optional): Caminho da música que estava tocando.
+        musica_atual_pos_ms (int, optional): Posição em milissegundos da música que estava tocando.
+
+    Returns:
+        bool: True se a luta foi iniciada com sucesso, False caso contrário.
+    """
     global _luta_ativa, _arena_rect, _chefe_atual, _musica_normal_anterior_pos, _musica_normal_anterior_path
     
+    # Validação inicial dos objetos necessários
     if not jogador or not hasattr(jogador, 'rect'):
         print("ERRO (Luta_boss.py): Jogador inválido para iniciar luta contra chefe.")
         return False
@@ -46,11 +79,13 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
     print(f"DEBUG (Luta_boss.py): Tentando iniciar luta contra chefe para estação índice {indice_estacao}.")
     _luta_ativa = True # Assume que vai dar certo inicialmente, reverte em caso de erro
 
+    # Limpa os inimigos normais existentes do mapa
     if hasattr(gerenciador_inimigos, 'limpar_todos_inimigos_normais'):
         gerenciador_inimigos.limpar_todos_inimigos_normais()
     else:
         print("AVISO (Luta_boss.py): gerenciador_inimigos não possui 'limpar_todos_inimigos_normais'.")
 
+    # Cria a arena de batalha centralizada no jogador
     try:
         arena_x = jogador_pos_x_mundo - DIMENSOES_ARENA_CHEFE[0] // 2
         arena_y = jogador_pos_y_mundo - DIMENSOES_ARENA_CHEFE[1] // 2
@@ -61,16 +96,16 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
         _luta_ativa = False
         return False
 
+    # Spawna o chefe
     if hasattr(gerenciador_inimigos, 'spawn_chefe_estacao'):
         posicao_spawn_chefe = _arena_rect.center
         print(f"DEBUG (Luta_boss.py): Chamando gerenciador_inimigos.spawn_chefe_estacao({indice_estacao}, {posicao_spawn_chefe})")
         chefe_spawnado = gerenciador_inimigos.spawn_chefe_estacao(indice_estacao, posicao_spawn_chefe)
         
         if not chefe_spawnado:
-            # A mensagem de erro "Falha ao spawnar chefe" será impressa pelo código que chama esta função se ela retornar False.
-            # A função spawn_chefe_estacao do mock já imprime logs detalhados.
+            # A mensagem de erro será impressa pelo código que chama esta função se ela retornar False.
             _luta_ativa = False; _arena_rect = None
-            return False # Retorna False explicitamente
+            return False # Retorna False explicitamente se o chefe não for spawnado
         
         set_chefe_atual_para_monitoramento(chefe_spawnado)
         print(f"DEBUG (Luta_boss.py): Chefe '{type(_chefe_atual).__name__}' spawnado e definido para monitoramento.")
@@ -79,7 +114,7 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
         _luta_ativa = False; _arena_rect = None
         return False
 
-    # Se chegou aqui, o chefe foi spawnado com sucesso. Prossegue com música, etc.
+    # Gerenciamento da música: salva a música atual e toca a do chefe
     if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
         _musica_normal_anterior_pos = musica_atual_pos_ms if musica_atual_pos_ms is not None else pygame.mixer.music.get_pos()
         _musica_normal_anterior_path = musica_atual_path
@@ -99,6 +134,7 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
         else:
             print("AVISO (Luta_boss.py): Nenhuma faixa de música de chefe VÁLIDA encontrada.")
     
+    # Pausa o spawn de inimigos normais
     if hasattr(gerenciador_inimigos, 'pausar_spawn_normal'):
         gerenciador_inimigos.pausar_spawn_normal(True)
     
@@ -107,10 +143,26 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
 
 
 def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
+    """
+    Finaliza a luta contra o chefe.
+    Esta função é chamada quando o chefe é derrotado. Responsável por:
+    - Restaurar a música normal.
+    - Conceder XP ao jogador.
+    - Limpar as variáveis de estado da luta.
+    - Sinalizar ao gerenciador de estações para avançar.
+    - Reativar o spawn de inimigos normais.
+
+    Args:
+        jogador (Player): A instância do jogador.
+        estacoes_obj (Estacoes): A instância do gerenciador de estações.
+        gerenciador_inimigos (GerenciadorDeInimigos): A instância do gerenciador de inimigos.
+    """
     global _luta_ativa, _arena_rect, _chefe_atual, _musica_normal_anterior_pos, _musica_normal_anterior_path
     # print("DEBUG (Luta_boss.py): Finalizando luta contra chefe.")
     _luta_ativa = False
     _arena_rect = None
+    
+    # Para a música do chefe e restaura a música anterior
     if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
         pygame.mixer.music.fadeout(1000)
     if _musica_normal_anterior_path and pygame.mixer.get_init() and os.path.exists(_musica_normal_anterior_path):
@@ -123,8 +175,11 @@ def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
         except Exception as e_restore:
             print(f"ERRO (Luta_boss.py): inesperado ao restaurar música: {e_restore}")
     
+    # Limpa as variáveis de música
     _musica_normal_anterior_path = None
     _musica_normal_anterior_pos = None
+
+    # Concede XP de chefe ao jogador
     if _chefe_atual and hasattr(jogador, 'ganhar_xp_chefe') and hasattr(_chefe_atual, 'xp_value_boss'):
         xp_do_chefe = getattr(_chefe_atual, 'xp_value_boss', 100)
         if hasattr(jogador, 'ganhar_xp_chefe') and callable(jogador.ganhar_xp_chefe):
@@ -132,11 +187,13 @@ def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
     
     _chefe_atual = None 
     
+    # Permite que o jogo prossiga para a próxima estação
     if hasattr(estacoes_obj, 'confirmar_derrota_chefe_primavera_e_avancar'): 
         estacoes_obj.confirmar_derrota_chefe_primavera_e_avancar() 
     elif hasattr(estacoes_obj, 'confirmar_mudanca_estacao'): 
         estacoes_obj.confirmar_mudanca_estacao()
 
+    # Reativa o spawn de inimigos e reseta os temporizadores
     if hasattr(gerenciador_inimigos, 'pausar_spawn_normal'):
         gerenciador_inimigos.pausar_spawn_normal(False)
     if hasattr(gerenciador_inimigos, 'resetar_temporizador_spawn_estacao'):
@@ -146,46 +203,71 @@ def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
 
 
 def atualizar_luta(jogador, estacoes_obj, gerenciador_inimigos):
+    """
+    Deve ser chamada a cada frame do loop do jogo enquanto a luta estiver ativa.
+    Monitora a condição de derrota do chefe.
+
+    Args:
+        jogador (Player): A instância do jogador.
+        estacoes_obj (Estacoes): A instância do gerenciador de estações.
+        gerenciador_inimigos (GerenciadorDeInimigos): A instância do gerenciador de inimigos.
+
+    Returns:
+        bool: True se o chefe foi derrotado neste frame, False caso contrário.
+    """
     global _chefe_atual 
     if not _luta_ativa:
         return False 
 
     chefe_derrotado_agora = False
     if _chefe_atual:
+        # Verifica se a instância do chefe ainda existe no gerenciador de inimigos
+        # ou se sua própria flag de vida indica que foi derrotado.
         chefe_ainda_existe_no_gerenciador = True
         if hasattr(gerenciador_inimigos, 'grupo_chefe_ativo') and hasattr(_chefe_atual, 'alive'):
+            # Para sprites do Pygame, 'alive()' é um bom indicador.
             if not _chefe_atual.alive() or _chefe_atual not in gerenciador_inimigos.grupo_chefe_ativo:
-                 chefe_ainda_existe_no_gerenciador = False
+                chefe_ainda_existe_no_gerenciador = False
         elif hasattr(_chefe_atual, 'alive') and not _chefe_atual.alive(): 
             chefe_ainda_existe_no_gerenciador = False
         
+        # Condição de derrota: ou o método 'esta_vivo' retorna False, ou o sprite foi removido.
         if (hasattr(_chefe_atual, 'esta_vivo') and not _chefe_atual.esta_vivo()) or \
            not chefe_ainda_existe_no_gerenciador:
             # print(f"DEBUG (Luta_boss.py): Chefe '{type(_chefe_atual).__name__}' detectado como derrotado.")
             finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos)
             chefe_derrotado_agora = True 
     elif _luta_ativa: 
+        # Caso de segurança: se a luta está ativa, mas a referência ao chefe foi perdida.
         print("AVISO CRÍTICO (Luta_boss.py): Luta ativa mas _chefe_atual é None. Finalizando luta.")
         finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos)
         chefe_derrotado_agora = True 
 
     return chefe_derrotado_agora
 
+# --- Funções de Acesso (Getters/Setters) ---
 
 def esta_luta_ativa():
+    """Retorna o estado atual da luta contra o chefe."""
     return _luta_ativa
 
 def get_arena_rect():
+    """Retorna o retângulo da arena de batalha."""
     return _arena_rect
 
 def get_chefe_atual():
+    """Retorna a instância do chefe atual."""
     return _chefe_atual
 
 def set_chefe_atual_para_monitoramento(instancia_chefe):
+    """Define a instância do chefe a ser monitorada. Usado internamente."""
     global _chefe_atual
     _chefe_atual = instancia_chefe
 
 # --- Bloco Principal para Teste (if __name__ == "__main__":) ---
+# Este bloco permite executar o arquivo Luta_boss.py diretamente para testar
+# sua funcionalidade de forma isolada, usando classes "Mock" (simuladas)
+# para representar o jogador, gerenciadores, etc.
 if __name__ == "__main__":
     pygame.init() 
 
@@ -350,8 +432,6 @@ if __name__ == "__main__":
                     print(f"DEBUG (MockGerenciadorInimigosTeste): MockChefeFallbackTeste instanciado: {chefe}")
                 except Exception as e_mock_spawn:
                     print(f"ERRO CRÍTICO (MockGerenciadorInimigosTeste): Falha ao instanciar MockChefeFallbackTeste: {e_mock_spawn}")
-                    # Não retorna None aqui, permite que 'chefe' permaneça None
-                    # para que o log de "Nenhum chefe foi instanciado" seja impresso abaixo se este for o caso.
                     pass 
             
             if chefe: 
@@ -367,7 +447,7 @@ if __name__ == "__main__":
         def spawn_inimigos_iniciais(self, jogador, *args): pass 
         def update_inimigos(self, jogador, dt_ms): 
             if self.grupo_chefe_ativo.sprite and hasattr(self.grupo_chefe_ativo.sprite, 'update'):
-                 self.grupo_chefe_ativo.sprite.update(jogador, dt_ms) 
+                    self.grupo_chefe_ativo.sprite.update(jogador, dt_ms) 
         def update_chefe(self, jogador_ref, dt_ms_ref): 
             chefe_a_atualizar = self.grupo_chefe_ativo.sprite
             if chefe_a_atualizar and hasattr(chefe_a_atualizar, 'update'):
@@ -405,8 +485,8 @@ if __name__ == "__main__":
                 elif event_teste.key == pygame.K_b and not esta_luta_ativa() and jogador_teste_obj:
                     print("DEBUG (Luta_boss.py Teste): Tecla 'B' pressionada. Tentando iniciar luta...")
                     if iniciar_luta_chefe(jogador_teste_obj, estacoes_teste_obj.get_indice_estacao_atual(), 
-                                          gerenciador_inimigos_teste_obj, estacoes_teste_obj, 
-                                          LARGURA_TELA_TESTE, ALTURA_TELA_TESTE):
+                                        gerenciador_inimigos_teste_obj, estacoes_teste_obj, 
+                                        LARGURA_TELA_TESTE, ALTURA_TELA_TESTE):
                         print("DEBUG (Luta_boss.py Teste): iniciar_luta_chefe retornou True.")
                         chefe_inst = get_chefe_atual() 
                         if chefe_inst and chefe_inst not in grupo_sprites_teste_render: 
@@ -459,7 +539,7 @@ if __name__ == "__main__":
                 jogador_teste_obj.y = float(jogador_teste_obj.rect.centery)
 
         if esta_luta_ativa() and gerenciador_inimigos_teste_obj.grupo_chefe_ativo.sprite:
-             gerenciador_inimigos_teste_obj.update_chefe(jogador_teste_obj, dt_ms_teste)
+                gerenciador_inimigos_teste_obj.update_chefe(jogador_teste_obj, dt_ms_teste)
 
 
         tela_teste.fill((30,30,50)) 
@@ -485,7 +565,7 @@ if __name__ == "__main__":
 
         for sprite in grupo_sprites_teste_render:
             if hasattr(sprite, 'rect') and hasattr(sprite, 'image') and sprite.image:
-                 tela_teste.blit(sprite.image, sprite.rect.move(-camera_x_teste_mundo, -camera_y_teste_mundo))
+                    tela_teste.blit(sprite.image, sprite.rect.move(-camera_x_teste_mundo, -camera_y_teste_mundo))
         
         chefe_ativo_teste_ui = get_chefe_atual()
         if chefe_ativo_teste_ui and hasattr(chefe_ativo_teste_ui, 'hp') and hasattr(chefe_ativo_teste_ui, 'max_hp') and esta_luta_ativa(): 

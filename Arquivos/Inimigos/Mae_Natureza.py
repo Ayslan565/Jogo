@@ -1,350 +1,218 @@
-# Lobo.py
+# Mae_Natureza.py
 import pygame
 import os
 import math
 import time
 
-from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
+# Removido: importação do score_manager, pois a lógica de recompensa é tratada pelo GerenciadorDeInimigos
 
 # --- Importação da Classe Base Inimigo ---
 try:
+    # Correção: Importação relativa para a classe base Inimigo dentro do mesmo pacote 'Inimigos'
     from .Inimigos import Inimigo as InimigoBase
-    print(f"DEBUG(Mae_Natureza): Classe InimigoBase importada com sucesso de .Inimigos.")
+    # print(f"DEBUG(Mae_Natureza): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
-    print(f"DEBUG(Mae_Natureza): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
-    # Este é um placeholder MUITO SIMPLES. A classe base real deve ser mais completa.
+    # print(f"DEBUG(Mae_Natureza): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
     class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
             self.rect = pygame.Rect(x, y, largura, altura)
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
-            self.image.fill((100, 100, 100, 100)) # Placeholder cinza
-            pygame.draw.rect(self.image, (150,150,150), self.image.get_rect(), 1) # Borda cinza clara
+            self.image.fill((34, 139, 34, 100))
+            pygame.draw.rect(self.image, (0,100,0), self.image.get_rect(), 1)
             self.hp = vida_maxima; self.max_hp = vida_maxima; self.velocidade = velocidade
             self.contact_damage = dano_contato; self.xp_value = xp_value
             self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150
             self.hit_flash_color = (255, 255, 255, 128)
             self.contact_cooldown = 1000; self.last_contact_time = 0
-            self.sprites = [self.image]; self.sprite_index = 0; 
+            self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
-            print(f"DEBUG(InimigoBase Placeholder para Mae_Natureza): Instanciado. Sprite path (não usado): {sprite_path}")
-        
-        def _carregar_sprite(self, path, tamanho): # Placeholder _carregar_sprite na base
-            # A implementação real deste método na sua classe InimigoBase
-            # deve ser capaz de encontrar a pasta raiz do jogo.
-            print(f"DEBUG(InimigoBase Placeholder _carregar_sprite): Tentando carregar '{path}' (não implementado). Retornando placeholder.")
-            img = pygame.Surface(tamanho, pygame.SRCALPHA)
-            img.fill((100,100,100, 128))
-            return img
+            self.x = float(x); self.y = float(y)
+            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
 
-        def receber_dano(self, dano, fonte_dano_rect=None):
-             self.hp = max(0, self.hp - dano)
+        def _carregar_sprite(self, path, tamanho):
+            img = pygame.Surface(tamanho, pygame.SRCALPHA); img.fill((34, 139, 34, 128)); return img
+        def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
         def esta_vivo(self): return self.hp > 0
-        def mover_em_direcao(self, ax, ay, dt_ms=None): 
-            pass 
-        def atualizar_animacao(self): 
-            if self.sprites and len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface):
-                self.image = self.sprites[0]
-        def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): self.atualizar_animacao()
+        def mover_em_direcao(self, ax, ay, dt_ms=None): pass
+        def atualizar_animacao(self):
+            if self.sprites: self.image = self.sprites[0]
+        # Padronizado a assinatura do update do placeholder para consistência
+        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+            # Placeholder de update, a lógica real estará nas classes filhas
+            self.atualizar_animacao()
         def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
                 janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-        def kill(self):
-            super().kill()
+        def kill(self): super().kill()
 
 
 class Mae_Natureza(InimigoBase):
-    sprites_andar_carregados = None 
-    sprites_atacar_carregados = None 
-    tamanho_sprite_definido = (160, 180) # Ajuste conforme o sprite real
+    sprites_andar_carregados = None
+    sprites_atacar_carregados = None
+    tamanho_sprite_definido = (160, 180)
 
-    som_ataque_lobo = None
-    som_dano_lobo = None
-    som_morte_lobo = None
-    som_uivo_lobo = None 
+    som_ataque_mae, som_dano_mae, som_morte_mae = None, None, None
     sons_carregados = False
 
     @staticmethod
     def _obter_pasta_raiz_jogo():
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
-        pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
-        return pasta_raiz_jogo
+        return os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
 
     @staticmethod
-    def _carregar_som_lobo(caminho_relativo_a_raiz_jogo):
-        pasta_raiz_jogo = Lobo._obter_pasta_raiz_jogo()
-        caminho_completo = os.path.join(pasta_raiz_jogo, caminho_relativo_a_raiz_jogo.replace("\\", "/"))
-        
-        if not os.path.exists(caminho_completo):
-            print(f"DEBUG(Mae_Natureza._carregar_som): Arquivo de som NÃO ENCONTRADO: {caminho_completo}")
-            return None
-        try:
-            som = pygame.mixer.Sound(caminho_completo)
-            print(f"DEBUG(Mae_Natureza._carregar_som): Som '{caminho_completo}' carregado.")
-            return som
-        except pygame.error as e:
-            print(f"DEBUG(Mae_Natureza._carregar_som): ERRO PYGAME ao carregar som '{caminho_completo}': {e}")
-            return None
-
-    @staticmethod
-    def _carregar_lista_sprites_estatico(caminhos_relativos_a_raiz_jogo, lista_destino_existente, tamanho_sprite, nome_animacao):
+    def _carregar_som_mae_natureza(caminho_relativo_a_raiz_jogo):
         pasta_raiz_jogo = Mae_Natureza._obter_pasta_raiz_jogo()
-        print(f"DEBUG(Mae_Natureza._carregar_lista_sprites): Carregando sprites de '{nome_animacao}'. Raiz do jogo: {pasta_raiz_jogo}")
-        
-        # A lista_destino_existente já deve ser uma lista inicializada antes de chamar esta função.
-        
-        for path_relativo in caminhos_relativos_a_raiz_jogo:
+        caminho_completo = os.path.join(pasta_raiz_jogo, caminho_relativo_a_raiz_jogo.replace("\\", "/"))
+        if not os.path.exists(caminho_completo): return None
+        try: return pygame.mixer.Sound(caminho_completo)
+        except pygame.error: return None
+
+    @staticmethod
+    def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, nome_anim):
+        pasta_raiz_jogo = Mae_Natureza._obter_pasta_raiz_jogo()
+        if lista_destino is None: lista_destino = [] # Garante que lista_destino é uma lista
+        for path_relativo in caminhos:
             caminho_completo = os.path.join(pasta_raiz_jogo, path_relativo.replace("\\", "/"))
-            print(f"DEBUG(Mae_Natureza._carregar_lista_sprites): Tentando carregar '{nome_animacao}' sprite: {caminho_completo}")
             try:
                 if os.path.exists(caminho_completo):
                     sprite = pygame.image.load(caminho_completo).convert_alpha()
-                    sprite = pygame.transform.scale(sprite, tamanho_sprite)
-                    lista_destino_existente.append(sprite)
-                    print(f"DEBUG(Mae_Natureza._carregar_lista_sprites): Sprite '{caminho_completo}' carregado para '{nome_animacao}'.")
+                    sprite = pygame.transform.scale(sprite, tamanho)
+                    lista_destino.append(sprite)
                 else:
-                    print(f"DEBUG(Mae_Natureza._carregar_lista_sprites): ARQUIVO NÃO EXISTE para '{nome_animacao}': {caminho_completo}. Usando placeholder (verde floresta).")
-                    placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-                    placeholder.fill((100, 100, 100, 180))
-                    lista_destino_existente.append(placeholder)
-            except pygame.error as e:
-                print(f"DEBUG(Mae_Natureza._carregar_lista_sprites): ERRO PYGAME ao carregar '{nome_animacao}' sprite '{caminho_completo}': {e}. Usando placeholder (verde floresta).")
-                placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-                placeholder.fill((100, 100, 100, 180))
-                lista_destino_existente.append(placeholder)
-        
-        if not lista_destino_existente: 
-            print(f"DEBUG(Mae_Natureza._carregar_lista_sprites): FALHA TOTAL em carregar sprites para '{nome_animacao}'. Usando placeholder final (verde escuro).")
-            placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-            placeholder.fill((80, 80, 80, 200))
-            lista_destino_existente.append(placeholder)
+                    placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((34, 139, 34, 180)); lista_destino.append(placeholder)
+            except pygame.error:
+                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((34, 139, 34, 180)); lista_destino.append(placeholder)
+        if not lista_destino:
+            placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((20, 100, 20, 200)); lista_destino.append(placeholder)
+        return lista_destino # Retorna a lista modificada
 
     @staticmethod
     def carregar_recursos_mae_natureza():
-        if Mae_Natureza.sprites_andar_carregados is None: 
+        if Mae_Natureza.sprites_andar_carregados is None:
             Mae_Natureza.sprites_andar_carregados = []
-            caminhos_andar = [
-                "Sprites/Inimigos/Mae_Natureza/Mae1.png", 
-                "Sprites/Inimigos/Mae_Natureza/Mae2.png",
-                "Sprites/Inimigos/Mae_Natureza/Mae3.png",
-            ]
-            Mae_Natureza._carregar_lista_sprites_estatico(
-                caminhos_andar, 
-                Mae_Natureza.sprites_andar_carregados, 
-                Mae_Natureza.tamanho_sprite_definido, 
-                "Andar/Idle"
-            )
-
+            caminhos = ["Sprites/Inimigos/Mae_Natureza/Mae{}.png".format(i) for i in range(1, 4)]
+            Mae_Natureza._carregar_lista_sprites_estatico(caminhos, Mae_Natureza.sprites_andar_carregados, Mae_Natureza.tamanho_sprite_definido, "Andar/Idle")
         if Mae_Natureza.sprites_atacar_carregados is None:
             Mae_Natureza.sprites_atacar_carregados = []
-            caminhos_atacar = [ 
-                "Sprites/Inimigos/Mae_Natureza/Mae_Atacar1.png", # Exemplo
-                "Sprites/Inimigos/Mae_Natureza/Mae_Atacar2.png", # Exemplo
-            ]
-            pasta_raiz_temp = Lobo._obter_pasta_raiz_jogo()
-            primeiro_sprite_ataque_existe = False
-            if caminhos_atacar:
-                caminho_primeiro_ataque = os.path.join(pasta_raiz_temp, caminhos_atacar[0].replace("\\", "/"))
-                if os.path.exists(caminho_primeiro_ataque):
-                    primeiro_sprite_ataque_existe = True
-            
-            if primeiro_sprite_ataque_existe:
-                Mae_Natureza._carregar_lista_sprites_estatico(
-                    caminhos_atacar, 
-                    Mae_Natureza.sprites_atacar_carregados, 
-                    Mae_Natureza.tamanho_sprite_definido, 
-                    "Atacar"
-                )
-            
-            if not Mae_Natureza.sprites_atacar_carregados: 
-                if Mae_Natureza.sprites_andar_carregados and len(Mae_Natureza.sprites_andar_carregados) > 0 :
-                    Mae_Natureza.sprites_atacar_carregados = [Mae_Natureza.sprites_andar_carregados[0]] 
-                    print("DEBUG(Mae_Natureza.carregar_recursos): Usando primeiro sprite de andar como fallback para ataque.")
-                else: 
-                    placeholder_ataque = pygame.Surface(Mae_Natureza.tamanho_sprite_definido, pygame.SRCALPHA)
-                    placeholder_ataque.fill((20,100,20, 180)) # Verde escuro
-                    Mae_Natureza.sprites_atacar_carregados = [placeholder_ataque]
-                    print("DEBUG(Mae_Natureza.carregar_recursos): Usando placeholder de cor para ataque.")
-        
+            caminhos_atacar = ["Sprites/Inimigos/Mae_Natureza/Mae_Atacar{}.png".format(i) for i in range(1, 3)]
+            Mae_Natureza._carregar_lista_sprites_estatico(caminhos_atacar, Mae_Natureza.sprites_atacar_carregados, Mae_Natureza.tamanho_sprite_definido, "Atacar")
+            if not Mae_Natureza.sprites_atacar_carregados and Mae_Natureza.sprites_andar_carregados:
+                Mae_Natureza.sprites_atacar_carregados = [Mae_Natureza.sprites_andar_carregados[0]]
         if not Mae_Natureza.sons_carregados:
-            # Mae_Natureza.som_ataque_mae = Mae_Natureza._carregar_som_mae_natureza("Sons/Mae_Natureza/ataque_raizes.wav")
-            # Mae_Natureza.som_dano_mae = Mae_Natureza._carregar_som_mae_natureza("Sons/Mae_Natureza/dano_folhas.wav")
-            # Mae_Natureza.som_morte_mae = Mae_Natureza._carregar_som_mae_natureza("Sons/Mae_Natureza/morte_terra.wav")
+            # Carregar sons aqui
             Mae_Natureza.sons_carregados = True
-    
 
-    def __init__(self, x, y, velocidade=0.7): 
-        Mae_Natureza.carregar_recursos_mae_natureza() 
+    def __init__(self, x, y, velocidade=0.7):
+        Mae_Natureza.carregar_recursos_mae_natureza()
 
         vida_mae_natureza = 120
-        dano_contato_mae_natureza = 12 
+        dano_contato_mae_natureza = 12
         xp_mae_natureza = 120
-        #moedas_dropadas = 17
-        
-        # O _carregar_sprite da InimigoBase (herdada) será usado para esta imagem principal.
-        # O caminho DEVE SER RELATIVO À PASTA RAIZ DO JOGO.
+        self.moedas_drop = 17
+
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Mae_Natureza/Mae1.png"
 
         super().__init__(
             x, y,
-            Lobo.tamanho_sprite_definido[0], Lobo.tamanho_sprite_definido[1],
-            vida_lobo, velocidade, dano_contato_lobo,
-            self.xp_value, sprite_path_principal_relativo_jogo
+            Mae_Natureza.tamanho_sprite_definido[0], Mae_Natureza.tamanho_sprite_definido[1],
+            vida_mae_natureza, velocidade, dano_contato_mae_natureza,
+            xp_mae_natureza, sprite_path_principal_relativo_jogo
         )
-        self.x = float(x) # Garante que x e y são floats
-        self.y = float(y)
 
+        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
+
+        self.x = float(x)
+        self.y = float(y)
         self.sprites_andar = Mae_Natureza.sprites_andar_carregados
         self.sprites_atacar = Mae_Natureza.sprites_atacar_carregados
-        self.sprites = self.sprites_andar # Começa com animação de andar/idle
-        
-        # Garante que self.image e self.sprites[0] são válidos após o super().__init__
-        if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)):
-            print("DEBUG(Mae_Natureza __init__): self.image não foi definido corretamente pelo super(). Usando primeiro sprite de andar.")
-            if self.sprites and len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface):
-                self.image = self.sprites[0]
-            else: # Fallback crítico se nem os sprites de andar carregaram
-                placeholder_img = pygame.Surface(Mae_Natureza.tamanho_sprite_definido, pygame.SRCALPHA)
-                placeholder_img.fill((20, 100, 20, 150)) # Verde escuro para erro
-                self.image = placeholder_img
-                if not self.sprites: self.sprites = [self.image]
+        self.sprites = self.sprites_andar
 
+        if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)):
+            if self.sprites: self.image = self.sprites[0]
+            else:
+                self.image = pygame.Surface(Mae_Natureza.tamanho_sprite_definido, pygame.SRCALPHA); self.image.fill((20, 100, 20, 150))
+                if not self.sprites: self.sprites = [self.image]
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
         self.sprite_index = 0
-        self.intervalo_animacao_andar = 300 
-        self.intervalo_animacao_atacar = 220 
-        self.intervalo_animacao = self.intervalo_animacao_andar # Começa com o intervalo de andar
-
-        # Atributos específicos de ataque da Mãe Natureza (ex: ataque de área)
-        self.is_attacking = False 
-        self.attack_duration = 1.2 # Duração do ataque de área
+        self.intervalo_animacao_andar = 300
+        self.intervalo_animacao_atacar = 220
+        self.intervalo_animacao = self.intervalo_animacao_andar
+        self.is_attacking = False
+        self.attack_duration = 1.2
         self.attack_timer = 0.0
-        self.attack_damage_especifico = 30 
-        self.attack_range = 180  # Alcance para iniciar o ataque de área
-        self.attack_cooldown = 4.5 
-        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000) # Permite atacar logo
-
-        # Hitbox para ataque de área (pode ser o próprio rect ou maior)
-        self.attack_hitbox_size = (Mae_Natureza.tamanho_sprite_definido[0] * 1.5, Mae_Natureza.tamanho_sprite_definido[1] * 1.5) 
+        self.attack_damage_especifico = 30
+        self.attack_range = 180
+        self.attack_cooldown = 4.5
+        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
+        self.attack_hitbox_size = (Mae_Natureza.tamanho_sprite_definido[0] * 1.5, Mae_Natureza.tamanho_sprite_definido[1] * 1.5)
         self.attack_hitbox = pygame.Rect(0,0,0,0)
-        self.hit_player_this_attack_pulse = False # Para dano de área/pulso
+        self.hit_player_this_attack_pulse = False
         
     def _atualizar_hitbox_ataque(self):
         if not self.is_attacking:
-            self.attack_hitbox.size = (0,0)
-            return
-        
-        w, h = self.attack_hitbox_size
-        self.attack_hitbox.size = (w,h)
-        self.attack_hitbox.center = self.rect.center # Ataque de área centrado nela
-
+            self.attack_hitbox.size = (0,0); return
+        self.attack_hitbox.size = self.attack_hitbox_size
+        self.attack_hitbox.center = self.rect.center
 
     def atacar(self, player):
-        if not (hasattr(player, 'rect') and self.esta_vivo()):
-            return
-
+        if not (hasattr(player, 'rect') and self.esta_vivo()): return
         agora = pygame.time.get_ticks()
-        distancia_ao_jogador = float('inf')
-        if hasattr(player, 'rect') and player.rect is not None:
-            distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                             self.rect.centery - player.rect.centery)
-
-        if not self.is_attacking and \
-           distancia_ao_jogador <= self.attack_range and \
-           (agora - self.last_attack_time >= self.attack_cooldown * 1000):
-
+        distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery)
+        if not self.is_attacking and distancia_ao_jogador <= self.attack_range and (agora - self.last_attack_time >= self.attack_cooldown * 1000):
             self.is_attacking = True
             self.attack_timer = agora
             self.last_attack_time = agora
             self.hit_player_this_attack_pulse = False
-            
-            self.sprites = self.sprites_atacar # Muda para sprites de ataque (se houver)
+            self.sprites = self.sprites_atacar
             self.intervalo_animacao = self.intervalo_animacao_atacar
-            self.sprite_index = 0 
-            
-            # if Mae_Natureza.som_ataque_mae:
-            #     Mae_Natureza.som_ataque_mae.play()
+            self.sprite_index = 0
 
-
-    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): 
+    def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
         if not self.esta_vivo():
-            if not hasattr(self, "ouro_concedido") or not self.ouro_concedido:
-                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
-                    player.dinheiro += self.money_value
-                if hasattr(self, "xp_value"):
-                    score_manager.adicionar_xp(self.xp_value)
-                self.ouro_concedido = True
+            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
             return
 
         agora = pygame.time.get_ticks()
-        if dt_ms is None:
-            dt_ms = agora - getattr(self, '_last_update_time', agora)
-            self._last_update_time = agora
-            if dt_ms <= 0 : dt_ms = 16
-
-        jogador_valido = (player is not None and hasattr(player, 'rect') and player.rect is not None and
-                          hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and
-                          hasattr(player, 'receber_dano'))
+        jogador_valido = (player and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo'))
 
         if jogador_valido:
             if player.rect.centerx < self.rect.centerx: self.facing_right = False
             else: self.facing_right = True
 
+        # Chama o update da classe base para movimento e animação
+        super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
+
         if self.is_attacking:
-            self.atualizar_animacao() # Continua a animação de ataque
+            if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
             self._atualizar_hitbox_ataque()
-
-            # Verifica colisão do ataque de área com o jogador
-            if jogador_valido and not self.hit_player_this_attack_pulse and \
-               self.attack_hitbox.colliderect(player.rect):
-                player.receber_dano(self.attack_damage_especifico)
-                self.hit_player_this_attack_pulse = True 
-                # print(f"DEBUG(Mae_Natureza): Ataque de área acertou jogador! Dano: {self.attack_damage_especifico}")
-
+            if jogador_valido and not self.hit_player_this_attack_pulse and self.attack_hitbox.colliderect(player.rect):
+                if hasattr(player, 'receber_dano'): player.receber_dano(self.attack_damage_especifico)
+                self.hit_player_this_attack_pulse = True
             if agora - self.attack_timer >= self.attack_duration * 1000:
-                self.is_attacking = False 
-                self.sprites = self.sprites_andar # Volta para sprites de andar/idle
+                self.is_attacking = False
+                self.sprites = self.sprites_andar
                 self.intervalo_animacao = self.intervalo_animacao_andar
-                self.sprite_index = 0 
-                self.attack_hitbox.size = (0,0) # Desativa a hitbox
-        else: 
-            # Se não está atacando, tenta iniciar um ataque ou se move
-            if jogador_valido:
-                self.atacar(player) # Tenta iniciar um ataque
-            
-            if not self.is_attacking and jogador_valido: # Se não iniciou um ataque, move-se
-                self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            
-            self.atualizar_animacao() # Animação de andar/idle
+                self.sprite_index = 0
+                self.attack_hitbox.size = (0,0)
+        else:
+            if jogador_valido: self.atacar(player)
+            # A chamada super().update já cuida do mover_em_direcao e atualizar_animacao para o estado normal.
+            # Essas linhas foram comentadas porque a chamada super().update já as executa.
+            # if not self.is_attacking and jogador_valido and hasattr(self, 'mover_em_direcao'):
+            #     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
+            # if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao() # Já chamado na super.update
 
-        if jogador_valido and self.rect.colliderect(player.rect) and \
-           (agora - self.last_contact_time >= self.contact_cooldown):
-            player.receber_dano(self.contact_damage, self.rect)
+        if jogador_valido and self.rect.colliderect(player.rect) and (agora - self.last_contact_time >= self.contact_cooldown):
+            if hasattr(player, 'receber_dano'): player.receber_dano(self.contact_damage, self.rect)
             self.last_contact_time = agora
-        
-        # Assegura que a imagem correta (com flip) é usada para desenhar
-        if self.sprites and len(self.sprites) > 0:
-            idx = int(self.sprite_index % len(self.sprites))
-            current_sprite_image = self.sprites[idx]
-            if not self.facing_right:
-                self.image = pygame.transform.flip(current_sprite_image, True, False)
-            else:
-                self.image = current_sprite_image
-
-
+            
     def receber_dano(self, dano, fonte_dano_rect=None):
         vida_antes = self.hp
         super().receber_dano(dano, fonte_dano_rect)
-        if self.esta_vivo():
-            if vida_antes > self.hp and Lobo.som_dano_lobo:
-                Lobo.som_dano_lobo.play()
-        elif vida_antes > 0 and Lobo.som_morte_lobo: 
-            Lobo.som_morte_lobo.play()
-
-    # def desenhar(self, surface, camera_x, camera_y):
-    #     super().desenhar(surface, camera_x, camera_y)
-    #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox
-    #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
-    #         pygame.draw.ellipse(surface, (34, 139, 34, 100), debug_rect_onscreen, 2) # Elipse verde para área
-
+        if not self.esta_vivo() and vida_antes > 0 and self.som_morte_mae:
+             self.som_morte_mae.play()
+        elif self.esta_vivo() and vida_antes > self.hp and self.som_dano_mae:
+             self.som_dano_mae.play()

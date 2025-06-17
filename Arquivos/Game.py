@@ -439,7 +439,7 @@ def main():
     if mixer_initialized_successfully:
         pygame.mixer.quit()
     pygame.quit()
-    sys.exit()
+    sys.exit() 
 
 if __name__ == "__main__":
     try:

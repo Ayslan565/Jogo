@@ -96,7 +96,7 @@ class Player(pygame.sprite.Sprite):
             print("ALERTA(Player Init): Nenhum sprite carregado para o jogador. Usando placeholder.")
 
         self.rect = self.image.get_rect(center=(round(self.x), round(self.y)))
-        # Rect de colisão menor que o rect da imagem
+        # Rect de colisão menor que o rect da imagem para colisões mais realistas
         self.rect_colisao = self.rect.inflate(-30, -20) 
 
         self.tempo_animacao = 100 # Intervalo entre frames de animação do jogador (ms)
@@ -141,10 +141,12 @@ class Player(pygame.sprite.Sprite):
 
     @property
     def dano(self) -> float:
+        """Retorna o dano da arma atualmente equipada."""
         return self.current_weapon.damage if self.current_weapon else 0.0
 
     @property
     def alcance_ataque(self) -> float:
+        """Retorna o alcance da arma atualmente equipada."""
         return self.current_weapon.attack_range if self.current_weapon else 0.0
 
     @property
@@ -154,9 +156,11 @@ class Player(pygame.sprite.Sprite):
 
     @property
     def level(self) -> int:
+        """Retorna o nível atual do jogador, obtido do XPManager."""
         return self.xp_manager.level if self.xp_manager and hasattr(self.xp_manager, 'level') else 1
 
     def equip_weapon(self, weapon_object: Weapon):
+        """Equipa uma nova arma no jogador."""
         if Weapon is None: 
             print("ALERTA(Player.equip_weapon): Classe base Weapon não está disponível (importação falhou?).")
             return
@@ -175,13 +179,11 @@ class Player(pygame.sprite.Sprite):
             return False
         
         # Verifica se já possui uma arma com o mesmo nome base
-        # As classes de armas devem ter um atributo '_base_name' para esta verificação funcionar corretamente
-        # Ex: AdagaFogo Nível 1 e AdagaFogo Nível 2 teriam o mesmo _base_name "AdagaFogo"
         if hasattr(weapon_object, '_base_name'):
             if any(hasattr(w, '_base_name') and w._base_name == weapon_object._base_name for w in self.owned_weapons if w is not None):
-                print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' (ou uma versão dela com base_name '{weapon_object._base_name}') já está no inventário.")
+                print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' (ou uma versão dela) já está no inventário.")
                 return False # Já possui esta "linhagem" de arma
-        elif any(type(w) is type(weapon_object) for w in self.owned_weapons if w is not None): # Fallback: verifica por tipo exato se _base_name não existir
+        elif any(type(w) is type(weapon_object) for w in self.owned_weapons if w is not None): # Fallback: verifica por tipo exato
              print(f"DEBUG(Player.add_owned_weapon): Arma do tipo '{type(weapon_object).__name__}' já está no inventário (verificação por tipo).")
              return False
 
@@ -203,18 +205,17 @@ class Player(pygame.sprite.Sprite):
         return True
 
     def _carregar_sprites(self, caminhos, tamanho, nome_conjunto):
+        """Carrega uma lista de sprites a partir de seus caminhos, com fallbacks."""
         sprites = []
-        # Assume que player.py está em uma subpasta (ex: 'Codigo') e 'Sprites' está na raiz do projeto
-        base_dir_script = os.path.dirname(os.path.abspath(__file__)) # Diretório de player.py
-        project_root = os.path.dirname(base_dir_script) # Sobe um nível para a raiz do projeto
+        base_dir_script = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(base_dir_script)
 
-        for path_relativo_ao_projeto in caminhos: # 'path' deve ser tipo "Sprites/Asrahel/Esquerda/Ashael_E1.png"
+        for path_relativo_ao_projeto in caminhos:
             full_path = os.path.join(project_root, path_relativo_ao_projeto.replace("/", os.sep))
             
             if not os.path.exists(full_path):
                 print(f"ALERTA(Player._carregar_sprites): Sprite para '{nome_conjunto}' não encontrado: {full_path}")
-                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-                placeholder.fill((255,0,255, 100)) # Magenta placeholder
+                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((255,0,255, 100))
                 sprites.append(placeholder)
                 continue
             try:
@@ -223,18 +224,17 @@ class Player(pygame.sprite.Sprite):
                 sprites.append(sprite)
             except pygame.error as e:
                 print(f"DEBUG(Player._carregar_sprites): Erro ao carregar sprite '{full_path}' para '{nome_conjunto}': {e}")
-                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-                placeholder.fill((255,0,255, 100))
+                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((255,0,255, 100))
                 sprites.append(placeholder)
         
-        if not sprites: # Se, por algum motivo, a lista estiver vazia após o loop
-            print(f"ALERTA GRAVE(Player._carregar_sprites): Nenhum sprite carregado para '{nome_conjunto}'. Adicionando placeholder único.")
-            placeholder = pygame.Surface(tamanho, pygame.SRCALPHA)
-            placeholder.fill((255,0,0, 150)) # Vermelho para destacar falha crítica
+        if not sprites:
+            print(f"ALERTA GRAVE(Player._carregar_sprites): Nenhum sprite carregado para '{nome_conjunto}'.")
+            placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((255,0,0, 150))
             sprites.append(placeholder)
         return sprites
 
-    def receber_dano(self, dano, _fonte_dano_rect=None): # _fonte_dano_rect opcional
+    def receber_dano(self, dano, _fonte_dano_rect=None):
+        """Aplica dano ao jogador e o torna invencível por um curto período."""
         if self.vida is not None and self.pode_levar_dano: 
             self.vida.receber_dano(dano) 
             
@@ -246,12 +246,11 @@ class Player(pygame.sprite.Sprite):
             
             if not self.esta_vivo():
                 print("DEBUG(Player): Jogador morreu.")
-            # else:
-                # print(f"DEBUG(Player): Jogador recebeu {dano} de dano. Invencibilidade ativada.") # Comentado para reduzir spam
 
-    def update(self, dt_ms=None, teclas_pressionadas=None): # Adicionado dt_ms e teclas para uso futuro se necessário
+    def update(self, dt_ms=None, teclas_pressionadas=None):
+        """Atualiza o estado do jogador a cada frame (animações, invencibilidade, ataque)."""
         agora_ticks = pygame.time.get_ticks()
-        agora_time = time.time() # Para cooldown de ataque baseado em time.time()
+        agora_time = time.time()
 
         # Lógica de invencibilidade e piscar
         if self.is_invencivel_piscando:
@@ -264,14 +263,14 @@ class Player(pygame.sprite.Sprite):
                 self.is_invencivel_piscando = False
                 self.visivel_durante_pisca_dano = True 
 
-        # Lógica para finalizar a animação de ataque
+        # Finaliza a animação de ataque
         if self.is_attacking_animation_active and (agora_time - self.attack_timer >= self.attack_duration):
             self.is_attacking = False 
             self.is_attacking_animation_active = False 
-            self.attack_hitbox.size = (0,0) # Reseta a hitbox
+            self.attack_hitbox.size = (0,0)
             self.hit_enemies_this_attack.clear()
             if self.current_weapon and hasattr(self.current_weapon, 'current_attack_animation_frame'):
-                self.current_weapon.current_attack_animation_frame = 0 # Reseta frame da animação da arma
+                self.current_weapon.current_attack_animation_frame = 0
 
         # Animação do jogador (idle ou movimento)
         if agora_ticks - self.ultimo_update > self.tempo_animacao:
@@ -279,48 +278,34 @@ class Player(pygame.sprite.Sprite):
             active_sprites_list = []
             if self.parado:
                 if self.direction == "left": active_sprites_list = self.sprites_idle_esquerda
-                else: active_sprites_list = self.sprites_idle_direita # Default para direita se não esquerda
+                else: active_sprites_list = self.sprites_idle_direita
                 
-                if active_sprites_list: # Garante que a lista não está vazia
+                if active_sprites_list:
                     self.frame_idle = (self.frame_idle + 1) % len(active_sprites_list)
                     self.image = active_sprites_list[self.frame_idle]
-                # Fallback se listas idle específicas estiverem vazias mas as de movimento não
                 elif self.direction == "left" and self.sprites_esquerda: self.image = self.sprites_esquerda[0]
                 elif self.sprites_direita: self.image = self.sprites_direita[0]
-
             else: # Movendo-se
                 if self.direction == "left": active_sprites_list = self.sprites_esquerda
                 else: active_sprites_list = self.sprites_direita
-
                 if active_sprites_list:
                     self.atual = (self.atual + 1) % len(active_sprites_list)
                     self.image = active_sprites_list[self.atual]
         
         # Animação da arma (se estiver atacando)
-        if self.is_attacking_animation_active and self.current_weapon and \
-           hasattr(self.current_weapon, 'attack_animation_sprites') and self.current_weapon.attack_animation_sprites and \
-           hasattr(self.current_weapon, 'attack_animation_speed') and hasattr(self.current_weapon, 'last_attack_animation_update') and \
-           hasattr(self.current_weapon, 'current_attack_animation_frame'):
-            
-            if agora_ticks - self.current_weapon.last_attack_animation_update > self.current_weapon.attack_animation_speed:
-                self.current_weapon.last_attack_animation_update = agora_ticks
-                num_frames_arma = len(self.current_weapon.attack_animation_sprites)
-                if num_frames_arma > 0 : 
-                    self.current_weapon.current_attack_animation_frame = \
-                        (self.current_weapon.current_attack_animation_frame + 1) % num_frames_arma
+        if self.is_attacking_animation_active and self.current_weapon and hasattr(self.current_weapon, 'update_animation'):
+             self.current_weapon.update_animation(agora_ticks)
         
-        # Fallback final para self.image se ainda for None
         if self.image is None: 
             self.image = pygame.Surface((60,60), pygame.SRCALPHA); self.image.fill((255,0,255,100))
 
-        # Atualiza rects
         self.rect.center = (round(self.x), round(self.y))
         if hasattr(self, 'rect_colisao'): 
             self.rect_colisao.center = self.rect.center
 
-    def mover(self, teclas, arvores): # arvores é uma lista de sprites de obstáculos
-        if not hasattr(self, 'rect_colisao'): # Precisa do rect de colisão para mover
-            return
+    def mover(self, teclas, arvores):
+        """Calcula o movimento do jogador com base nas teclas pressionadas e verifica colisões."""
+        if not hasattr(self, 'rect_colisao'): return
 
         current_dx, current_dy = 0.0, 0.0
         
@@ -335,9 +320,9 @@ class Player(pygame.sprite.Sprite):
         if move_up and not move_down: current_dy = -self.velocidade
         elif move_down and not move_up: current_dy = self.velocidade
         
-        # Normaliza movimento diagonal
+        # Normaliza movimento diagonal para manter a velocidade constante
         if current_dx != 0.0 and current_dy != 0.0:
-            inv_sqrt2 = 1.0 / math.sqrt(2) # Aproximadamente 0.7071
+            inv_sqrt2 = 1.0 / math.sqrt(2)
             current_dx *= inv_sqrt2 
             current_dy *= inv_sqrt2
         
@@ -345,43 +330,42 @@ class Player(pygame.sprite.Sprite):
         
         # Movimento e Colisão no eixo X
         self.x += current_dx
-        self.rect_colisao.centerx = round(self.x) # Atualiza rect_colisao para a nova posição X
-        if arvores and current_dx != 0: # Só checa colisão X se houve movimento X
+        self.rect_colisao.centerx = round(self.x)
+        if arvores and current_dx != 0:
             for arvore in arvores:
                 arvore_col_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
                 if arvore_col_rect and self.rect_colisao.colliderect(arvore_col_rect):
-                    if current_dx > 0: self.rect_colisao.right = arvore_col_rect.left # Movendo para direita, colidiu
-                    elif current_dx < 0: self.rect_colisao.left = arvore_col_rect.right # Movendo para esquerda, colidiu
-                    self.x = float(self.rect_colisao.centerx) # Ajusta posição x baseada na colisão
+                    if current_dx > 0: self.rect_colisao.right = arvore_col_rect.left
+                    elif current_dx < 0: self.rect_colisao.left = arvore_col_rect.right
+                    self.x = float(self.rect_colisao.centerx)
                     break 
         
         # Movimento e Colisão no eixo Y
         self.y += current_dy
-        self.rect_colisao.centery = round(self.y) # Atualiza rect_colisao para a nova posição Y
-        if arvores and current_dy != 0: # Só checa colisão Y se houve movimento Y
+        self.rect_colisao.centery = round(self.y)
+        if arvores and current_dy != 0:
             for arvore in arvores:
                 arvore_col_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
                 if arvore_col_rect and self.rect_colisao.colliderect(arvore_col_rect):
-                    if current_dy > 0: self.rect_colisao.bottom = arvore_col_rect.top # Movendo para baixo, colidiu
-                    elif current_dy < 0: self.rect_colisao.top = arvore_col_rect.bottom # Movendo para cima, colidiu
-                    self.y = float(self.rect_colisao.centery) # Ajusta posição y baseada na colisão
+                    if current_dy > 0: self.rect_colisao.bottom = arvore_col_rect.top
+                    elif current_dy < 0: self.rect_colisao.top = arvore_col_rect.bottom
+                    self.y = float(self.rect_colisao.centery)
                     break
         
-        # Atualiza o rect principal do jogador com base nas posições x,y finais (após colisões)
         if hasattr(self, 'rect'): self.rect.center = (round(self.x), round(self.y))
 
-
-    def atacar(self, inimigos, dt_ms=None): # dt_ms opcional, pode ser usado para ataques carregados, etc.
-        current_time = time.time() # Usar time.time() para cooldowns baseados em tempo real
+    def atacar(self, inimigos, dt_ms=None):
+        """Inicia e gerencia a lógica de ataque, incluindo criação de hitbox e detecção de acertos."""
+        current_time = time.time()
         if self.current_weapon and not self.is_attacking_animation_active and \
            (current_time - self.tempo_ultimo_ataque >= self.cooldown_ataque):
             
             self.is_attacking = True 
             self.is_attacking_animation_active = True 
             
-            self.attack_timer = current_time # Início da animação de ataque
-            self.tempo_ultimo_ataque = current_time # Reseta cooldown
-            self.hit_enemies_this_attack.clear() # Limpa lista de inimigos atingidos neste ataque
+            self.attack_timer = current_time
+            self.tempo_ultimo_ataque = current_time
+            self.hit_enemies_this_attack.clear()
             
             # Define a hitbox do ataque
             hitbox_w = self.current_weapon.hitbox_width
@@ -391,7 +375,6 @@ class Player(pygame.sprite.Sprite):
             
             self.attack_hitbox = pygame.Rect(0, 0, hitbox_w, hitbox_h)
 
-            # Calcula o centro da hitbox baseado na direção do jogador e offsets da arma
             if self.direction == "right":
                 hitbox_center_x = self.rect.centerx + offset_x_arma 
             else: # "left"
@@ -400,145 +383,118 @@ class Player(pygame.sprite.Sprite):
             hitbox_center_y = self.rect.centery + offset_y_arma
             self.attack_hitbox.center = (round(hitbox_center_x), round(hitbox_center_y))
 
-            # Inicia a animação de ataque da arma (se houver)
-            if hasattr(self.current_weapon, 'attack_animation_sprites') and self.current_weapon.attack_animation_sprites:
-                # Garante que os atributos de animação da arma existem
-                if not hasattr(self.current_weapon, 'current_attack_animation_frame'): 
-                    self.current_weapon.current_attack_animation_frame = 0
-                if not hasattr(self.current_weapon, 'last_attack_animation_update'): 
-                    self.current_weapon.last_attack_animation_update = 0
-                    
-                self.current_weapon.current_attack_animation_frame = 0 # Começa do primeiro frame
-                self.current_weapon.last_attack_animation_update = pygame.time.get_ticks() # Usa ticks para animação visual
+            # Inicia a animação de ataque da arma
+            if hasattr(self.current_weapon, 'start_attack_animation'):
+                self.current_weapon.start_attack_animation()
 
-        # Verifica colisão do ataque com inimigos (somente se o ataque foi iniciado neste frame ou ainda está ativo)
+        # Verifica colisão do ataque com inimigos
         if self.is_attacking and self.attack_hitbox.width > 0: 
             if inimigos:
-                for inimigo in list(inimigos): # Itera sobre cópia se a lista puder mudar
-                    if inimigo and hasattr(inimigo, 'esta_vivo') and inimigo.esta_vivo() and \
-                       hasattr(inimigo, 'rect') and inimigo.rect is not None:
+                for inimigo in list(inimigos):
+                    if inimigo and hasattr(inimigo, 'esta_vivo') and inimigo.esta_vivo() and hasattr(inimigo, 'rect') and inimigo.rect is not None:
+                        inimigo_colisao_rect = getattr(inimigo, 'rect_colisao', inimigo.rect)
                         
-                        inimigo_colisao_rect = getattr(inimigo, 'rect_colisao', inimigo.rect) # Usa rect_colisao se disponível
-                        
-                        if self.attack_hitbox.colliderect(inimigo_colisao_rect) and \
-                           inimigo not in self.hit_enemies_this_attack: # Atinge cada inimigo uma vez por "swing"
-                            
+                        if self.attack_hitbox.colliderect(inimigo_colisao_rect) and inimigo not in self.hit_enemies_this_attack:
                             if hasattr(inimigo, 'receber_dano'):
-                                inimigo.receber_dano(self.dano, self.rect) # Passa o rect do jogador como fonte
+                                inimigo.receber_dano(self.dano, self.rect)
                                 self.hit_enemies_this_attack.add(inimigo)
                                 
                                 if not inimigo.esta_vivo(): # Se o inimigo morreu
-                                    if hasattr(inimigo, 'xp_value') and self.xp_manager and \
-                                       hasattr(self.xp_manager, 'gain_xp'):
-                                        self.xp_manager.gain_xp(inimigo.xp_value)
-
-    def empurrar_jogador(self, obstaculo_rect):
-        """Método placeholder para lógica de empurrão se necessário."""
-        # Esta lógica pode ser complexa e depender da natureza do empurrão.
-        # Por ora, o sistema de colisão em mover() impede a sobreposição.
-        pass 
+                                    xp_value = getattr(inimigo, 'xp_value_boss', getattr(inimigo, 'xp_value', 0))
+                                    if xp_value > 0 and self.xp_manager and hasattr(self.xp_manager, 'gain_xp'):
+                                        self.xp_manager.gain_xp(xp_value)
 
     def desenhar(self, janela, camera_x, camera_y):
+        """Desenha o sprite do jogador e a animação da sua arma na tela."""
         # Desenha o jogador
         if self.image is not None and hasattr(self, 'rect'):
             if self.is_invencivel_piscando and not self.visivel_durante_pisca_dano:
-                pass # Não desenha o jogador se estiver na fase "invisível" do pisca-pisca
+                pass # Não desenha o jogador se estiver invisível
             else:
                 janela.blit(self.image, (round(self.rect.x - camera_x), round(self.rect.y - camera_y)))
 
-        # Desenha a animação de ataque da ARMA ATUAL
-        if self.is_attacking_animation_active and self.current_weapon and \
-           hasattr(self.current_weapon, 'get_current_attack_animation_sprite') and \
-           callable(self.current_weapon.get_current_attack_animation_sprite):
-            
+        # Desenha a animação de ataque da arma
+        if self.is_attacking_animation_active and self.current_weapon and hasattr(self.current_weapon, 'get_current_attack_animation_sprite'):
             attack_sprite_visual = self.current_weapon.get_current_attack_animation_sprite()
             
             if attack_sprite_visual and isinstance(attack_sprite_visual, pygame.Surface):
-                sprite_to_draw = attack_sprite_visual.copy() # Copia para não modificar o original da arma
+                sprite_to_draw = attack_sprite_visual.copy()
                 if self.direction == "left": # Espelha a animação da arma
                     sprite_to_draw = pygame.transform.flip(sprite_to_draw, True, False)
                 
-                # Posiciona a animação da arma. Pode precisar de ajuste fino baseado no design da arma.
-                # Aqui, centraliza na attack_hitbox (que já considera a direção e offsets).
+                # Posiciona a animação da arma centralizada na hitbox do ataque
                 attack_sprite_rect = sprite_to_draw.get_rect(center=self.attack_hitbox.center)
                 
                 janela.blit(sprite_to_draw, (round(attack_sprite_rect.x - camera_x), 
-                                             round(attack_sprite_rect.y - camera_y)))
-            # elif self.current_weapon: # Debug se o sprite não for válido
-                # print(f"ALERTA(Player.desenhar): Arma {self.current_weapon.name} não retornou Surface válida para animação de ataque.")
+                                              round(attack_sprite_rect.y - camera_y)))
 
     def esta_vivo(self):
+        """Verifica se o jogador ainda tem pontos de vida."""
         if self.vida is not None and hasattr(self.vida, 'esta_vivo'):
             return self.vida.esta_vivo()
-        print("ALERTA(Player.esta_vivo): Objeto Vida não encontrado ou sem método esta_vivo(). Retornando False.")
-        return False # Assume morto se não houver sistema de vida
+        print("ALERTA(Player.esta_vivo): Objeto Vida não encontrado. Retornando False.")
+        return False
     
     def adicionar_item_inventario(self, item_da_loja_dict) -> bool:
         """Adiciona uma arma ao inventário com base em um item comprado na loja."""
-        if not isinstance(item_da_loja_dict, dict):
-            print("ALERTA(Player.adicionar_item_inventario): item_da_loja_dict não é um dicionário.")
-            return False
-
+        if not isinstance(item_da_loja_dict, dict): return False
         nome_item = item_da_loja_dict.get("nome")
-        if not nome_item: 
-            print("ALERTA(Player.adicionar_item_inventario): Item da loja sem chave 'nome'.")
-            return False
+        if not nome_item: return False
         
-        WeaponClass = self.SHOP_ITEM_TO_WEAPON_CLASS.get(nome_item) # Case-sensitive
-        if WeaponClass is not None: # Garante que a classe existe e não é None (importada com sucesso)
+        WeaponClass = self.SHOP_ITEM_TO_WEAPON_CLASS.get(nome_item)
+        if WeaponClass is not None:
             try:
                 nova_arma = WeaponClass() 
-                # print(f"DEBUG(Player.adicionar_item_inventario): Instanciando '{nova_arma.name}' (Classe: {WeaponClass.__name__}) da loja.")
-                return self.add_owned_weapon(nova_arma) # Usa a lógica de add_owned_weapon
+                return self.add_owned_weapon(nova_arma)
             except Exception as e: 
-                print(f"ERRO(Player.adicionar_item_inventario): Erro ao instanciar '{nome_item}' da classe {WeaponClass.__name__ if WeaponClass else 'N/A'}: {e}")
+                print(f"ERRO(Player.adicionar_item_inventario): Erro ao instanciar '{nome_item}': {e}")
         else: 
-            print(f"ALERTA(Player.adicionar_item_inventario): Nenhuma classe de arma mapeada para o item da loja '{nome_item}'. Verifique SHOP_ITEM_TO_WEAPON_CLASS_MAP.")
+            print(f"ALERTA(Player.adicionar_item_inventario): Nenhuma classe de arma mapeada para o item '{nome_item}'.")
         return False
             
     def evoluir_arma_atual(self, mapa_evolucoes_nivel_atual: dict) -> str | None:
-        """Evolui a arma equipada atualmente.
-        mapa_evolucoes_nivel_atual: dict onde chave é nome da arma atual, valor é a Classe da arma evoluída.
-        Retorna o nome da nova arma se evoluiu, None caso contrário.
-        """
-        if not self.current_weapon: 
-            print("ALERTA(Player.evoluir_arma_atual): Nenhuma arma equipada para evoluir.")
-            return None
-        if not isinstance(mapa_evolucoes_nivel_atual, dict):
-            print("ALERTA(Player.evoluir_arma_atual): mapa_evolucoes_nivel_atual não é um dicionário.")
-            return None
+        """Evolui a arma equipada atualmente, substituindo-a pela versão mais forte."""
+        if not self.current_weapon: return None
+        if not isinstance(mapa_evolucoes_nivel_atual, dict): return None
 
-        # Usa o nome base da arma para a chave do mapa de evoluções, se disponível
-        # Isso permite que "Adaga Nv1" e "Adaga Nv2" usem a mesma entrada "Adaga" para encontrar a evolução.
-        # As classes de arma devem definir `_base_name`.
         chave_evolucao = getattr(self.current_weapon, '_base_name', self.current_weapon.name)
-        
         NovaClasseArmaEvoluida = mapa_evolucoes_nivel_atual.get(chave_evolucao)
 
-        if NovaClasseArmaEvoluida is not None: # Garante que a classe da evolução existe e foi importada
+        if NovaClasseArmaEvoluida is not None:
             try:
                 nova_arma_evoluida_inst = NovaClasseArmaEvoluida()
+                arma_antiga_instancia = self.current_weapon
+                self.equip_weapon(nova_arma_evoluida_inst)
                 
-                arma_antiga_instancia = self.current_weapon # Guarda referência à arma antiga
-                self.equip_weapon(nova_arma_evoluida_inst) # Equipa a nova arma
-                
-                # Tenta substituir a arma antiga na lista de armas possuídas
+                # Substitui a arma antiga na lista de armas possuídas
                 try:
                     idx_antiga = self.owned_weapons.index(arma_antiga_instancia)
                     self.owned_weapons[idx_antiga] = nova_arma_evoluida_inst
                 except ValueError: 
-                    # Se a arma antiga não estava em owned_weapons (improvável se estava equipada),
-                    # ou se a lista é gerenciada de forma diferente. Tenta adicionar a nova.
-                    print(f"ALERTA(Player.evoluir_arma_atual): Arma antiga '{getattr(arma_antiga_instancia, 'name', 'N/A')}' não encontrada em owned_weapons para substituição. Tentando adicionar a nova.")
+                    print(f"ALERTA(Player.evoluir_arma_atual): Arma antiga não encontrada em owned_weapons para substituição.")
                     if not self.add_owned_weapon(nova_arma_evoluida_inst):
-                         # Se não conseguiu adicionar (ex: inventário cheio), o jogador ainda tem a nova arma equipada,
-                         # mas ela não estará formalmente na lista 'owned_weapons'.
-                         print(f"ALERTA(Player.evoluir_arma_atual): Não foi possível adicionar '{nova_arma_evoluida_inst.name}' a owned_weapons após evolução, mas está equipada.")
+                        print(f"ALERTA(Player.evoluir_arma_atual): Não foi possível adicionar '{nova_arma_evoluida_inst.name}' a owned_weapons.")
                 
                 print(f"DEBUG(Player.evoluir_arma_atual): Arma '{getattr(arma_antiga_instancia, 'name', 'N/A')}' evoluiu para '{nova_arma_evoluida_inst.name}'.")
                 return nova_arma_evoluida_inst.name
             except Exception as e: 
-                print(f"ERRO(Player.evoluir_arma_atual): Erro ao instanciar evolução '{NovaClasseArmaEvoluida.__name__ if NovaClasseArmaEvoluida else 'N/A'}' para '{chave_evolucao}': {e}")
-        else:
-            print(f"DEBUG(Player.evoluir_arma_atual): Nenhuma evolução definida para '{chave_evolucao}' no mapa fornecido ou a classe de evolução é None.")
+                print(f"ERRO(Player.evoluir_arma_atual): Erro ao instanciar evolução '{NovaClasseArmaEvoluida.__name__}': {e}")
         return None
+
+    # NOVO MÉTODO: Adicionado para receber XP especificamente de um chefe
+    def ganhar_xp_chefe(self, xp_amount):
+        """
+        Concede XP ao jogador especificamente por derrotar um chefe.
+        Este método é chamado por Luta_boss.py.
+
+        Args:
+            xp_amount (int): A quantidade de XP a ser ganha.
+        """
+        if self.xp_manager and hasattr(self.xp_manager, 'gain_xp'):
+            print(f"DEBUG(Player): Ganhando {xp_amount} de XP do chefe.")
+            # O método gain_xp do xp_manager deve cuidar de adicionar o XP
+            # tanto para a barra de nível quanto para o score total.
+            self.xp_manager.gain_xp(xp_amount)
+        else:
+            print(f"ALERTA(Player): xp_manager não configurado. Não foi possível adicionar {xp_amount} de XP do chefe.")
+

@@ -4,24 +4,21 @@ import os
 import math
 import time
 
+# Removido: importação do score_manager, pois a lógica de recompensa é tratada pelo GerenciadorDeInimigos
+
 # --- Importação da Classe Base Inimigo ---
-# Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
-# (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
-# Essa classe base é referenciada como 'InimigoBase' aqui.
 try:
     from .Inimigos import Inimigo as InimigoBase
     # print(f"DEBUG(Espirito_Das_Flores): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
     # print(f"DEBUG(Espirito_Das_Flores): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
-    # Este é um placeholder MUITO SIMPLES. A classe base real deve ser mais completa
-    # e ter o método _carregar_sprite principal (que também precisa encontrar a raiz do jogo).
     class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
             self.rect = pygame.Rect(x, y, largura, altura)
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
-            self.image.fill((120, 120, 120, 100)) # Placeholder cinza médio
-            pygame.draw.rect(self.image, (255,20,147), self.image.get_rect(), 1) # Borda rosa choque
+            self.image.fill((120, 120, 120, 100))
+            pygame.draw.rect(self.image, (255,20,147), self.image.get_rect(), 1)
             self.hp = vida_maxima; self.max_hp = vida_maxima; self.velocidade = velocidade
             self.contact_damage = dano_contato; self.xp_value = xp_value
             self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150
@@ -29,164 +26,97 @@ except ImportError as e:
             self.contact_cooldown = 1000; self.last_contact_time = 0
             self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
-            self.x = float(x)
-            self.y = float(y)
-            # print(f"DEBUG(InimigoBase Placeholder para Espirito_Das_Flores): Instanciado. Sprite path (não usado): {sprite_path}")
+            self.x = float(x); self.y = float(y)
+            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
 
-        def _carregar_sprite(self, path, tamanho): # Placeholder _carregar_sprite
-            # print(f"DEBUG(InimigoBase Placeholder _carregar_sprite): Tentando carregar '{path}' (não implementado neste placeholder). Retornando placeholder visual.")
-            img = pygame.Surface(tamanho, pygame.SRCALPHA)
-            img.fill((255,105,180, 128)) # Cor rosa para placeholder do _carregar_sprite
-            return img
-
+        def _carregar_sprite(self, path, tamanho):
+            img = pygame.Surface(tamanho, pygame.SRCALPHA); img.fill((255,105,180, 128)); return img
         def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
         def esta_vivo(self): return self.hp > 0
         def mover_em_direcao(self, ax, ay, dt=None): pass
         def atualizar_animacao(self):
-            if self.sprites and len(self.sprites) > 0 and isinstance(self.sprites[0], pygame.Surface):
-                self.image = self.sprites[0]
-        def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): self.atualizar_animacao()
+            if self.sprites: self.image = self.sprites[0]
+        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+            # Placeholder de update, a lógica real estará nas classes filhas
+            if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
         def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
                 janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        def kill(self): super().kill()
 
 
 class Espirito_Das_Flores(InimigoBase):
     sprites_andar_carregados = None
     sprites_atacar_carregados = None
-    tamanho_sprite_definido = (80, 80) # Ajuste conforme necessário
-
-    som_ataque_espirito = None
-    som_dano_espirito = None
-    som_morte_espirito = None
+    tamanho_sprite_definido = (80, 80)
+    som_ataque_espirito, som_dano_espirito, som_morte_espirito = None, None, None
     sons_carregados = False
 
     @staticmethod
     def _obter_pasta_raiz_jogo():
-        """Calcula e retorna o caminho para a pasta raiz do jogo (ex: 'Jogo/')."""
-        # __file__ aqui se refere a Espirito_Das_Flores.py
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
-        pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
-        return pasta_raiz_jogo
+        return os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
 
     @staticmethod
-    def _carregar_som_espirito(caminho_relativo_a_raiz_jogo):
-        pasta_raiz_jogo = Espirito_Das_Flores._obter_pasta_raiz_jogo()
-        caminho_completo = os.path.join(pasta_raiz_jogo, caminho_relativo_a_raiz_jogo.replace("\\", "/"))
-
-        if not os.path.exists(caminho_completo):
-            # print(f"DEBUG(Espirito_Das_Flores._carregar_som): Arquivo de som NÃO ENCONTRADO: {caminho_completo}")
-            return None
-        try:
-            som = pygame.mixer.Sound(caminho_completo)
-            # print(f"DEBUG(Espirito_Das_Flores._carregar_som): Som '{caminho_completo}' carregado.")
-            return som
-        except pygame.error as e:
-            # print(f"DEBUG(Espirito_Das_Flores._carregar_som): ERRO PYGAME ao carregar som '{caminho_completo}': {e}")
-            return None
-
-    @staticmethod
-    def _carregar_lista_sprites_estatico(caminhos_relativos_a_raiz_jogo, lista_destino_existente, tamanho_sprite, nome_animacao):
-        pasta_raiz_jogo = Espirito_Das_Flores._obter_pasta_raiz_jogo()
-        print(f"DEBUG(Espirito_Das_Flores._carregar_lista_sprites): Carregando sprites de '{nome_animacao}'. Raiz do jogo: {pasta_raiz_jogo}")
-        
-        # A lista_destino_existente já deve ser uma lista inicializada antes de chamar esta função.
-        # Não reatribuir lista_destino aqui, apenas adicionar a ela.
-        
-        for path_relativo in caminhos_relativos_a_raiz_jogo:
-            caminho_completo = os.path.join(pasta_raiz_jogo, path_relativo.replace("\\", "/"))
-            # print(f"DEBUG(Espirito_Das_Flores._carregar_lista_sprites): Tentando carregar '{nome_animacao}' sprite: {caminho_completo}")
+    def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, nome_anim):
+        pasta_raiz = Espirito_Das_Flores._obter_pasta_raiz_jogo()
+        for path_relativo in caminhos:
+            caminho_completo = os.path.join(pasta_raiz, path_relativo.replace("\\", "/"))
             try:
                 if os.path.exists(caminho_completo):
                     sprite = pygame.image.load(caminho_completo).convert_alpha()
-                    sprite = pygame.transform.scale(sprite, tamanho_sprite)
-                    lista_destino_existente.append(sprite)
-                    # print(f"DEBUG(Espirito_Das_Flores._carregar_lista_sprites): Sprite '{caminho_completo}' carregado para '{nome_animacao}'.")
+                    sprite = pygame.transform.scale(sprite, tamanho)
+                    lista_destino.append(sprite)
                 else:
-                    # print(f"DEBUG(Espirito_Das_Flores._carregar_lista_sprites): ARQUIVO NÃO EXISTE para '{nome_animacao}': {caminho_completo}. Usando placeholder (rosa).")
-                    placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-                    placeholder.fill((255, 105, 180, 180)) # Cor rosa para placeholder
-                    lista_destino_existente.append(placeholder)
-            except pygame.error as e:
-                # print(f"DEBUG(Espirito_Das_Flores._carregar_lista_sprites): ERRO PYGAME ao carregar '{nome_animacao}' sprite '{caminho_completo}': {e}. Usando placeholder (rosa).")
-                placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-                placeholder.fill((255, 105, 180, 180))
-                lista_destino_existente.append(placeholder)
-
-        if not lista_destino_existente:
-            # print(f"DEBUG(Espirito_Das_Flores._carregar_lista_sprites): FALHA TOTAL em carregar sprites para '{nome_animacao}'. Usando placeholder final (rosa escuro).")
-            placeholder = pygame.Surface(tamanho_sprite, pygame.SRCALPHA)
-            placeholder.fill((200, 80, 150, 200))
-            lista_destino_existente.append(placeholder)
-        # Não retorna a lista aqui, pois ela é modificada no local.
+                    placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((255, 105, 180, 180)); lista_destino.append(placeholder)
+            except pygame.error:
+                placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((255, 105, 180, 180)); lista_destino.append(placeholder)
+        if not lista_destino:
+            placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((200, 80, 150, 200)); lista_destino.append(placeholder)
 
     @staticmethod
     def carregar_recursos_espirito():
         if Espirito_Das_Flores.sprites_andar_carregados is None:
             Espirito_Das_Flores.sprites_andar_carregados = []
-            caminhos_andar = [
-                "Sprites/Inimigos/Espirito_Flores/Espirito_Flores1.png",
-                "Sprites/Inimigos/Espirito_Flores/Espirito_Flores2.png",
-                "Sprites/Inimigos/Espirito_Flores/Espirito_Flores3.png",
-                "Sprites/Inimigos/Espirito_Flores/Espirito_Flores4.png",
-                "Sprites/Inimigos/Espirito_Flores/Espirito_Flores5.png",
-                "Sprites/Inimigos/Espirito_Flores/Espirito_Flores6.png",
-                "Sprites/Inimigos/Espirito_Flores/Espirito_Flores7.png",
-            ]
-            Espirito_Das_Flores._carregar_lista_sprites_estatico(
-                caminhos_andar,
-                Espirito_Das_Flores.sprites_andar_carregados,
-                Espirito_Das_Flores.tamanho_sprite_definido,
-                "Andar/Idle"
-            )
-
+            caminhos = ["Sprites/Inimigos/Espirito_Flores/Espirito_Flores{}.png".format(i) for i in range(1, 8)]
+            Espirito_Das_Flores._carregar_lista_sprites_estatico(caminhos, Espirito_Das_Flores.sprites_andar_carregados, Espirito_Das_Flores.tamanho_sprite_definido, "Andar/Idle")
             if not Espirito_Das_Flores.sprites_atacar_carregados and Espirito_Das_Flores.sprites_andar_carregados:
-                 Espirito_Das_Flores.sprites_atacar_carregados = [Espirito_Das_Flores.sprites_andar_carregados[0]]
-
+                Espirito_Das_Flores.sprites_atacar_carregados = [Espirito_Das_Flores.sprites_andar_carregados[0]]
         if not Espirito_Das_Flores.sons_carregados:
-            # Espirito_Das_Flores.som_ataque_espirito = Espirito_Das_Flores._carregar_som_espirito("Sons/Espirito_Flores/ataque_magico.wav")
-            # Espirito_Das_Flores.som_dano_espirito = Espirito_Das_Flores._carregar_som_espirito("Sons/Espirito_Flores/dano_brilho.wav")
-            # Espirito_Das_Flores.som_morte_espirito = Espirito_Das_Flores._carregar_som_espirito("Sons/Espirito_Flores/morte_dissipar.wav")
+            # Carregar sons aqui
             Espirito_Das_Flores.sons_carregados = True
 
-
-    def __init__(self, x, y, velocidade=1.6): 
+    def __init__(self, x, y, velocidade=1.6):
         Espirito_Das_Flores.carregar_recursos_espirito()
 
         vida_espirito = 75
-        dano_contato_espirito = 6 
+        dano_contato_espirito = 6
         xp_espirito = 35
-        #moedas_dropadas = 10
-        
-        # O _carregar_sprite da InimigoBase será usado para esta imagem principal.
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espirito_Flores/Espirito_Flores1.png" 
+        self.moedas_drop = 10
+
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espirito_Flores/Espirito_Flores1.png"
 
         super().__init__(
             x, y,
             Espirito_Das_Flores.tamanho_sprite_definido[0], Espirito_Das_Flores.tamanho_sprite_definido[1],
             vida_espirito, velocidade, dano_contato_espirito,
-            self.xp_value, sprite_path_principal_relativo_jogo
+            xp_espirito, sprite_path_principal_relativo_jogo
         )
+        
+        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
+
         self.x = float(x)
         self.y = float(y)
-
         self.sprites_andar = Espirito_Das_Flores.sprites_andar_carregados
-        self.sprites_atacar = Espirito_Das_Flores.sprites_atacar_carregados if Espirito_Das_Flores.sprites_atacar_carregados else self.sprites_andar
+        self.sprites_atacar = Espirito_Das_Flores.sprites_atacar_carregados
         self.sprites = self.sprites_andar
 
-        if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)) or \
-           (self.sprites and len(self.sprites) > 0 and self.image is self.sprites[0] and self.sprites[0].get_size() != Espirito_Das_Flores.tamanho_sprite_definido):
-            # print("DEBUG(Espirito_Das_Flores __init__): self.image do super() não é adequado ou não definido. Usando primeiro sprite de andar.")
-            if self.sprites and isinstance(self.sprites[0], pygame.Surface):
-                self.image = self.sprites[0]
+        if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)):
+            if self.sprites: self.image = self.sprites[0]
             else:
-                placeholder_img = pygame.Surface(Espirito_Das_Flores.tamanho_sprite_definido, pygame.SRCALPHA)
-                placeholder_img.fill((200, 80, 150, 150))
-                self.image = placeholder_img
+                self.image = pygame.Surface(Espirito_Das_Flores.tamanho_sprite_definido, pygame.SRCALPHA); self.image.fill((200, 80, 150, 150))
                 if not self.sprites: self.sprites = [self.image]
-
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
-
 
         self.sprite_index = 0
         self.intervalo_animacao_andar = 160
@@ -194,86 +124,59 @@ class Espirito_Das_Flores(InimigoBase):
         self.intervalo_animacao = self.intervalo_animacao_andar
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
 
-        # Atributos de ataque (ex: um pulso de energia ou similar)
-        self.is_attacking = False 
-        self.attack_duration = 0.7 
-        self.attack_timer = 0.0 
-        self.attack_damage_especifico = 15 
-        self.attack_hitbox_size = (Espirito_Das_Flores.tamanho_sprite_definido[0] * 1.2, Espirito_Das_Flores.tamanho_sprite_definido[1] * 1.2) # Ataque em área maior
-        self.attack_hitbox = pygame.Rect(0, 0, 0, 0) 
-        self.attack_range = 100 # Alcance para ativar o ataque em área
-        self.attack_cooldown = 3.0 
-        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000) 
+        self.is_attacking = False
+        self.attack_duration = 0.7
+        self.attack_timer = 0.0
+        self.attack_damage_especifico = 15
+        self.attack_hitbox_size = (Espirito_Das_Flores.tamanho_sprite_definido[0] * 1.2, Espirito_Das_Flores.tamanho_sprite_definido[1] * 1.2)
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
+        self.attack_range = 100
+        self.attack_cooldown = 3.0
+        self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
         self.hit_player_this_pulse = False
 
     def _atualizar_hitbox_ataque(self):
         if not self.is_attacking:
-            self.attack_hitbox.size = (0,0)
-            return
-
+            self.attack_hitbox.size = (0,0); return
         w, h = self.attack_hitbox_size
         self.attack_hitbox.size = (w,h)
         self.attack_hitbox.center = self.rect.center
 
     def atacar(self, player):
-        if not (hasattr(player, 'rect') and self.esta_vivo()):
-            return
-
+        if not (hasattr(player, 'rect') and self.esta_vivo()): return
         agora = pygame.time.get_ticks()
-        distancia_ao_jogador = float('inf')
-        if hasattr(player, 'rect') and player.rect is not None:
-             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                              self.rect.centery - player.rect.centery)
-
-        if not self.is_attacking and \
-           distancia_ao_jogador <= self.attack_range and \
-           (agora - self.last_attack_time >= self.attack_cooldown * 1000):
-
+        distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery)
+        if not self.is_attacking and distancia_ao_jogador <= self.attack_range and (agora - self.last_attack_time >= self.attack_cooldown * 1000):
             self.is_attacking = True
             self.attack_timer = agora
             self.last_attack_time = agora
             self.hit_player_this_pulse = False
-            
-            self.sprites = self.sprites_atacar # Muda para sprites de ataque (se houver)
+            self.sprites = self.sprites_atacar
             self.intervalo_animacao = self.intervalo_animacao_atacar
             self.sprite_index = 0
-            # print(f"DEBUG(Espirito_Das_Flores): Iniciando ataque de pulso! Dist: {distancia_ao_jogador:.0f}")
-            # if Espirito_Das_Flores.som_ataque_espirito: Espirito_Das_Flores.som_ataque_espirito.play()
 
-
-    def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        # --- INTEGRAÇÃO DO SCORE ---
+    def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
+        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
         if not self.esta_vivo():
-            if not self.ouro_concedido:
-                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
-                    player.dinheiro += self.money_value
-                if hasattr(self, "xp_value"):
-                    score_manager.adicionar_xp(self.xp_value)
-                self.ouro_concedido = True
+            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
             return
 
         agora = pygame.time.get_ticks()
-        if dt_ms is None:
-            dt_ms = agora - getattr(self, '_last_update_time', agora)
-            self._last_update_time = agora
-            if dt_ms <= 0 : dt_ms = 16
-
-        jogador_valido = (player is not None and hasattr(player, 'rect') and player.rect is not None and
-                          hasattr(player, 'receber_dano'))
+        jogador_valido = (player and hasattr(player, 'rect') and hasattr(player, 'receber_dano'))
 
         if jogador_valido:
             if player.rect.centerx < self.rect.centerx: self.facing_right = False
             else: self.facing_right = True
 
-        if self.is_attacking:
-            self.atualizar_animacao()
-            self._atualizar_hitbox_ataque()
+        # Chama o update da classe base para movimento e animação
+        super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
 
-            if jogador_valido and not self.hit_player_this_pulse and \
-               self.attack_hitbox.colliderect(player.rect):
+        if self.is_attacking:
+            if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
+            self._atualizar_hitbox_ataque()
+            if jogador_valido and not self.hit_player_this_pulse and self.attack_hitbox.colliderect(player.rect):
                 player.receber_dano(self.attack_damage_especifico, self.rect)
                 self.hit_player_this_pulse = True
-
             if agora - self.attack_timer >= self.attack_duration * 1000:
                 self.is_attacking = False
                 self.sprites = self.sprites_andar
@@ -282,24 +185,15 @@ class Espirito_Das_Flores(InimigoBase):
                 self.tempo_ultimo_update_animacao = agora
                 self.attack_hitbox.size = (0,0)
         else:
-            if jogador_valido:
-                self.atacar(player)
+            if jogador_valido: self.atacar(player)
+            # A chamada super().update já cuida do mover_em_direcao e atualizar_animacao para o estado normal.
+            # As duas linhas abaixo foram comentadas porque a chamada super().update já as executa.
+            # if not self.is_attacking and self.velocidade > 0:
+            #     if jogador_valido and hasattr(self, 'mover_em_direcao'):
+            #         self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
+            # if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
 
-            if not self.is_attacking and self.velocidade > 0:
-                if jogador_valido:
-                    self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-
-            self.atualizar_animacao()
-
-        if jogador_valido and self.rect.colliderect(player.rect) and \
-           (agora - self.last_contact_time >= self.contact_cooldown):
+        # Lógica de dano de contato com o jogador (movida aqui para não ser afetada pelo estado de ataque direto)
+        if jogador_valido and self.rect.colliderect(player.rect) and (agora - self.last_contact_time >= self.contact_cooldown):
             player.receber_dano(self.contact_damage, self.rect)
             self.last_contact_time = agora
-
-    # O método desenhar é herdado da InimigoBase.
-    # def desenhar(self, surface, camera_x, camera_y):
-    #     super().desenhar(surface, camera_x, camera_y)
-    #     if self.is_attacking and self.attack_hitbox.width > 0: # Debug hitbox de pulso
-    #         debug_rect_onscreen = self.attack_hitbox.move(-camera_x, -camera_y)
-    #         pygame.draw.ellipse(surface, (255, 105, 180, 100), debug_rect_onscreen, 2) # Desenha uma elipse para o pulso
-

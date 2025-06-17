@@ -4,9 +4,6 @@ import os
 import math
 import time
 import random
-
-from score import score_manager  # <-- INTEGRAÇÃO DO SCORE
-
 # --- Importação da Classe Base Inimigo ---
 # Assume que existe um arquivo 'Inimigos.py' na MESMA PASTA que este
 # (Jogo/Arquivos/Inimigos/Inimigos.py) e que ele define a classe 'Inimigo' base.
@@ -65,6 +62,8 @@ class Fantasma(InimigoBase):
     def _obter_pasta_raiz_jogo():
         """Calcula e retorna o caminho para a pasta raiz do jogo (ex: 'Jogo/')."""
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
+        # Se Fantasma.py está em Jogo/Arquivos/Inimigos/
+        # Para chegar na pasta raiz "Jogo/", subimos dois níveis.
         pasta_raiz_jogo = os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
         return pasta_raiz_jogo
 
@@ -141,9 +140,9 @@ class Fantasma(InimigoBase):
             # Fantasma.sprites_atacar_carregados = [] # Inicializa se for usar
             # caminhos_atacar = ["Sprites/Inimigos/Fantasma/Fantasma_Atk1.png", ...]
             # Fantasma._carregar_lista_sprites_estatico(
-            #     caminhos_atacar, 
-            #     Fantasma.sprites_atacar_carregados, 
-            #     Fantasma.tamanho_sprite_definido, 
+            #     caminhos_atacar,
+            #     Fantasma.sprites_atacar_carregados,
+            #     Fantasma.tamanho_sprite_definido,
             #     "Atacar"
             # )
             if not Fantasma.sprites_atacar_carregados and Fantasma.sprites_animacao_carregados:
@@ -156,22 +155,22 @@ class Fantasma(InimigoBase):
             Fantasma.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=1.7, xp_value=25): # Adiciona xp_value
+    def __init__(self, x, y, velocidade=1.7): # Velocidade um pouco maior para fantasma
         Fantasma.carregar_recursos_fantasma()
 
-        vida_fantasma = 80 
-        dano_contato_fantasma = 4 
+        vida_fantasma = 80
+        dano_contato_fantasma = 4
         xp_fantasma = 25
-        #moedas_dropas = 11
-        
+        self.moedas_drop = 11 # Quantidade de moedas que o Fantasma dropa
+
         # O _carregar_sprite da InimigoBase será usado para esta imagem principal.
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Fantasma/Fantasma1.png" 
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Fantasma/Fantasma1.png"
 
         super().__init__(
             x, y,
             Fantasma.tamanho_sprite_definido[0], Fantasma.tamanho_sprite_definido[1],
             vida_fantasma, velocidade, dano_contato_fantasma,
-            self.xp_value, sprite_path_principal_relativo_jogo
+            xp_fantasma, sprite_path_principal_relativo_jogo
         )
 
         self.sprites_flutuar = Fantasma.sprites_animacao_carregados
@@ -196,7 +195,7 @@ class Fantasma(InimigoBase):
         self.intervalo_animacao = self.intervalo_animacao_flutuar
 
         # Atributos específicos de ataque do Fantasma (ex: um ataque de toque rápido ou um debuff)
-        self.is_attacking = False 
+        self.is_attacking = False
         self.attack_duration = 0.5 # Duração do estado de ataque (s)
         self.attack_timer = 0.0
         self.attack_damage_especifico = 8
@@ -207,6 +206,7 @@ class Fantasma(InimigoBase):
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
         self.hit_player_this_attack_swing = False # Renomeado para clareza
 
+        # Comportamento de flutuação/transparência (opcional)
         self.alpha = 255
         self.fading_in = False
         self.fade_speed = 5 # Quão rápido ele desaparece/reaparece
@@ -268,14 +268,7 @@ class Fantasma(InimigoBase):
 
 
     def update(self, player, outros_inimigos=None, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        # --- INTEGRAÇÃO DO SCORE ---
         if not self.esta_vivo():
-            if not hasattr(self, "ouro_concedido") or not self.ouro_concedido:
-                if hasattr(player, "dinheiro") and hasattr(self, "money_value"):
-                    player.dinheiro += self.money_value
-                if hasattr(self, "xp_value"):
-                    score_manager.adicionar_xp(self.xp_value)
-                self.ouro_concedido = True
             return
 
         agora = pygame.time.get_ticks()
@@ -317,4 +310,3 @@ class Fantasma(InimigoBase):
 
     # O método desenhar é herdado da InimigoBase.
     # A transparência já é aplicada à self.image em _atualizar_flutuacao_alpha.
-
