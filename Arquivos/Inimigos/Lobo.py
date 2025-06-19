@@ -1,54 +1,34 @@
-# Lobo.py
 import pygame
 import os
 import math
 import time
 
-# Removido: importação do score_manager, pois a lógica de recompensa é tratada pelo GerenciadorDeInimigos
-
 # --- Importação da Classe Base Inimigo ---
 try:
-    # Correção: Importação relativa para a classe base Inimigo dentro do mesmo pacote 'Inimigos'
     from .Inimigos import Inimigo as InimigoBase
-    # print(f"DEBUG(Lobo): Classe InimigoBase importada com sucesso de .Inimigos.")
-except ImportError as e:
-    # print(f"DEBUG(Lobo): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
+except ImportError:
+    # Placeholder para InimigoBase caso a importação falhe, garantindo que a classe Lobo possa ser definida.
     class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
             self.rect = pygame.Rect(x, y, largura, altura)
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
-            self.image.fill((100, 100, 100, 100))
-            pygame.draw.rect(self.image, (150,150,150), self.image.get_rect(), 1)
-            self.hp = vida_maxima; self.max_hp = vida_maxima; self.velocidade = velocidade
-            self.contact_damage = dano_contato; self.xp_value = xp_value
-            self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150
-            self.hit_flash_color = (255, 255, 255, 128)
-            self.contact_cooldown = 1000; self.last_contact_time = 0
-            self.sprites = [self.image]; self.sprite_index = 0;
-            self.intervalo_animacao = 30; self.tempo_ultimo_update_animacao = 0
-            self.x = float(x); self.y = float(y)
-            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
-
-        def _carregar_sprite(self, path, tamanho):
-            img = pygame.Surface(tamanho, pygame.SRCALPHA); img.fill((100,100,100, 128)); return img
-        def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
+            self.hp = self.max_hp = vida_maxima
+            self.velocidade = velocidade
+            self.contact_damage = dano_contato
+            self.xp_value = xp_value
+            self.moedas_drop = 0
+            self.x, self.y = float(x), float(y)
+        
         def esta_vivo(self): return self.hp > 0
-        def mover_em_direcao(self, ax, ay, dt_ms=None): pass
-        def atualizar_animacao(self):
-            if self.sprites: self.image = self.sprites[0]
-            if hasattr(self, 'facing_right') and not self.facing_right: self.image = pygame.transform.flip(self.image, True, False)
-        # Padronizado a assinatura do update do placeholder para consistência
-        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-            # Placeholder de update, a lógica real estará nas classes filhas
-            self.atualizar_animacao()
-        def desenhar(self, janela, camera_x, camera_y):
-            if self.image and self.rect:
-                janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
+        def update(self, *args, **kwargs): pass
+        def desenhar(self, janela, cam_x, cam_y): janela.blit(self.image, (self.rect.x - cam_x, self.rect.y - cam_y))
         def kill(self): super().kill()
 
 
 class Lobo(InimigoBase):
+    # Recursos da classe (sprites e sons) para serem carregados uma única vez
     sprites_andar_carregados = None
     sprites_atacar_carregados = None
     tamanho_sprite_definido = (150, 100)
@@ -57,72 +37,100 @@ class Lobo(InimigoBase):
 
     @staticmethod
     def _obter_pasta_raiz_jogo():
+        """Encontra o diretório raiz do projeto para carregar os assets corretamente."""
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
         return os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
 
     @staticmethod
-    def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, nome_anim):
+    def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho):
+        """Carrega uma lista de sprites a partir de caminhos relativos à raiz do projeto."""
         pasta_raiz = Lobo._obter_pasta_raiz_jogo()
-        if lista_destino is None: lista_destino = [] # Garante que lista_destino é uma lista
+        if lista_destino is None: lista_destino = []
         for path_relativo in caminhos:
-            caminho_completo = os.path.join(pasta_raiz, path_relativo.replace("\\", "/"))
+            caminho_completo = os.path.join(pasta_raiz, path_relativo.replace("/", os.sep))
             try:
                 if os.path.exists(caminho_completo):
                     sprite = pygame.image.load(caminho_completo).convert_alpha()
                     sprite = pygame.transform.scale(sprite, tamanho)
                     lista_destino.append(sprite)
                 else:
+                    # Adiciona um placeholder se o arquivo não for encontrado
                     placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((100, 100, 100, 180)); lista_destino.append(placeholder)
             except pygame.error:
+                # Adiciona um placeholder em caso de erro de carregamento
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((100, 100, 100, 180)); lista_destino.append(placeholder)
         if not lista_destino:
+            # Garante que a lista não fique vazia
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((80, 80, 80, 200)); lista_destino.append(placeholder)
-        return lista_destino # Retorna a lista modificada
+        return lista_destino
 
     @staticmethod
     def carregar_recursos_lobo():
+        """Carrega todos os sprites e sons do Lobo, se ainda não foram carregados."""
         if Lobo.sprites_andar_carregados is None:
-            caminhos_andar = ["Sprites/Inimigos/Lobo/Lobo{}.png".format(i) for i in range(4, 7)]
+            # MODIFICADO: Lista explícita de caminhos para os sprites de andar
+            caminhos_andar = [
+                "Sprites/Inimigos/Lobo/C1.jpg",
+                "Sprites/Inimigos/Lobo/C2.jpg",
+                "Sprites/Inimigos/Lobo/C3.jpg",
+                "Sprites/Inimigos/Lobo/C4.jpg",
+                "Sprites/Inimigos/Lobo/C5.jpg",
+                "Sprites/Inimigos/Lobo/C6.jpg",
+                "Sprites/Inimigos/Lobo/C7.jpg",
+                "Sprites/Inimigos/Lobo/C8.jpg",
+                "Sprites/Inimigos/Lobo/C9.jpg",
+                "Sprites/Inimigos/Lobo/C10.jpg",
+                "Sprites/Inimigos/Lobo/C11.jpg",
+                "Sprites/Inimigos/Lobo/C12.jpg",
+                "Sprites/Inimigos/Lobo/C13.jpg",
+                "Sprites/Inimigos/Lobo/C14.jpg",
+                "Sprites/Inimigos/Lobo/C15.jpg"
+            ]
             Lobo.sprites_andar_carregados = []
-            Lobo._carregar_lista_sprites_estatico(caminhos_andar, Lobo.sprites_andar_carregados, Lobo.tamanho_sprite_definido, "Andar/Correr")
+            Lobo._carregar_lista_sprites_estatico(caminhos_andar, Lobo.sprites_andar_carregados, Lobo.tamanho_sprite_definido)
+            
         if Lobo.sprites_atacar_carregados is None:
-            caminhos_atacar = ["Sprites/Inimigos/Lobo/Lobo_Atacar{}.png".format(i) for i in range(1, 4)] # Supondo que existam
+            # MODIFICADO: Lista explícita de caminhos para os sprites de atacar
+            caminhos_atacar = [
+              "Sprites/Inimigos/Lobo/A1.jpg",
+                "Sprites/Inimigos/Lobo/A2.jpg",
+                "Sprites/Inimigos/Lobo/A3.jpg",
+                "Sprites/Inimigos/Lobo/A4.jpg",
+                "Sprites/Inimigos/Lobo/A5.jpg",
+                "Sprites/Inimigos/Lobo/A6.jpg",
+                "Sprites/Inimigos/Lobo/A7.jpg",
+                "Sprites/Inimigos/Lobo/A8.jpg"
+            ]
             Lobo.sprites_atacar_carregados = []
-            Lobo._carregar_lista_sprites_estatico(caminhos_atacar, Lobo.sprites_atacar_carregados, Lobo.tamanho_sprite_definido, "Atacar")
-            if not Lobo.sprites_atacar_carregados and Lobo.sprites_andar_carregados: # Fallback se os sprites de ataque estiverem faltando
+            Lobo._carregar_lista_sprites_estatico(caminhos_atacar, Lobo.sprites_atacar_carregados, Lobo.tamanho_sprite_definido)
+            
+            # Fallback caso os sprites de ataque não sejam encontrados
+            if not Lobo.sprites_atacar_carregados and Lobo.sprites_andar_carregados:
                 Lobo.sprites_atacar_carregados = [Lobo.sprites_andar_carregados[0]]
         
         if not Lobo.sons_carregados:
-            # Carregar sons aqui
+            # Futuramente, carregar os sons aqui
             Lobo.sons_carregados = True
 
     def __init__(self, x, y, velocidade=2.8):
         Lobo.carregar_recursos_lobo()
 
-        vida_lobo = 95
-        dano_contato_lobo = 8
-        xp_lobo = 45
-        self.moedas_drop = 15
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Lobo/Lobo4.png"
-
         super().__init__(
             x, y,
             Lobo.tamanho_sprite_definido[0], Lobo.tamanho_sprite_definido[1],
-            vida_lobo, velocidade, dano_contato_lobo,
-            xp_lobo, sprite_path_principal_relativo_jogo
+            vida_maxima=95,
+            velocidade=velocidade,
+            dano_contato=8,
+            xp_value=45,
+            sprite_path="Sprites/Inimigos/Lobo/Lobo4.png"
         )
-
-        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
+        self.moedas_drop = 15
 
         self.sprites_andar = Lobo.sprites_andar_carregados
         self.sprites_atacar = Lobo.sprites_atacar_carregados
         self.sprites = self.sprites_andar
 
-        if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)):
-            if self.sprites: self.image = self.sprites[0]
-            else:
-                self.image = pygame.Surface(Lobo.tamanho_sprite_definido, pygame.SRCALPHA); self.image.fill((80, 80, 80, 150))
-                if not self.sprites: self.sprites = [self.image]
+        self.image = self.sprites[0] if self.sprites else pygame.Surface(Lobo.tamanho_sprite_definido, pygame.SRCALPHA)
         self.rect = self.image.get_rect(topleft=(x, y))
 
         self.sprite_index = 0
@@ -137,25 +145,32 @@ class Lobo(InimigoBase):
         self.attack_range = 70
         self.attack_cooldown = 1.8
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
-        self.attack_hitbox_largura = Lobo.tamanho_sprite_definido[0] * 0.8
-        self.attack_hitbox_altura = Lobo.tamanho_sprite_definido[1] * 0.6
-        self.attack_hitbox_offset_x = 20
-        self.attack_hitbox = pygame.Rect(0,0,0,0)
+        self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
         self.hit_player_this_bite = False
 
     def _atualizar_hitbox_ataque(self):
+        """Calcula a posição e o tamanho da hitbox de ataque."""
         if not self.is_attacking:
-            self.attack_hitbox.size = (0,0); return
-        self.attack_hitbox.size = (self.attack_hitbox_largura, self.attack_hitbox_altura)
+            self.attack_hitbox.size = (0, 0)
+            return
+        
+        largura_hitbox = self.rect.width * 0.8
+        altura_hitbox = self.rect.height * 0.6
+        self.attack_hitbox.size = (largura_hitbox, altura_hitbox)
+
+        offset_x = 20
         if self.facing_right:
-            self.attack_hitbox.midleft = (self.rect.right - self.attack_hitbox_offset_x / 2, self.rect.centery)
+            self.attack_hitbox.midleft = (self.rect.right - offset_x / 2, self.rect.centery)
         else:
-            self.attack_hitbox.midright = (self.rect.left + self.attack_hitbox_offset_x / 2, self.rect.centery)
+            self.attack_hitbox.midright = (self.rect.left + offset_x / 2, self.rect.centery)
 
     def atacar(self, player):
+        """Inicia a animação e a lógica de ataque quando o jogador está no alcance."""
         if not (hasattr(player, 'rect') and self.esta_vivo()): return
+        
         agora = pygame.time.get_ticks()
         distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery)
+        
         if not self.is_attacking and distancia_ao_jogador <= self.attack_range and (agora - self.last_attack_time >= self.attack_cooldown * 1000):
             self.is_attacking = True
             self.attack_timer = agora
@@ -166,43 +181,40 @@ class Lobo(InimigoBase):
             self.sprite_index = 0
 
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
+        """Atualiza o estado do lobo a cada frame."""
         if not self.esta_vivo():
-            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
+            self.kill() # O GerenciadorDeInimigos cuidará das recompensas.
             return
 
         agora = pygame.time.get_ticks()
-        jogador_valido = (player and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo'))
+        jogador_valido = player and hasattr(player, 'rect') and hasattr(player, 'esta_vivo') and player.esta_vivo()
 
-        # Chama o update da classe base para movimento e animação
+        # Chama o update da classe base (controla movimento, animação base, etc.)
         super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
 
         if self.is_attacking:
-            if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
             self._atualizar_hitbox_ataque()
-            if jogador_valido and not self.hit_player_this_bite and self.attack_hitbox.colliderect(player.rect):
-                if hasattr(player, 'receber_dano'): player.receber_dano(self.attack_damage_especifico)
+            if jogador_valido and not self.hit_player_this_bite and self.attack_hitbox.colliderect(player.rect_colisao):
+                player.receber_dano(self.attack_damage_especifico)
                 self.hit_player_this_bite = True
+            
             if agora - self.attack_timer >= self.attack_duration * 1000:
                 self.is_attacking = False
                 self.sprites = self.sprites_andar
                 self.intervalo_animacao = self.intervalo_animacao_andar
                 self.sprite_index = 0
-                self.attack_hitbox.size = (0,0)
+                self.attack_hitbox.size = (0, 0)
         else:
-            if jogador_valido: self.atacar(player)
-            # A chamada super().update já cuida do mover_em_direcao e atualizar_animacao para o estado normal.
-            # Essas linhas foram comentadas porque a chamada super().update já as executa.
-            # if not self.is_attacking and jogador_valido and hasattr(self, 'mover_em_direcao'):
-            #     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            # if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao() # Já chamado na super.update
+            if jogador_valido:
+                self.atacar(player)
 
-        # Lógica de dano de contato com o jogador
-        if jogador_valido and self.rect.colliderect(player.rect) and (agora - self.last_contact_time >= self.contact_cooldown):
-            if hasattr(player, 'receber_dano'): player.receber_dano(self.contact_damage)
+        # Dano de contato com cooldown
+        if jogador_valido and self.rect.colliderect(player.rect_colisao) and (agora - self.last_contact_time >= self.contact_cooldown):
+            player.receber_dano(self.contact_damage)
             self.last_contact_time = agora
 
     def receber_dano(self, dano, fonte_dano_rect=None):
+        """Processa o dano recebido e toca os sons correspondentes."""
         vida_antes = self.hp
         super().receber_dano(dano, fonte_dano_rect)
         if not self.esta_vivo() and vida_antes > 0 and Lobo.som_morte_lobo:

@@ -80,7 +80,11 @@ class Vampiro(InimigoBase):
             Vampiro.sprites_andar = []
             Vampiro._carregar_lista_sprites_estatico(caminhos_andar, Vampiro.sprites_andar, Vampiro.tamanho_sprite_definido, "Andar")
         if Vampiro.sprites_atacar is None:
-            caminhos_atacar = ["Sprites/Inimigos/Vampiro/Vampiro_Atacar{}.png".format(i) for i in range(1, 3)]
+            caminhos_atacar = [
+                "Sprites/Inimigos/Vampiro/Vampiro1.png", 
+                "Sprites/Inimigos/Vampiro/Vampiro2.png", 
+                "Sprites/Inimigos/Vampiro/Vampiro3.png"
+            ]
             Vampiro.sprites_atacar = []
             Vampiro._carregar_lista_sprites_estatico(caminhos_atacar, Vampiro.sprites_atacar, Vampiro.tamanho_sprite_definido, "Atacar")
             if not Vampiro.sprites_atacar and Vampiro.sprites_andar:

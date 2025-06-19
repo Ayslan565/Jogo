@@ -1,20 +1,16 @@
-# Demonio.py
 import pygame
 import random
 import math
 import time
 import os
 
-# Removido: importação do score_manager, pois a lógica de recompensa é tratada pelo GerenciadorDeInimigos
-
 # --- Importação da Classe Base Inimigo ---
 try:
-    # Correção: Importação relativa para a classe base Inimigo dentro do mesmo pacote 'Inimigos'
+    # Importação relativa para a classe base Inimigo
     from .Inimigos import Inimigo as InimigoBase
-    # print(f"DEBUG(Demonio): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
-    # print(f"DEBUG(Demonio): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
-    class InimigoBase(pygame.sprite.Sprite): # Placeholder
+    # Placeholder para InimigoBase caso a importação falhe
+    class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
             self.rect = pygame.Rect(x, y, largura, altura)
@@ -26,15 +22,13 @@ except ImportError as e:
             self.last_contact_time = pygame.time.get_ticks() - self.contact_cooldown
             self.sprites = [self.image.copy()]; self.sprite_index = 0
             self.tempo_ultimo_update_animacao = pygame.time.get_ticks(); self.intervalo_animacao = 200
-            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
+            self.moedas_drop = 0
 
         def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
         def esta_vivo(self): return self.hp > 0
         def mover_em_direcao(self, alvo_x, alvo_y, dt_ms=None): pass
         def atualizar_animacao(self): pass
-        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-            # Placeholder de update, a lógica real estará nas classes filhas
-            pass
+        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): pass
         def desenhar(self, janela, camera_x, camera_y):
             if hasattr(self, 'image') and self.image:
                 janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
@@ -63,14 +57,17 @@ class Demonio(InimigoBase):
     def carregar_recursos_demonio():
         if Demonio.sprites_originais is None:
             Demonio.sprites_originais = []
-            base_sprite_path = "Sprites/Inimigos/Demonio/"
-            nomes_sprites = [
-                "20250521_1111_Demônio Pixel Art_simple_compose_01jvsjxvc7f8ca6npqkjaftsrv (1).png",
-                "Demonio_Sprite_2.png", "Demonio_Sprite_3.png", "Demonio_Sprite_4.png"
+            # MODIFICADO: Lista explícita com os caminhos completos relativos à raiz do projeto
+            caminhos_sprites = [
+                "Sprites\\Inimigos\\Demonio\\A (1).png",
+                "Sprites\\Inimigos\\Demonio\\A (2).png",
+                "Sprites\\Inimigos\\Demonio\\A (3).png",
+                "Sprites\\Inimigos\\Demonio\\A (4).png",
+                "Sprites\\Inimigos\\Demonio\\A (5).png",
             ]
             pasta_raiz = Demonio._obter_pasta_raiz_jogo()
-            for nome in nomes_sprites:
-                caminho_completo = os.path.join(pasta_raiz, base_sprite_path, nome)
+            for caminho_relativo in caminhos_sprites:
+                caminho_completo = os.path.join(pasta_raiz, caminho_relativo.replace("/", os.sep))
                 try:
                     if os.path.exists(caminho_completo):
                         sprite_img = pygame.image.load(caminho_completo).convert_alpha()
@@ -80,6 +77,7 @@ class Demonio(InimigoBase):
                         placeholder = pygame.Surface(Demonio.tamanho_sprite_definido, pygame.SRCALPHA); placeholder.fill((200, 0, 0)); Demonio.sprites_originais.append(placeholder)
                 except pygame.error:
                     placeholder = pygame.Surface(Demonio.tamanho_sprite_definido, pygame.SRCALPHA); placeholder.fill((200, 0, 0)); Demonio.sprites_originais.append(placeholder)
+            
             if not Demonio.sprites_originais:
                 placeholder = pygame.Surface(Demonio.tamanho_sprite_definido, pygame.SRCALPHA); placeholder.fill((150, 0, 0)); Demonio.sprites_originais.append(placeholder)
 
@@ -90,23 +88,15 @@ class Demonio(InimigoBase):
     def __init__(self, x, y, velocidade=2.5):
         Demonio.carregar_recursos_demonio()
 
-        demonio_hp = 90
-        demonio_contact_damage = 10
-        demonio_xp_value = 75
-        self.moedas_drop = 12
-
-        sprite_path_ref = "Sprites/Inimigos/Demonio/placeholder.png"
-        if Demonio.sprites_originais:
-            # Apenas uma referência, não usado para carregar a imagem principal aqui
-            sprite_path_ref = "Sprites/Inimigos/Demonio/Demonio_Sprite_1.png"
-
         super().__init__(x, y,
                          Demonio.tamanho_sprite_definido[0], Demonio.tamanho_sprite_definido[1],
-                         demonio_hp, velocidade, demonio_contact_damage,
-                         demonio_xp_value, sprite_path_ref)
-
-        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
-
+                         vida_maxima=90, 
+                         velocidade=velocidade, 
+                         dano_contato=10,
+                         xp_value=75, 
+                         sprite_path="Sprites/Inimigos/Demonio/A(1).png")
+        self.moedas_drop = 12
+        
         self.sprites = Demonio.sprites_originais
         self.sprite_index = 0
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
@@ -121,7 +111,7 @@ class Demonio(InimigoBase):
         self.attack_range = 120
         self.attack_cooldown = 2.5
         self.last_attack_time = time.time() - self.attack_cooldown
-        self.hit_player_this_attack = False # Renomeado para clareza
+        self.hit_player_this_attack = False
 
         if self.sprites: self.image = self.sprites[0]
         else: self.image = pygame.Surface(self.tamanho_sprite_definido, pygame.SRCALPHA); self.image.fill((200,0,0))
@@ -148,17 +138,15 @@ class Demonio(InimigoBase):
                 # ... (lógica de som)
 
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
         if not self.esta_vivo():
-            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
+            self.kill() # O GerenciadorDeInimigos cuidará das recompensas.
             return
 
-        jogador_valido = (player and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo'))
+        jogador_valido = (player and hasattr(player, 'rect') and player.esta_vivo())
         if not jogador_valido:
             if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
             return
         
-        # Chama o update da classe base para movimento e animação
         super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
 
         if self.is_attacking:
@@ -166,13 +154,13 @@ class Demonio(InimigoBase):
             if time.time() - self.attack_timer >= self.attack_duration:
                 self.is_attacking = False
                 self.hit_player_this_attack = False
-            elif not self.hit_player_this_attack and self.attack_hitbox.colliderect(player.rect):
-                if player.vida.esta_vivo() and hasattr(player, 'receber_dano'):
+            elif not self.hit_player_this_attack and self.attack_hitbox.colliderect(player.rect_colisao):
+                if player.esta_vivo():
                     player.receber_dano(self.attack_damage, self.rect)
                     self.hit_player_this_attack = True
         else:
             self.atacar(player)
             
     def desenhar(self, surface, camera_x, camera_y):
-        # O método da classe base agora cuida de tudo (imagem, flash, barra de vida)
+        # O método da classe base agora cuida de tudo
         super().desenhar(surface, camera_x, camera_y)
