@@ -37,9 +37,9 @@ class MachadoBarbaro(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 15.0, "range": 85.0, "cooldown": 2.2, "name_suffix": "",
-                "hitbox_dim": (90, 90),   # CONFIGURÁVEL: Largura e altura da hitbox de dano
-                "hitbox_off": (0, 0),      # CONFIGURÁVEL: Offset adicional da hitbox
-                "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv1.png", # Exemplo
+                "hitbox_dim": (110, 300),   # CONFIGURÁVEL: Largura e altura da hitbox de dano
+                "hitbox_off": (110, 0),      # CONFIGURÁVEL: Offset adicional da hitbox
+                "effect_sprite_base": "Sprites\\Armas\\Machados\\MachadoBarbaro\\Efeitos\\ImpactoBrutoNv1.png", # Exemplo
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
                     "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base0.png", # Exemplo
@@ -49,18 +49,18 @@ class MachadoBarbaro(MachadoBase):
                     "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base4.png",  # Exemplo
                 ],
                 "animation_speed": 120,     # CONFIGURÁVEL (ms por frame), machados podem ser mais lentos
-                "animation_display_scale": 1.2, # CONFIGURÁVEL, machados podem ser maiores
-                "ui_icon": "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Machado E-1.png" # Exemplo
+                "animation_display_scale": 3.0, # CONFIGURÁVEL, machados podem ser maiores
+                "ui_icon": "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-1.png" # Exemplo
             },
             1.5: {
-                "damage": 20.0, "range": 90.0, "cooldown": 2.1, "name_suffix": "+1",
+                "damage": 20.0, "range": 90.0, "cooldown": 0.1, "name_suffix": "+1",
                 "hitbox_dim": (95, 95), "hitbox_off": (0, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
                     "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base0.png", # Exemplo
                     "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base1.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base2.png",
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/ATA/AAT1-base2.png",
                     "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base3.png", # Exemplo
                     "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base4.png",  # Exemplo
                 ],
@@ -74,15 +74,15 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv2.png", # Exemplo
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base0.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base1.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base2.png",
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base3.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base4.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/ATA/AT2-base2.png",
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base3.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base4.png",  # Exemplo
                 ],
                 "animation_speed": 110,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Machado E-2.png" # Exemplo
+                "ui_icon": "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-2.png" # Exemplo
             },
             2.5: {
                 "damage": 30.0, "range": 105.0, "cooldown": 1.8, "name_suffix": "Reforçado +1",
@@ -90,15 +90,15 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base0.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base1.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base2.png",
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base3.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT2\\AT2-base4.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/ATA/AT2-base2.png",
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base3.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT2/AT2-base4.png",  # Exemplo
                 ],
                 "animation_speed": 105,
                 "animation_display_scale": 1.25,
-                "ui_icon": "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Machado E-2.png"
+                "ui_icon": "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-2.png"
             },
             3.0: {
                 "damage": 35.0, "range": 120.0, "cooldown": 1.6, "name_suffix": "Brutal",
@@ -106,15 +106,15 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv3.png", # Exemplo
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT3\\AT3-base0.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT3\\AT3-base1.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT3\\AT3-base2.png",
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT3\\AT3-base3.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT3\\AT3-base4.png",  # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT3/AT3-base0.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT3/AT3-base1.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/ATA/AT3-base2.png",
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT3/AT3-base3.png", # Exemplo
+                    "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Ataque/AT3/AT3-base4.png",  # Exemplo
                 ],
                 "animation_speed": 100,
                 "animation_display_scale": 1.3,
-                "ui_icon": "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Machado E-3.png" # Exemplo
+                "ui_icon": "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-3.png" # Exemplo
             }
         }
 

@@ -45,15 +45,15 @@ class GeradorCogumelos:
         """
         if novo_cooldown_s is not None and novo_cooldown_s >= 0:
             self.spawn_cooldown_apos_coleta_s = novo_cooldown_s
-            print(f"DEBUG(GeradorCogumelos): Cooldown de spawn ajustado para: {self.spawn_cooldown_apos_coleta_s}s")
+            #print(f"DEBUG(GeradorCogumelos): Cooldown de spawn ajustado para: {self.spawn_cooldown_apos_coleta_s}s")
 
         if nova_chance_por_frame is not None and 0.0 <= nova_chance_por_frame <= 1.0:
             self.spawn_chance_por_frame = nova_chance_por_frame
-            print(f"DEBUG(GeradorCogumelos): Chance de spawn por frame ajustada para: {self.spawn_chance_por_frame}")
+            #print(f"DEBUG(GeradorCogumelos): Chance de spawn por frame ajustada para: {self.spawn_chance_por_frame}")
 
         if nova_distancia_maxima is not None and nova_distancia_maxima > 0:
             self.distancia_maxima_cogumelo = nova_distancia_maxima
-            print(f"DEBUG(GeradorCogumelos): Distância máxima para remoção de cogumelos ajustada para: {self.distancia_maxima_cogumelo}px")
+            #print(f"DEBUG(GeradorCogumelos): Distância máxima para remoção de cogumelos ajustada para: {self.distancia_maxima_cogumelo}px")
 
 
     def _escolher_tipo_cogumelo_aleatorio(self):
@@ -99,7 +99,7 @@ class GeradorCogumelos:
                 distancia = math.hypot(cogumelo.rect.centerx - player_center_x, cogumelo.rect.centery - player_center_y)
                 if distancia > self.distancia_maxima_cogumelo:
                     cogumelo.kill()
-                    print(f"DEBUG(GeradorCogumelos): Cogumelo em ({cogumelo.x}, {cogumelo.y}) removido por estar muito distante. Total: {len(self.cogumelos_ativos)}")
+                    #print(f"DEBUG(GeradorCogumelos): Cogumelo em ({cogumelo.x}, {cogumelo.y}) removido por estar muito distante. Total: {len(self.cogumelos_ativos)}")
                     # Se um cogumelo distante for removido, podemos considerar isso como uma "coleta" forçada
                     # para tentar gerar um substituto mais perto, se a contagem permitir.
                     # No entanto, a lógica atual já lida com o max_cogumelos_na_tela e cooldown.
@@ -136,7 +136,7 @@ class GeradorCogumelos:
             novo_cogumelo = Cogumelo(spawn_x, spawn_y, tipo_para_spawn)
             self.cogumelos_ativos.add(novo_cogumelo)
             # último_cogumelo_coletado_time não é atualizado aqui para não interferir com o cooldown de coleta.
-            print(f"DEBUG(GeradorCogumelos): Cogumelo de {tipo_para_spawn} gerado em ({spawn_x}, {spawn_y}). Total: {len(self.cogumelos_ativos)}")
+            #print(f"DEBUG(GeradorCogumelos): Cogumelo de {tipo_para_spawn} gerado em ({spawn_x}, {spawn_y}). Total: {len(self.cogumelos_ativos)}")
             return True # Spawnou com sucesso
         return False # Falhou ao spawnar
 
@@ -162,7 +162,7 @@ class GeradorCogumelos:
                 if hasattr(jogador_ref, 'velocidade_original') and hasattr(jogador_ref, 'velocidade'):
                     jogador_ref.velocidade = jogador_ref.velocidade_original
                     jogador_ref.tempo_fim_efeito_lentidao = 0
-                    print("DEBUG(GeradorCogumelos): Efeito de lentidão do jogador terminou.")
+                    #print("DEBUG(GeradorCogumelos): Efeito de lentidão do jogador terminou.")
         
         # Resetar rapidez
         if hasattr(jogador_ref, 'tempo_fim_efeito_rapidez') and jogador_ref.tempo_fim_efeito_rapidez > 0:
@@ -170,7 +170,7 @@ class GeradorCogumelos:
                 if hasattr(jogador_ref, 'velocidade_original') and hasattr(jogador_ref, 'velocidade'):
                     jogador_ref.velocidade = jogador_ref.velocidade_original
                     jogador_ref.tempo_fim_efeito_rapidez = 0
-                    print("DEBUG(GeradorCogumelos): Efeito de rapidez do jogador terminou.")
+                    #print("DEBUG(GeradorCogumelos): Efeito de rapidez do jogador terminou.")
 
 
     def desenhar_cogumelos(self, janela, camera_x, camera_y):

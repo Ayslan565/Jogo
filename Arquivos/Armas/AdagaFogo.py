@@ -19,16 +19,16 @@ class AdagaFogo(Weapon):
                 "hitbox_dim": (10, 70),
                 "hitbox_off": (100, 10),
                 # CORRIGIDO: Caminho aponta para a pasta 'Sprites'
-                "effect_sprite_base": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Efeitos\\ImpactoFogoNv1.png",
+                "effect_sprite_base": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Efeitos/ImpactoFogoNv1.png",
                 "effect_scale_base": 0.8,
                 # CORRIGIDO: Caminhos apontam para a pasta 'Sprites'
                 "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base0.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base1.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base3.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base4.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base5.png"
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base0.png",
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base1.png",
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base2.png",
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base3.png",
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base4.png",
+                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base5.png"
                 ],
                 "animation_speed": 80,
                 "animation_display_scale": 1.0,
