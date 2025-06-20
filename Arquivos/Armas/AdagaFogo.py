@@ -1,140 +1,96 @@
-# Armas/AdagaFogo.py
 import pygame
 import os
-# Importa a classe base Weapon. O '.' indica um import relativo do mesmo pacote ('Armas').
+# Assume que weapon.py está no mesmo diretório 'Armas' ou em um local acessível via Python path
 from .weapon import Weapon
 
 class AdagaFogo(Weapon):
     """
-    Representa a Adaga de Fogo, uma arma ágil com múltiplos níveis de evolução
+    Representa a Adaga de Fogo, uma arma ágil com níveis de evolução
     e sua própria animação de ataque.
     """
     def __init__(self):
-        # Nome base usado para evoluções e identificação.
-        self._base_name = "Adaga de Fogo"
-        self.level = 1.0 # Nível inicial da arma.
+        self._base_name = "Adaga do Fogo Contudente"
+        self.level = 1.0 # Nível inicial
 
-        # Obtém os stats iniciais para o nível 1.0 para o construtor da classe base.
+        # --- As estatísticas de cada nível são definidas aqui para que possam ser acedidas durante a inicialização.
+        self._stats_by_level = {
+            1.0: {
+                "damage": 15.0, "range": 40.0, "cooldown": 0.6, "name_suffix": "",
+                "hitbox_dim": (10, 70),
+                "hitbox_off": (100, 10),
+                # CORRIGIDO: Caminho aponta para a pasta 'Sprites'
+                "effect_sprite_base": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Efeitos\\ImpactoFogoNv1.png",
+                "effect_scale_base": 0.8,
+                # CORRIGIDO: Caminhos apontam para a pasta 'Sprites'
+                "animation_sprites": [
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base0.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base1.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base3.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base4.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base5.png"
+                ],
+                "animation_speed": 80,
+                "animation_display_scale": 1.0,
+                # CORRIGIDO: Caminho aponta para a pasta 'Sprites'
+                "ui_icon": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Icone_AFC1.png"
+            },
+            2.0: {
+                "damage": 22.0, "range": 90.0, "cooldown": 0.55, "name_suffix": "Afiada",
+                "hitbox_dim": (65, 65), "hitbox_off": (12, 0),
+                "effect_sprite_base": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Efeitos\\ImpactoFogoNv1.png",
+                "effect_scale_base": 0.85,
+                "animation_sprites": [
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base0.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base1.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base3.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base4.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base5.png"
+                ],
+                "animation_speed": 70,
+                "animation_display_scale": 1.05,
+                "ui_icon": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Icone_AFC1.png"
+            },
+            3.0: {
+                "damage": 30.0, "range": 100.0, "cooldown": 0.5, "name_suffix": "Incandescente",
+                "hitbox_dim": (70, 70), "hitbox_off": (15, 0),
+                "effect_sprite_base": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Efeitos\\ImpactoFogoNv2.png",
+                "effect_scale_base": 0.9,
+                # CORRIGIDO: Caminhos apontam para a pasta 'Sprites' e typo corrigido
+                "animation_sprites": [
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base0.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base1.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base2.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base3.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base4.png",
+                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base5.png"
+                ],
+                "animation_speed": 65,
+                "animation_display_scale": 1.1,
+                "ui_icon": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Icone_AFC2.png"
+            }
+        }
+
+        # Pega os stats iniciais para passar para a classe mãe
         initial_stats_for_super = self._get_stats_for_level_internal(self.level, for_super_init=True)
 
-        # Chama o construtor da classe pai (Weapon) com os valores iniciais.
         super().__init__(
             name=self._base_name,
             damage=initial_stats_for_super.get("damage", 15.0),
-            attack_range=initial_stats_for_super.get("range", 55.0),
-            cooldown=initial_stats_for_super.get("cooldown", 0.5),
-            hitbox_dimensions=initial_stats_for_super.get("hitbox_dim", (40, 60)),
+            attack_range=initial_stats_for_super.get("range", 85.0),
+            cooldown=initial_stats_for_super.get("cooldown", 0.6),
+            hitbox_dimensions=initial_stats_for_super.get("hitbox_dim", (60, 60)),
             hitbox_offset=initial_stats_for_super.get("hitbox_off", (10, 0)),
-            description="Uma adaga rápida que queima ao toque.",
+            description="Uma adaga que queima com o calor de uma forja.",
             rarity="Comum",
             weapon_type="Adaga",
             element="Fogo",
             attack_effect_sprite_path=initial_stats_for_super.get("effect_sprite_base", None),
             attack_effect_scale=initial_stats_for_super.get("effect_scale_base", 1.0),
-            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites/Armas/Adagas/AdagaFogo/Icone_E1.png")
+            ui_icon_path=initial_stats_for_super.get("ui_icon", "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Icone_AFC1.png")
         )
 
-        # --- CONFIGURAÇÕES MODIFICÁVEIS POR NÍVEL ---
-        # Defina aqui os atributos específicos para cada nível da Adaga de Fogo.
-        self._stats_by_level = {
-            # Nível 1.0
-            1.0: {
-                "damage": 15.0,
-                "range": 55.0, # Adagas têm menor alcance
-                "cooldown": 0.5, # Adagas são mais rápidas
-                "name_suffix": "",
-                "hitbox_dim": (40, 60),
-                "hitbox_off": (10, 0),
-                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoNv1.png",
-                "effect_scale_base": 0.8,
-                "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT0-base0.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base1.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT2-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT3-base3.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT4-base4.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT5-base5.png",
-                ], 
-                "animation_speed": 60,
-                "animation_display_scale":0.4,
-                # Caminho RELATIVO à pasta 'Jogo/'
-                "ui_icon": "Sprites\\Armas\\Icones\\AdagaFogo_Nv1.png" # Exemplo de ícone para Nv1
-            },
-            1.5: {
-                "damage": 18.0, "range": 48.0, "cooldown": 0.75, "name_suffix": "+1",
-                "hitbox_dim": (32, 62), "hitbox_off": (0, 0),
-                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoLeveNv1.png",
-                "effect_scale_base": 0.85,
-                "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT0-base0.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT1-base1.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT2-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT3-base3.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT4-base4.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT1\\AT5-base5.png",
-                ], 
-                "animation_speed": 55, "animation_display_scale": 0.42,
-                "ui_icon": "Sprites/Armas/Icones/AdagaFogo_Nv1.png" # Pode ser o mesmo ou diferente
-            },
-            # Nível 2.0
-            2.0: {
-                "damage": 22.0,
-                "range": 60.0,
-                "cooldown": 0.45,
-                "name_suffix": " Afiada",
-                "hitbox_dim": (45, 65),
-                "hitbox_off": (12, 0),
-                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoNv2.png",
-                "effect_scale_base": 0.9,
-                "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base0.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base1.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base3.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base4.png",
-                ], 
-                "animation_speed": 50, "animation_display_scale": 0.45,
-                "ui_icon": "Sprites\\Armas\\Icones\\AdagaFogo_Nv2.png" # Exemplo de ícone para Nv2
-            },
-            2.5: {
-                "damage": 25.0, "range": 52.0, "cooldown": 0.6, "name_suffix": " Afiada +1",
-                "hitbox_dim": (37, 67), "hitbox_off": (0, 0),
-                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoMedioNv2.png",
-                "effect_scale_base": 0.95,
-                "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base0.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base1.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base3.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base4.png",
-                ], 
-                "animation_speed": 45, "animation_display_scale": 0.47,
-                "ui_icon": "Sprites/Armas/Icones/AdagaFogo_Nv2.png",
-            },
-            # Nível 3.0
-            3.0: {
-                "damage": 30.0,
-                "range": 65.0,
-                "cooldown": 0.4,
-                "name_suffix": " Infernal",
-                "hitbox_dim": (50, 70),
-                "hitbox_off": (15, 0),
-                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoNv3.png",
-                "effect_scale_base": 1.0,
-                "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base0.png", 
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base1.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base3.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base4.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base5.png",
-                ], 
-                "animation_speed": 40, "animation_display_scale": 0.5,
-                "ui_icon": "Sprites\\Armas\\Icones\\AdagaFogo_Nv3.png" # Exemplo de ícone para Nv3
-            }
-        }
-
-        # Atributos para a animação de ataque da arma
         self.attack_animation_sprites = []
         self.attack_animation_paths = []
         self.attack_animation_speed = 100
@@ -142,64 +98,68 @@ class AdagaFogo(Weapon):
         self.last_attack_animation_update = 0
         self.animation_display_scale_factor = 1.0
 
-        # Aplica os stats do nível inicial para configurar a arma.
         self._apply_level_stats()
 
     def _get_stats_for_level_internal(self, level_to_check, for_super_init=False):
-        """Retorna o dicionário de stats para um nível específico, com fallbacks."""
-        if for_super_init or not hasattr(self, '_stats_by_level') or not self._stats_by_level:
-            return {
-                "damage": 15.0, "range": 55.0, "cooldown": 0.5, "name_suffix": "",
-                "hitbox_dim": (40, 60), "hitbox_off": (10, 0),
-                "effect_sprite_base": "Sprites/Armas/Adagas/AdagaFogo/Efeitos/ImpactoDefault.png",
-                "effect_scale_base": 1.0, "animation_sprites": [], "animation_speed": 100,
-                "animation_display_scale": 1.0, "ui_icon": "Sprites/Armas/Adagas/AdagaFogo/Icone_Default.png"
-            }
-        
+        if for_super_init:
+            return self._stats_by_level.get(level_to_check, self._stats_by_level.get(1.0, {}))
+
         if level_to_check in self._stats_by_level:
             return self._stats_by_level[level_to_check]
         else:
-            #print(f"AVISO(AdagaFogo): Nível {level_to_check} não encontrado. Usando o primeiro nível definido.")
+            print(f"WARN(AdagaFogo): Nível {level_to_check} não encontrado. Usando fallback para o primeiro nível.")
             first_level_key = next(iter(self._stats_by_level))
             return self._stats_by_level[first_level_key]
 
     def _load_weapon_attack_animation_sprites(self, caminhos, escala_animacao=1.0):
-        """Carrega e escala os sprites da animação de ataque da arma."""
         sprites_carregados = []
-        try:
-            base_dir_arma = os.path.dirname(os.path.abspath(__file__))
-            project_root = os.path.dirname(base_dir_arma)
-        except NameError:
-            project_root = os.getcwd()
+        
+        # A lógica de usar caminhos relativos está mantida e correta.
+        if not caminhos:
+            print("DEBUG(AdagaFogo): A lista de caminhos para os sprites de animação está vazia.")
+            self.attack_animation_sprites = []
+            return
+
+        print(f"--- Carregando Sprites para {self.name} ---")
 
         for path_relativo in caminhos:
-            path_relativo_corrigido = path_relativo.replace("\\", os.sep).replace("/", os.sep).lstrip(os.sep)
-            full_path = os.path.join(project_root, path_relativo_corrigido)
-            if os.path.exists(full_path):
+            path_corrigido = path_relativo.replace("\\", os.sep).replace("/", os.sep)
+            full_path = path_corrigido
+            
+            print(f"DEBUG(AdagaFogo): Tentando carregar sprite: '{full_path}'")
+
+            try:
+                if os.path.exists(full_path):
+                    print(f"SUCCESS(AdagaFogo): Ficheiro encontrado! '{full_path}'")
                     imagem_original = pygame.image.load(full_path).convert_alpha()
-                    novo_w = int(imagem_original.get_width() * escala_animacao)
-                    novo_h = int(imagem_original.get_height() * escala_animacao)
-                    if novo_w > 0 and novo_h > 0:
-                        imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
-                        sprites_carregados.append(imagem)
-
-
+                    novo_w, novo_h = 100, 100
+                    imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
+                    sprites_carregados.append(imagem)
+                else:
+                    print(f"!!! WARN(AdagaFogo): CAMINHO NÃO EXISTE: '{full_path}'. A criar placeholder.")
+                    placeholder = pygame.Surface((100, 100), pygame.SRCALPHA); placeholder.fill((255,140,0,100))
+                    sprites_carregados.append(placeholder)
+            except pygame.error as e:
+                print(f"!!! ERROR(AdagaFogo): Erro ao carregar imagem em '{full_path}': {e}. A criar placeholder.")
+                placeholder = pygame.Surface((100, 100), pygame.SRCALPHA); placeholder.fill((255,0,0,150))
+                sprites_carregados.append(placeholder)
         
         self.attack_animation_sprites = sprites_carregados
         self.current_attack_animation_frame = 0
+        print(f"--- Carga de sprites para {self.name} concluída. Total de sprites carregados: {len(self.attack_animation_sprites)} ---")
+
 
     def evolve(self, target_level: float):
-        """Evolui a adaga para um nível específico."""
         if target_level in self._stats_by_level:
             self.level = target_level
             self._apply_level_stats()
-
-            #print(f"AVISO(AdagaFogo): Nível de evolução {target_level} inválido. Níveis: {list(self._stats_by_level.keys())}")
+        else:
+            print(f"WARN(AdagaFogo): Nível {target_level} inválido. Níveis disponíveis: {list(self._stats_by_level.keys())}")
 
     def _apply_level_stats(self):
-        """Aplica os atributos correspondentes ao nível atual da adaga."""
         stats = self._get_stats_for_level_internal(self.level)
         if not stats:
+            print(f"ERROR(AdagaFogo): Falha crítica ao obter stats para Nível {self.level} de '{self.name}'.")
             return
 
         self.damage = stats["damage"]
@@ -207,12 +167,15 @@ class AdagaFogo(Weapon):
         self.cooldown = stats["cooldown"]
 
         if "hitbox_dim" in stats:
-            self.hitbox_width, self.hitbox_height = stats["hitbox_dim"]
+            self.hitbox_width = stats["hitbox_dim"][0]
+            self.hitbox_height = stats["hitbox_dim"][1]
         if "hitbox_off" in stats:
-            self.hitbox_offset_x, self.hitbox_offset_y = stats["hitbox_off"]
+            self.hitbox_offset_x = stats["hitbox_off"][0]
+            self.hitbox_offset_y = stats["hitbox_off"][1]
 
         new_base_effect_path = stats.get("effect_sprite_base")
         new_base_effect_scale = stats.get("effect_scale_base", self.attack_effect_scale)
+
         if new_base_effect_path and new_base_effect_path != self.attack_effect_sprite_path:
             self.attack_effect_sprite_path = new_base_effect_path
             self.attack_effect_scale = new_base_effect_scale
@@ -220,10 +183,12 @@ class AdagaFogo(Weapon):
         elif new_base_effect_scale != self.attack_effect_scale and self.attack_effect_original_image:
             self.attack_effect_scale = new_base_effect_scale
             if self.attack_effect_original_image:
-                w = int(self.attack_effect_original_image.get_width() * self.attack_effect_scale)
-                h = int(self.attack_effect_original_image.get_height() * self.attack_effect_scale)
-                if w > 0 and h > 0:
-                    self.attack_effect_image = pygame.transform.smoothscale(self.attack_effect_original_image, (w,h))
+                width = int(self.attack_effect_original_image.get_width() * self.attack_effect_scale)
+                height = int(self.attack_effect_original_image.get_height() * self.attack_effect_scale)
+                if width > 0 and height > 0:
+                    self.attack_effect_image = pygame.transform.smoothscale(self.attack_effect_original_image, (width, height))
+                else:
+                    self.attack_effect_image = None
 
         new_ui_icon_path = stats.get("ui_icon")
         if new_ui_icon_path and new_ui_icon_path != self.ui_icon_path:
@@ -231,16 +196,20 @@ class AdagaFogo(Weapon):
 
         new_animation_paths = stats.get("animation_sprites")
         new_animation_display_scale = stats.get("animation_display_scale", 1.0)
-        if new_animation_paths is not None and (new_animation_paths != self.attack_animation_paths or new_animation_display_scale != self.animation_display_scale_factor or not self.attack_animation_paths):
-            self.attack_animation_paths = new_animation_paths
-            self.animation_display_scale_factor = new_animation_display_scale
-            self._load_weapon_attack_animation_sprites(self.attack_animation_paths, self.animation_display_scale_factor)
+
+        if new_animation_paths is not None:
+            if new_animation_paths != self.attack_animation_paths or \
+               new_animation_display_scale != self.animation_display_scale_factor or \
+               not self.attack_animation_sprites:
+                self.attack_animation_paths = new_animation_paths
+                self.animation_display_scale_factor = new_animation_display_scale
+                self._load_weapon_attack_animation_sprites(self.attack_animation_paths, self.animation_display_scale_factor)
 
         self.attack_animation_speed = stats.get("animation_speed", 100)
-        self.name = f"{self._base_name} {stats.get('name_suffix', '')}".strip()
+        name_suffix = stats.get("name_suffix", "")
+        self.name = f"{self._base_name} {name_suffix}".strip()
 
     def get_current_attack_animation_sprite(self):
-        """Retorna o sprite atual da animação de ataque da arma."""
         if self.attack_animation_sprites and 0 <= self.current_attack_animation_frame < len(self.attack_animation_sprites):
             return self.attack_animation_sprites[self.current_attack_animation_frame]
         return None

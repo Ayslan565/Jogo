@@ -19,6 +19,9 @@ except ImportError:
             self.xp_value = xp_value
             self.moedas_drop = 0
             self.x, self.y = float(x), float(y)
+            self.last_contact_time = 0
+            self.facing_right = True
+            self.rect_colisao = self.rect.inflate(-10, -10) # Exemplo de rect de colisão
         
         def esta_vivo(self): return self.hp > 0
         def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
@@ -68,19 +71,35 @@ class Lobo(InimigoBase):
     def carregar_recursos_lobo():
         """Carrega todos os sprites e sons do Lobo, se ainda não foram carregados."""
         if Lobo.sprites_andar_carregados is None:
-            # MODIFICADO: Lista explícita de caminhos para os sprites de andar
+            # CORRIGIDO: Alterado de .jpg para .png
             caminhos_andar = [
-            "Sprites\\Inimigos\\Lobo\\Lobo1.jpg",
-            "Sprites\\Inimigos\\Lobo\\Lobo2.jpg",  
+                "Sprites/Inimigos/Lobo/A (1).png",
+                "Sprites/Inimigos/Lobo/A (2).png",
+                "Sprites/Inimigos/Lobo/A (3).png",
+                "Sprites/Inimigos/Lobo/A (4).png",
+                "Sprites/Inimigos/Lobo/A (5).png",
+                "Sprites/Inimigos/Lobo/A (6).png",
+                "Sprites/Inimigos/Lobo/A (7).png",
+                "Sprites/Inimigos/Lobo/A (8).png",
+                "Sprites/Inimigos/Lobo/A (9).png",
+                "Sprites/Inimigos/Lobo/A (10).png",
             ]
             Lobo.sprites_andar_carregados = []
             Lobo._carregar_lista_sprites_estatico(caminhos_andar, Lobo.sprites_andar_carregados, Lobo.tamanho_sprite_definido)
             
         if Lobo.sprites_atacar_carregados is None:
-            # MODIFICADO: Lista explícita de caminhos para os sprites de atacar
+            # CORRIGIDO: Alterado de .jpg para .png
             caminhos_atacar = [
-                "Sprites/Inimigos/Lobo/Lobo1.jpg",
-                "Sprites/Inimigos/Lobo/Lobo2.jpg",
+                "Sprites/Inimigos/Lobo/A (1).png",
+                "Sprites/Inimigos/Lobo/A (2).png",
+                "Sprites/Inimigos/Lobo/A (3).png",
+                "Sprites/Inimigos/Lobo/A (4).png",
+                "Sprites/Inimigos/Lobo/A (5).png",
+                "Sprites/Inimigos/Lobo/A (6).png",
+                "Sprites/Inimigos/Lobo/A (7).png",
+                "Sprites/Inimigos/Lobo/A (8).png",
+                "Sprites/Inimigos/Lobo/A (9).png",
+                "Sprites/Inimigos/Lobo/A (10).png",
             ]
             Lobo.sprites_atacar_carregados = []
             Lobo._carregar_lista_sprites_estatico(caminhos_atacar, Lobo.sprites_atacar_carregados, Lobo.tamanho_sprite_definido)
@@ -103,7 +122,7 @@ class Lobo(InimigoBase):
             velocidade=velocidade,
             dano_contato=8,
             xp_value=45,
-            sprite_path="Sprites/Inimigos/Lobo/Lobo4.png"
+            sprite_path="Sprites/Inimigos/Lobo/Lobo4.png" # Este também deve ser .png
         )
         self.moedas_drop = 15
 
@@ -118,6 +137,7 @@ class Lobo(InimigoBase):
         self.intervalo_animacao_andar = 100
         self.intervalo_animacao_atacar = 80
         self.intervalo_animacao = self.intervalo_animacao_andar
+        self.tempo_ultimo_update_animacao = pygame.time.get_ticks() # Adicionado para animação
 
         self.is_attacking = False
         self.attack_duration = 0.5
@@ -175,7 +195,7 @@ class Lobo(InimigoBase):
 
         if self.is_attacking:
             self._atualizar_hitbox_ataque()
-            if jogador_valido and not self.hit_player_this_bite and self.attack_hitbox.colliderect(player.rect_colisao):
+            if jogador_valido and not self.hit_player_this_bite and hasattr(player, 'rect_colisao') and self.attack_hitbox.colliderect(player.rect_colisao):
                 player.receber_dano(self.attack_damage_especifico)
                 self.hit_player_this_bite = True
             
@@ -190,7 +210,7 @@ class Lobo(InimigoBase):
                 self.atacar(player)
 
         # Dano de contato com cooldown
-        if jogador_valido and self.rect.colliderect(player.rect_colisao) and (agora - self.last_contact_time >= self.contact_cooldown):
+        if jogador_valido and hasattr(player, 'rect_colisao') and self.rect.colliderect(player.rect_colisao) and (agora - self.last_contact_time >= self.contact_cooldown):
             player.receber_dano(self.contact_damage)
             self.last_contact_time = agora
 
