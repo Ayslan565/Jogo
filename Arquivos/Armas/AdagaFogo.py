@@ -15,9 +15,9 @@ class AdagaFogo(Weapon):
         # --- As estatísticas de cada nível são definidas aqui para que possam ser acedidas durante a inicialização.
         self._stats_by_level = {
             1.0: {
-                "damage": 15.0, "range": 40.0, "cooldown": 0.6, "name_suffix": "",
-                "hitbox_dim": (10, 70),
-                "hitbox_off": (100, 10),
+                "damage": 15.0, "range": 40, "cooldown": 0.6, "name_suffix": "",
+                "hitbox_dim": (8, 8), #
+                "hitbox_off": (100, 10), #(Distancia do Corpo do Jogador no Eixo X , Distancia do Corpo do Jogador no Eixo Y)
                 # CORRIGIDO: Caminho aponta para a pasta 'Sprites'
                 "effect_sprite_base": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Efeitos/ImpactoFogoNv1.png",
                 "effect_scale_base": 0.8,
