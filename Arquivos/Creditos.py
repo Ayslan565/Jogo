@@ -28,7 +28,7 @@ def exibir_creditos(tela, clock):
     
     dados_creditos = [
         {"nome": "Ayslan Araújo", "funcao": "Diretor, Produtor", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Ayslan.jpg")},
-        {"nome": "Andre Costa", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Andre.jpg")},
+        {"nome": "Andre Costa", "funcao": "Design e Animação de Personagens", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Andre.jpg")},
         {"nome": "Caio Macedo", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Caio.jpg")},
         {"nome": "Calebe de Oliveira", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Calebe.jpg")},
         {"nome": "Felipe Hipolio", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Felipe.jpg")},
