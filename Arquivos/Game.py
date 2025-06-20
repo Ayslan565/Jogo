@@ -1,8 +1,11 @@
+# Arquivo: Game.py (Atualizado com Camadas de Desenho Corrigidas)
+
 import pygame
 import random
 import sys
 import os
 import traceback # Importa o módulo traceback
+import math # Importado para o ciclo de dia/noite
 
 # --- Configuração do sys.path ---
 # Garante que os módulos do projeto possam ser encontrados
@@ -28,6 +31,8 @@ try:
     # Garante que Cogumelo e GeradorCogumelos sejam importados explicitamente
     from cogumelo import Cogumelo
     from gerrador_cogumelo import GeradorCogumelos
+    # --- NOVA IMPORTAÇÃO ---
+    from eventos_climaticos import GerenciadorDeEventos
 except ImportError as e:
     print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
     traceback.print_exc() # Imprime o rastreamento completo do erro
@@ -37,6 +42,7 @@ except ImportError as e:
     BarraInventario = None
     Cogumelo = None
     GeradorCogumelos = None
+    GerenciadorDeEventos = None # Fallback para o novo gerenciador
 
 # --- Constantes e Configurações Globais ---
 MUSICAS_JOGO = [
@@ -59,18 +65,20 @@ game_is_running_flag = True
 jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
-gerador_cogumelos = None # Variável global para o gerador de cogumelos
+gerador_cogumelos = None 
+gerenciador_eventos = None # Variável global para os eventos climáticos
 
 def inicializar_jogo(largura_tela, altura_tela):
     """Prepara todos os objetos e variáveis para uma nova sessão de jogo."""
     global jogador, pause_manager, xp_manager, barra_inventario, gerenciador_inimigos, \
-           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas, gerador_cogumelos
+           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas, \
+           gerador_cogumelos, gerenciador_eventos # Adicionado gerenciador_eventos
     
     tempo_inicio_func = pygame.time.get_ticks()
 
     if Player is None:
         print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
-        return (None,) * 12 # Retorna uma tupla de Nones para corresponder ao retorno esperado
+        return (None,) * 13 # Ajustado para o novo retorno
 
     jogador = Player(velocidade=5, vida_maxima=150)
     jogador.x = float(largura_tela // 2)
@@ -82,6 +90,13 @@ def inicializar_jogo(largura_tela, altura_tela):
             jogador.xp_manager = xp_manager
 
     estacoes = Estacoes(largura_tela, altura_tela) if Estacoes else None
+    
+    # --- INICIALIZAÇÃO DO GERENCIADOR DE EVENTOS ---
+    if GerenciadorDeEventos and estacoes:
+        gerenciador_eventos = GerenciadorDeEventos(largura_tela, altura_tela, estacoes)
+    else:
+        gerenciador_eventos = None
+
     gramas, arvores, blocos_gerados = [], [], set()
 
     if GerenciadorDeInimigos and estacoes:
@@ -119,7 +134,10 @@ def inicializar_jogo(largura_tela, altura_tela):
         gerador_cogumelos = None
         print("ERRO (Game.py): Classe GeradorCogumelos não foi importada.")
 
-    return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario, gerador_cogumelos
+    # Retorna o novo gerenciador_eventos
+    return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, \
+           gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario, \
+           gerador_cogumelos, gerenciador_eventos
 
 def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista, estacoes_obj, blocos_ja_gerados_set, gerador_cogumelos_obj):
     if not all([jogador_obj, hasattr(jogador_obj, 'rect'), estacoes_obj, Grama, Arvore]):
@@ -185,47 +203,77 @@ def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
                 if inimigo_col_rect and jogador_col_rect.colliderect(inimigo_col_rect):
                     jogador_obj.receber_dano(dano_contato, inimigo_col_rect)
 
+# --- FUNÇÃO DE DESENHO ATUALIZADA ---
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
                   gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui,
                   cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms, jogo_pausado_inv,
-                  gerador_cogumelos_obj):
+                  gerador_cogumelos_obj, gerenciador_eventos_obj):
     global xp_manager, gerenciador_de_moedas
 
+    # Camada 1: Fundo da Estação
     janela_surf.fill((20, 20, 30))
-    if estacoes_obj: estacoes_obj.desenhar(janela_surf, cam_x, cam_y)
+    if estacoes_obj:
+        estacoes_obj.desenhar(janela_surf, cam_x, cam_y)
 
-    elementos_cenario = gramas_lista + arvores_lista
-    for elemento in elementos_cenario:
-        elemento.desenhar(janela_surf, cam_x, cam_y)
-    
-    if shop_elements:
-        shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms)
-    
-    if gerador_cogumelos_obj:
-        gerador_cogumelos_obj.desenhar_cogumelos(janela_surf, cam_x, cam_y)
+    # Camada 2: Elementos de Chão (Grama)
+    for grama in gramas_lista:
+        grama.desenhar(janela_surf, cam_x, cam_y)
 
+    # Camada 3: Sprites do Mundo (ordenados por Y para dar profundidade)
+    sprites_do_mundo = []
+    if jogador_obj:
+        sprites_do_mundo.append(jogador_obj)
     if gerenciador_inimigos_obj:
-        gerenciador_inimigos_obj.desenhar_inimigos(janela_surf, cam_x, cam_y)
+        sprites_do_mundo.extend(gerenciador_inimigos_obj.inimigos)
+    if gerador_cogumelos_obj and hasattr(gerador_cogumelos_obj, 'cogumelos'):
+        sprites_do_mundo.extend(gerador_cogumelos_obj.cogumelos)
+    if shop_elements and hasattr(shop_elements, 'vendedor_instance') and shop_elements.vendedor_instance:
+         sprites_do_mundo.append(shop_elements.vendedor_instance)
+    sprites_do_mundo.extend(arvores_lista)
+
+    # Ordena os sprites pela posição 'bottom' de seus retângulos.
+    # Isso faz com que sprites mais "embaixo" na tela sejam desenhados por cima dos outros.
+    sprites_do_mundo.sort(key=lambda sprite: sprite.rect.bottom)
+
+    # Desenha os sprites do mundo já ordenados
+    for sprite in sprites_do_mundo:
+        sprite.desenhar(janela_surf, cam_x, cam_y)
+
+    # Camada 4: Projéteis
+    # Desenhados depois dos sprites para sempre aparecerem na frente deles.
+    if gerenciador_inimigos_obj:
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
+    if jogador_obj and hasattr(jogador_obj, 'arma_atual') and jogador_obj.arma_atual and hasattr(jogador_obj.arma_atual, 'desenhar_projeteis'):
+        jogador_obj.arma_atual.desenhar_projeteis(janela_surf, cam_x, cam_y)
+        
+    # Camada 5: Efeitos Climáticos (Chuva, Neve, Noite)
+    # Ficam por cima de todo o mundo do jogo.
+    if gerenciador_eventos_obj:
+        gerenciador_eventos_obj.desenhar(janela_surf)
 
-    if jogador_obj: jogador_obj.desenhar(janela_surf, cam_x, cam_y)
-
-    if vida_ui_obj: vida_ui_obj.desenhar(janela_surf, 20, 20)
-    if estacoes_obj: estacoes_obj.desenhar_mensagem_estacao(janela_surf)
-    if timer_ui_obj: timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
-    if xp_manager: xp_manager.draw(janela_surf)
-    
-    if not jogo_pausado_inv and barra_inventario_ui and jogador_obj:
-        barra_inventario_ui.desenhar(janela_surf, jogador_obj)
-
+    # Camada 6: Interface do Usuário (HUD)
+    # Fica no topo de absolutamente tudo.
+    if vida_ui_obj:
+        vida_ui_obj.desenhar(janela_surf, 20, 20)
+    if estacoes_obj:
+        estacoes_obj.desenhar_mensagem_estacao(janela_surf)
+    if timer_ui_obj:
+        timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
+    if xp_manager:
+        xp_manager.draw(janela_surf)
     if gerenciador_de_moedas:
         largura_tela_atual = janela_surf.get_width()
         gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, largura_tela_atual - 220, 20)
+    
+    # A barra de inventário só aparece quando o jogo não está pausado para o inventário grande
+    if not jogo_pausado_inv and barra_inventario_ui and jogador_obj:
+        barra_inventario_ui.desenhar(janela_surf, jogador_obj)
 
 def main():
     global jogador, game_music_volume, game_sfx_volume, pause_manager, game_is_running_flag, \
            xp_manager, barra_inventario, jogo_pausado_para_inventario, gerenciador_inimigos, \
-           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas, gerador_cogumelos
+           musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas, \
+           gerador_cogumelos, gerenciador_eventos
 
     pygame.init()
     if not pygame.font.get_init(): pygame.font.init()
@@ -274,7 +322,7 @@ def main():
 
             jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, \
             gerenciador_inimigos, jogador_morreu, tempo_inicio, timer_obj, \
-            barra_inventario, gerador_cogumelos = inicializar_jogo(largura_tela, altura_tela)
+            barra_inventario, gerador_cogumelos, gerenciador_eventos = inicializar_jogo(largura_tela, altura_tela)
             
             if jogador is None: break
 
@@ -327,6 +375,11 @@ def main():
                             gerenciador_inimigos.resetar_temporizador_spawn_estacao()
                             gerenciador_inimigos.spawn_inimigos_iniciais(jogador, dt_ms)
                     
+                    if gerenciador_eventos:
+                        gerenciador_eventos.atualizar_clima()
+                        gerenciador_eventos.atualizar_ciclo_dia_noite()
+                        gerenciador_eventos.atualizar_particulas()
+
                     if gerenciador_inimigos:
                         gerenciador_inimigos.process_spawn_requests(jogador, dt_ms)
                         gerenciador_inimigos.update_inimigos(jogador, dt_ms)
@@ -354,10 +407,11 @@ def main():
                             shop_elements.reset_shop_spawn()
                 
                 tempo_seg = (pygame.time.get_ticks() - tempo_inicio) // 1000
+                
                 desenhar_cena(janela, est, gramas, arvores, jogador, gerenciador_inimigos,
                               vida_jogador_ref, barra_inventario,
                               cam_x, cam_y, tempo_seg, timer_obj, dt_ms, jogo_pausado_para_inventario,
-                              gerador_cogumelos)
+                              gerador_cogumelos, gerenciador_eventos)
 
                 if jogo_pausado_para_inventario and barra_inventario:
                     barra_inventario.desenhar(janela, jogador)

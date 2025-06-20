@@ -159,7 +159,7 @@ class AdagaFogo(Weapon):
         if level_to_check in self._stats_by_level:
             return self._stats_by_level[level_to_check]
         else:
-            print(f"AVISO(AdagaFogo): Nível {level_to_check} não encontrado. Usando o primeiro nível definido.")
+            #print(f"AVISO(AdagaFogo): Nível {level_to_check} não encontrado. Usando o primeiro nível definido.")
             first_level_key = next(iter(self._stats_by_level))
             return self._stats_by_level[first_level_key]
 
@@ -175,20 +175,15 @@ class AdagaFogo(Weapon):
         for path_relativo in caminhos:
             path_relativo_corrigido = path_relativo.replace("\\", os.sep).replace("/", os.sep).lstrip(os.sep)
             full_path = os.path.join(project_root, path_relativo_corrigido)
-            try:
-                if os.path.exists(full_path):
+            if os.path.exists(full_path):
                     imagem_original = pygame.image.load(full_path).convert_alpha()
                     novo_w = int(imagem_original.get_width() * escala_animacao)
                     novo_h = int(imagem_original.get_height() * escala_animacao)
                     if novo_w > 0 and novo_h > 0:
                         imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
                         sprites_carregados.append(imagem)
-                    else:
-                        print(f"AVISO(AdagaFogo): Escala de animação inválida para '{full_path}'.")
-                else:
-                    print(f"AVISO(AdagaFogo): Sprite de animação não encontrado '{full_path}'.")
-            except pygame.error as e:
-                print(f"ERRO(AdagaFogo): Erro ao carregar sprite de animação '{full_path}': {e}")
+
+
         
         self.attack_animation_sprites = sprites_carregados
         self.current_attack_animation_frame = 0
@@ -198,8 +193,8 @@ class AdagaFogo(Weapon):
         if target_level in self._stats_by_level:
             self.level = target_level
             self._apply_level_stats()
-        else:
-            print(f"AVISO(AdagaFogo): Nível de evolução {target_level} inválido. Níveis: {list(self._stats_by_level.keys())}")
+
+            #print(f"AVISO(AdagaFogo): Nível de evolução {target_level} inválido. Níveis: {list(self._stats_by_level.keys())}")
 
     def _apply_level_stats(self):
         """Aplica os atributos correspondentes ao nível atual da adaga."""

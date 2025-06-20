@@ -17,7 +17,6 @@ VERMELHO = (255, 0, 0)
 # --- Caminhos dos Recursos ---
 # Certifique-se de que estes caminhos estão corretos na estrutura do seu projeto.
 FONTE_RETRO_PATH = "Fontes/Retro Gaming.ttf"
-IMAGEM_FUNDO_OPCAO_PATH = "Sprites/Menu/botao_menu.png"
 IMAGEM_FUNDO_MENU_PATH = "Sprites/Menu/Menu.png"
 MUSICAS_MENU = [
     "Musica/Menu/Faixa 1.mp3",
@@ -28,6 +27,7 @@ MUSICAS_MENU = [
 class Menu:
     """
     Classe para gerenciar e desenhar o menu principal do jogo.
+    Utiliza botões desenhados via código.
     """
     def __init__(self, largura_tela, altura_tela):
         """
@@ -60,30 +60,21 @@ class Menu:
             self.font = pygame.font.Font(None, 72)
             self.font_opcoes = pygame.font.Font(None, 36)
 
-        # --- ALTERAÇÃO AQUI ---
+        # Textos das opções do menu
         self.opcao_jogar_texto = "Jogar"
-        self.opcao_carregar_texto = "Carregar"
         self.opcao_opcoes_texto = "Opções"
         self.opcao_creditos_texto = "Creditos"
         self.opcao_sair_texto = "Sair"
         self.titulo_parte1_texto = "THE LEGEND OF "
         self.titulo_parte2_texto = "AZRAEL"
 
-        # --- ALTERAÇÃO AQUI ---
         self.titulo_parte1_render = self.font.render(self.titulo_parte1_texto, True, BRANCO)
         self.titulo_parte2_render = self.font.render(self.titulo_parte2_texto, True, AMARELO_SELECAO)
         
-        self.usar_imagem_fundo = False
-        try:
-            self.imagem_fundo_opcao_original = pygame.image.load(IMAGEM_FUNDO_OPCAO_PATH).convert_alpha()
-            self.usar_imagem_fundo = True
-        except (pygame.error, FileNotFoundError) as e:
-            print(f"AVISO: Imagem de botão '{IMAGEM_FUNDO_OPCAO_PATH}' não encontrada. Usando placeholder. Erro: {e}")
-            largura_placeholder = 300 # Largura fixa para o placeholder
-            altura_placeholder = self.espacamento_opcoes - 20
-            self.imagem_fundo_opcao_original = pygame.Surface((largura_placeholder, altura_placeholder), pygame.SRCALPHA)
-        
-        self.tamanho_fundo_original = self.imagem_fundo_opcao_original.get_size()
+        # Define o tamanho do placeholder para os botões
+        largura_placeholder = 300
+        altura_placeholder = self.espacamento_opcoes - 20
+        self.tamanho_fundo_original = (largura_placeholder, altura_placeholder)
 
         try:
             self.imagem = pygame.image.load(IMAGEM_FUNDO_MENU_PATH).convert()
@@ -95,16 +86,21 @@ class Menu:
 
         self.opcoes = {
             "jogar": {"texto": self.opcao_jogar_texto, "cor_base": BRANCO, "cor_hover": AMARELO_SELECAO},
-            "carregar": {"texto": self.opcao_carregar_texto, "cor_base": BRANCO, "cor_hover": AMARELO_SELECAO},
             "opcoes": {"texto": self.opcao_opcoes_texto, "cor_base": BRANCO, "cor_hover": AMARELO_SELECAO},
             "creditos": {"texto": self.opcao_creditos_texto, "cor_base": BRANCO, "cor_hover": AMARELO_SELECAO},
             "sair": {"texto": self.opcao_sair_texto, "cor_base": VERDE, "cor_hover": AMARELO_SELECAO},
         }
         
-        # Gera os retângulos para cada opção
-        y_inicial = self.altura_tela - (len(self.opcoes) * self.espacamento_opcoes)
+        # Gera os retângulos para cada opção, posicionando-os no canto inferior central
+        num_opcoes = len(self.opcoes)
+        # Define a posição Y central do último botão (mais abaixo) a 100 pixels da borda inferior
+        y_centro_ultima_opcao = self.altura_tela - 100
+        # Calcula a posição Y do centro do primeiro botão com base na posição do último
+        y_inicial = y_centro_ultima_opcao - ((num_opcoes - 1) * self.espacamento_opcoes)
+
         for i, nome_opcao in enumerate(self.opcoes):
             rect = pygame.Rect(0, 0, self.tamanho_fundo_original[0], self.tamanho_fundo_original[1])
+            # Posiciona cada botão com base na posição inicial e no espaçamento
             rect.center = (self.largura_tela // 2, y_inicial + i * self.espacamento_opcoes)
             self.opcoes[nome_opcao]["rect"] = rect
 
@@ -131,10 +127,8 @@ class Menu:
         for nome, dados in self.opcoes.items():
             rect_original = dados["rect"]
             
-            if self.usar_imagem_fundo:
-                self.processar_opcao_desenho_imagem(tela, mouse_pos, rect_original)
-            else:
-                self.processar_opcao_desenho_placeholder(tela, mouse_pos, rect_original, PRETO, AZUL)
+            # Desenha sempre o placeholder, pois a opção de imagem foi removida
+            self.processar_opcao_desenho_placeholder(tela, mouse_pos, rect_original, PRETO, AZUL)
 
             cor_atual = dados["cor_hover"] if rect_original.collidepoint(mouse_pos) else dados["cor_base"]
             texto_render = self.font_opcoes.render(dados["texto"], True, cor_atual)
@@ -142,18 +136,6 @@ class Menu:
             tela.blit(texto_render, texto_rect)
 
         pygame.display.update()
-
-    def processar_opcao_desenho_imagem(self, tela, mouse_pos, rect_fundo):
-        centro_original = rect_fundo.center
-        if rect_fundo.collidepoint(mouse_pos):
-            novo_tamanho = (int(self.tamanho_fundo_original[0] * self.fator_escala_hover),
-                            int(self.tamanho_fundo_original[1] * self.fator_escala_hover))
-            imagem_render = pygame.transform.scale(self.imagem_fundo_opcao_original, novo_tamanho)
-        else:
-            imagem_render = self.imagem_fundo_opcao_original
-
-        rect_render = imagem_render.get_rect(center=centro_original)
-        tela.blit(imagem_render, rect_render)
 
     def processar_opcao_desenho_placeholder(self, tela, mouse_pos, rect_fundo, cor_preenchimento, cor_contorno):
         centro_original = rect_fundo.center
