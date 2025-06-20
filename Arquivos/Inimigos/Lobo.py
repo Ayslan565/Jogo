@@ -70,21 +70,8 @@ class Lobo(InimigoBase):
         if Lobo.sprites_andar_carregados is None:
             # MODIFICADO: Lista explícita de caminhos para os sprites de andar
             caminhos_andar = [
-                "Sprites/Inimigos/Lobo/C1.jpg",
-                "Sprites/Inimigos/Lobo/C2.jpg",
-                "Sprites/Inimigos/Lobo/C3.jpg",
-                "Sprites/Inimigos/Lobo/C4.jpg",
-                "Sprites/Inimigos/Lobo/C5.jpg",
-                "Sprites/Inimigos/Lobo/C6.jpg",
-                "Sprites/Inimigos/Lobo/C7.jpg",
-                "Sprites/Inimigos/Lobo/C8.jpg",
-                "Sprites/Inimigos/Lobo/C9.jpg",
-                "Sprites/Inimigos/Lobo/C10.jpg",
-                "Sprites/Inimigos/Lobo/C11.jpg",
-                "Sprites/Inimigos/Lobo/C12.jpg",
-                "Sprites/Inimigos/Lobo/C13.jpg",
-                "Sprites/Inimigos/Lobo/C14.jpg",
-                "Sprites/Inimigos/Lobo/C15.jpg"
+            "Sprites\\Inimigos\\Lobo\\Lobo1.jpg",
+            "Sprites\\Inimigos\\Lobo\\Lobo2.jpg",  
             ]
             Lobo.sprites_andar_carregados = []
             Lobo._carregar_lista_sprites_estatico(caminhos_andar, Lobo.sprites_andar_carregados, Lobo.tamanho_sprite_definido)
@@ -92,14 +79,8 @@ class Lobo(InimigoBase):
         if Lobo.sprites_atacar_carregados is None:
             # MODIFICADO: Lista explícita de caminhos para os sprites de atacar
             caminhos_atacar = [
-              "Sprites/Inimigos/Lobo/A1.jpg",
-                "Sprites/Inimigos/Lobo/A2.jpg",
-                "Sprites/Inimigos/Lobo/A3.jpg",
-                "Sprites/Inimigos/Lobo/A4.jpg",
-                "Sprites/Inimigos/Lobo/A5.jpg",
-                "Sprites/Inimigos/Lobo/A6.jpg",
-                "Sprites/Inimigos/Lobo/A7.jpg",
-                "Sprites/Inimigos/Lobo/A8.jpg"
+                "Sprites/Inimigos/Lobo/Lobo1.jpg",
+                "Sprites/Inimigos/Lobo/Lobo2.jpg",
             ]
             Lobo.sprites_atacar_carregados = []
             Lobo._carregar_lista_sprites_estatico(caminhos_atacar, Lobo.sprites_atacar_carregados, Lobo.tamanho_sprite_definido)

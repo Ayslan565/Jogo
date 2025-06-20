@@ -83,11 +83,11 @@ class Urso(InimigoBase):
     @staticmethod
     def carregar_recursos_urso():
         if Urso.sprites_andar_carregados is None:
-            caminhos_andar = ["Sprites/Inimigos/Urso/Urso {}.png".format(i) for i in range(1, 5)]
+            caminhos_andar = ["Sprites/Inimigos/Urso/Urso {}.png".format(i) for i in range(2, 5)]
             Urso.sprites_andar_carregados = []
             Urso._carregar_lista_sprites_estatico(caminhos_andar, Urso.sprites_andar_carregados, Urso.tamanho_sprite_definido, "Andar")
         if Urso.sprites_atacar_carregados is None:
-            caminhos_atacar = ["Sprites/Inimigos/Urso/Urso_Atacar{}.png".format(i) for i in range(1, 3)]
+            caminhos_atacar = ["Sprites/Inimigos/Urso/Urso{}.png".format(i) for i in range(2, 5)]
             Urso.sprites_atacar_carregados = []
             Urso._carregar_lista_sprites_estatico(caminhos_atacar, Urso.sprites_atacar_carregados, Urso.tamanho_sprite_definido, "Atacar")
             if not Urso.sprites_atacar_carregados and Urso.sprites_andar_carregados:

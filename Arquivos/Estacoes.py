@@ -24,7 +24,7 @@ class Estacoes:
         self.caminhos_imagens = {
             "Primavera": "Sprites\\Chao\\Primavera.png",
             "Verão": "Sprites\\Chao\\Verao.png",
-            "Outono": "Sprites\\Chao\\Primavera.png",
+            "Outono": "Sprites\\Chao\\Outono.png",
             "Inverno": "Sprites\\Chao\\Inverno.png"
         }
         
