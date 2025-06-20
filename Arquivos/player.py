@@ -1,5 +1,3 @@
-# Jogo/Arquivos/player.py
-
 import pygame
 import random
 import math
@@ -130,7 +128,7 @@ class Player(pygame.sprite.Sprite):
         # Estado de ataque
         self.is_attacking = False # Flag geral se está na lógica de ataque
         self.is_attacking_animation_active = False # Flag se a animação da arma está ativa
-        self.attack_duration = 0.3 # Duração da animação de ataque em segundos (pode ser da arma)
+        self.attack_duration = 0.3 # Duração da animação de ataque em segundos (agora é dinâmico)
         self.attack_timer = 0.0 # Timer para controlar a duração da animação de ataque (time.time())
 
         self.attack_hitbox = pygame.Rect(0,0,0,0) # Hitbox do ataque atual
@@ -377,6 +375,20 @@ class Player(pygame.sprite.Sprite):
             self.tempo_ultimo_ataque = current_time
             self.hit_enemies_this_attack.clear()
             
+            # --- ADAPTADO: DURAÇÃO DO ATAQUE DINÂMICA ---
+            # Calcula a duração total da animação da arma para sincronia
+            if hasattr(self.current_weapon, 'attack_animation_sprites') and hasattr(self.current_weapon, 'attack_animation_speed'):
+                num_frames = len(self.current_weapon.attack_animation_sprites)
+                speed_ms = self.current_weapon.attack_animation_speed
+                if num_frames > 0 and speed_ms > 0:
+                    # Duração = (número de frames * tempo por frame em ms) / 1000 para converter para segundos
+                    self.attack_duration = (num_frames * speed_ms) / 1000.0
+                else:
+                    self.attack_duration = 0.3 # Fallback para o valor original
+            else:
+                self.attack_duration = 0.3 # Fallback se os atributos não existirem
+            # --- FIM DA ADAPTAÇÃO ---
+
             # Define a hitbox do ataque
             hitbox_w = self.current_weapon.hitbox_width
             hitbox_h = self.current_weapon.hitbox_height
@@ -436,7 +448,7 @@ class Player(pygame.sprite.Sprite):
                 attack_sprite_rect = sprite_to_draw.get_rect(center=self.attack_hitbox.center)
                 
                 janela.blit(sprite_to_draw, (round(attack_sprite_rect.x - camera_x), 
-                                              round(attack_sprite_rect.y - camera_y)))
+                                             round(attack_sprite_rect.y - camera_y)))
 
     def esta_vivo(self):
         """Verifica se o jogador ainda tem pontos de vida."""

@@ -19,16 +19,16 @@ class AdagaFogo(Weapon):
                 "hitbox_dim": (8, 8), #
                 "hitbox_off": (100, 10), #(Distancia do Corpo do Jogador no Eixo X , Distancia do Corpo do Jogador no Eixo Y)
                 # CORRIGIDO: Caminho aponta para a pasta 'Sprites'
-                "effect_sprite_base": "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Efeitos/ImpactoFogoNv1.png",
+                "effect_sprite_base": "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Efeitos//ImpactoFogoNv1.png",
                 "effect_scale_base": 0.8,
                 # CORRIGIDO: Caminhos apontam para a pasta 'Sprites'
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base0.png",
-                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base1.png",
-                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base2.png",
-                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base3.png",
-                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base4.png",
-                    "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Ataque/AT1/AT1-base5.png"
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT0-base0.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base1.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT2-base2.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT3-base3.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT4-base4.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT5-base5.png"
                 ],
                 "animation_speed": 80,
                 "animation_display_scale": 1.0,
@@ -41,12 +41,13 @@ class AdagaFogo(Weapon):
                 "effect_sprite_base": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Efeitos\\ImpactoFogoNv1.png",
                 "effect_scale_base": 0.85,
                 "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base0.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base1.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base3.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base4.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT2\\AT2-base5.png"
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT0-base0.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base1.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base2.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base3.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base4.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base5.png"
+
                 ],
                 "animation_speed": 70,
                 "animation_display_scale": 1.05,
@@ -59,12 +60,10 @@ class AdagaFogo(Weapon):
                 "effect_scale_base": 0.9,
                 # CORRIGIDO: Caminhos apontam para a pasta 'Sprites' e typo corrigido
                 "animation_sprites": [
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base0.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base1.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base2.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base3.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base4.png",
-                    "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Ataque\\AT3\\AT3-base5.png"
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT0-base0.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base1.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base2.png",
+                    "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Ataque//AT1//AT1-base3.png"
                 ],
                 "animation_speed": 65,
                 "animation_display_scale": 1.1,
@@ -123,7 +122,7 @@ class AdagaFogo(Weapon):
         print(f"--- Carregando Sprites para {self.name} ---")
 
         for path_relativo in caminhos:
-            path_corrigido = path_relativo.replace("\\", os.sep).replace("/", os.sep)
+            path_corrigido = path_relativo.replace("\\", os.sep).replace("//", os.sep)
             full_path = path_corrigido
             
             print(f"DEBUG(AdagaFogo): Tentando carregar sprite: '{full_path}'")
@@ -148,6 +147,26 @@ class AdagaFogo(Weapon):
         self.current_attack_animation_frame = 0
         print(f"--- Carga de sprites para {self.name} concluída. Total de sprites carregados: {len(self.attack_animation_sprites)} ---")
 
+    # --- MÉTODOS DE ANIMAÇÃO ADICIONADOS ---
+    def start_attack_animation(self):
+        """Reinicia a animação de ataque para o primeiro frame."""
+        self.current_attack_animation_frame = 0
+        self.last_attack_animation_update = pygame.time.get_ticks()
+
+    def update_animation(self, current_ticks):
+        """Avança o frame da animação de ataque com base na velocidade da animação."""
+        if not self.attack_animation_sprites:
+            return  # Não faz nada se não houver sprites
+
+        # Verifica se já passou tempo suficiente para atualizar para o próximo frame
+        if current_ticks - self.last_attack_animation_update > self.attack_animation_speed:
+            self.last_attack_animation_update = current_ticks
+            
+            # Avança para o próximo frame, fazendo um loop ao chegar no final
+            # A duração do ataque é controlada em player.py, então o loop aqui é seguro.
+            if len(self.attack_animation_sprites) > 0:
+                self.current_attack_animation_frame = (self.current_attack_animation_frame + 1) % len(self.attack_animation_sprites)
+    # --- FIM DOS MÉTODOS ADICIONADOS ---
 
     def evolve(self, target_level: float):
         if target_level in self._stats_by_level:
