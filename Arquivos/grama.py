@@ -6,12 +6,6 @@ class Grama(pygame.sprite.Sprite):
     imagens_grama = [
         pygame.transform.scale(pygame.image.load('Sprites\\mato\\Mato_1.png'), (50, 50)),
         pygame.transform.scale(pygame.image.load('Sprites\\mato\\Mato_2.png'), (50, 50)),
-        pygame.transform.scale(pygame.image.load('Sprites\\mato\\Flor1.png'), (30, 30)),
-        pygame.transform.scale(pygame.image.load('Sprites\\mato\\Flor2.png'), (30, 30)),
-        pygame.transform.scale(pygame.image.load('Sprites\\mato\\Flor3.png'), (30, 30)),
-        pygame.transform.scale(pygame.image.load('Sprites\\mato\\Flor4.png'), (30, 30)),
-        pygame.transform.scale(pygame.image.load('Sprites\\mato\\Flor5.png'), (30, 30)),
-
     ]
 
     def __init__(self, x, y, largura=50, altura=50):

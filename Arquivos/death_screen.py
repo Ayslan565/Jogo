@@ -47,8 +47,7 @@ def run_death_screen(janela, restart_game_callback, main_menu_callback, backgrou
         except pygame.error as e:
             print(f"DEBUG(death_screen): Erro ao carregar imagem de fundo da tela de morte '{background_image_path}': {e}")
             original_background_image = None
-    else:
-        print(f"DEBUG(death_screen): Aviso: Caminho da imagem de fundo da tela de morte não encontrado ou não fornecido: {background_image_path}")
+        #print(f"DEBUG(death_screen): Aviso: Caminho da imagem de fundo da tela de morte não encontrado ou não fornecido: {background_image_path}")
 
     # Para a música do jogo atual (se estiver tocando)
     pygame.mixer.music.stop()

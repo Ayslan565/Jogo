@@ -65,3 +65,4 @@ class Timer:
         janela.blit(fundo_surface, (self.pos_x, self.pos_y))
         janela.blit(render_texto, (texto_x, texto_y))
 
+    

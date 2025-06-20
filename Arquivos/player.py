@@ -1,3 +1,5 @@
+# Jogo/Arquivos/player.py
+
 import pygame
 import random
 import math
@@ -60,6 +62,14 @@ class Player(pygame.sprite.Sprite):
             self.vida = None # Objeto Vida não disponível
             print("DEBUG(Player): ERRO CRÍTICO: Classe Vida não disponível. Funcionalidades de vida estarão ausentes.")
 
+        # --- CORREÇÃO ADICIONADA AQUI ---
+        # Inicializa os atributos de experiência e nível que estavam faltando.
+        self.nivel = 1
+        self.experiencia = 0
+        self.experiencia_para_proximo_nivel = 100  # Valor inicial para o primeiro nível
+        self.total_pontos_experiencia_acumulados = 0
+        # --- FIM DA CORREÇÃO ---
+        
         self.xp_manager = None 
         self.dinheiro = 1000 # Dinheiro inicial do jogador
         
@@ -497,4 +507,3 @@ class Player(pygame.sprite.Sprite):
             self.xp_manager.gain_xp(xp_amount)
         else:
             print(f"ALERTA(Player): xp_manager não configurado. Não foi possível adicionar {xp_amount} de XP do chefe.")
-

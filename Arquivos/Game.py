@@ -4,6 +4,7 @@ import sys
 import os
 import traceback # Importa o módulo traceback
 
+# --- Configuração do sys.path ---
 # Garante que os módulos do projeto possam ser encontrados
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
@@ -75,9 +76,6 @@ def inicializar_jogo(largura_tela, altura_tela):
     jogador.x = float(largura_tela // 2)
     jogador.y = float(altura_tela // 2)
 
-    if GerenciadorMoedas:
-        gerenciador_de_moedas = GerenciadorMoedas(jogador_ref=jogador, fonte_path=None)
-    
     if XPManager:
         xp_manager = XPManager(player_ref=jogador, largura_tela=largura_tela, altura_tela=altura_tela)
         if hasattr(jogador, 'xp_manager'):
