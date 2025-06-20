@@ -1,4 +1,4 @@
-# Arquivo: Game.py (Atualizado com Camadas de Desenho Corrigidas)
+# Arquivo: Game.py (Corrigido)
 
 import pygame
 import random
@@ -65,7 +65,7 @@ game_is_running_flag = True
 jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
-gerador_cogumelos = None 
+gerador_cogumelos = None
 gerenciador_eventos = None # Variável global para os eventos climáticos
 
 def inicializar_jogo(largura_tela, altura_tela):
@@ -203,7 +203,7 @@ def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
                 if inimigo_col_rect and jogador_col_rect.colliderect(inimigo_col_rect):
                     jogador_obj.receber_dano(dano_contato, inimigo_col_rect)
 
-# --- FUNÇÃO DE DESENHO ATUALIZADA ---
+# --- FUNÇÃO DE DESENHO CORRIGIDA ---
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
                   gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui,
                   cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms, jogo_pausado_inv,
@@ -231,28 +231,30 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
          sprites_do_mundo.append(shop_elements.vendedor_instance)
     sprites_do_mundo.extend(arvores_lista)
 
-    # Ordena os sprites pela posição 'bottom' de seus retângulos.
-    # Isso faz com que sprites mais "embaixo" na tela sejam desenhados por cima dos outros.
     sprites_do_mundo.sort(key=lambda sprite: sprite.rect.bottom)
 
-    # Desenha os sprites do mundo já ordenados
     for sprite in sprites_do_mundo:
         sprite.desenhar(janela_surf, cam_x, cam_y)
 
     # Camada 4: Projéteis
-    # Desenhados depois dos sprites para sempre aparecerem na frente deles.
     if gerenciador_inimigos_obj:
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
     if jogador_obj and hasattr(jogador_obj, 'arma_atual') and jogador_obj.arma_atual and hasattr(jogador_obj.arma_atual, 'desenhar_projeteis'):
         jogador_obj.arma_atual.desenhar_projeteis(janela_surf, cam_x, cam_y)
         
     # Camada 5: Efeitos Climáticos (Chuva, Neve, Noite)
-    # Ficam por cima de todo o mundo do jogo.
     if gerenciador_eventos_obj:
         gerenciador_eventos_obj.desenhar(janela_surf)
 
     # Camada 6: Interface do Usuário (HUD)
-    # Fica no topo de absolutamente tudo.
+    
+    # === INÍCIO DA CORREÇÃO ===
+    # A linha abaixo desenha o sprite da loja, o pop-up e a seta na tela.
+    # Ela foi adicionada aqui para garantir que a interface da loja apareça.
+    if shop_elements:
+        shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms)
+    # === FIM DA CORREÇÃO ===
+
     if vida_ui_obj:
         vida_ui_obj.desenhar(janela_surf, 20, 20)
     if estacoes_obj:
@@ -265,7 +267,6 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
         largura_tela_atual = janela_surf.get_width()
         gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, largura_tela_atual - 220, 20)
     
-    # A barra de inventário só aparece quando o jogo não está pausado para o inventário grande
     if not jogo_pausado_inv and barra_inventario_ui and jogador_obj:
         barra_inventario_ui.desenhar(janela_surf, jogador_obj)
 

@@ -43,7 +43,7 @@ class Cogumelo(pygame.sprite.Sprite):
         full_path = os.path.join(project_root_dir, path.replace("\\", "/"))
 
         if not os.path.exists(full_path): 
-            print(f"ALERTA(Cogumelo): Sprite não encontrado: {full_path}. Usando placeholder.") 
+            #print(f"ALERTA(Cogumelo): Sprite não encontrado: {full_path}. Usando placeholder.") 
             img = pygame.Surface(tamanho, pygame.SRCALPHA)
             
             # Cores de placeholder baseadas no tipo para depuração
@@ -63,7 +63,7 @@ class Cogumelo(pygame.sprite.Sprite):
             img = pygame.transform.scale(img, tamanho) 
             return img 
         except pygame.error as e:
-            print(f"ERRO(Cogumelo): Erro ao carregar sprite '{full_path}' para o tipo {self.tipo_cogumelo}: {e}. Usando placeholder.") 
+            #print(f"ERRO(Cogumelo): Erro ao carregar sprite '{full_path}' para o tipo {self.tipo_cogumelo}: {e}. Usando placeholder.") 
             img = pygame.Surface(tamanho, pygame.SRCALPHA)
             
             if self.tipo_cogumelo == TIPO_CURA:
@@ -81,7 +81,7 @@ class Cogumelo(pygame.sprite.Sprite):
     def aplicar_efeito(self, jogador):
         """Aplica o efeito específico do cogumelo ao jogador."""
         if not self.coletado: 
-            print(f"DEBUG(Cogumelo): Cogumelo de {self.tipo_cogumelo} coletado!") 
+            #print(f"DEBUG(Cogumelo): Cogumelo de {self.tipo_cogumelo} coletado!") 
             if self.tipo_cogumelo == TIPO_CURA:
                 self._efeito_cura_vida(jogador)
             elif self.tipo_cogumelo == TIPO_LENTIDAO:
@@ -99,27 +99,24 @@ class Cogumelo(pygame.sprite.Sprite):
            hasattr(jogador.vida, 'curar') and \
            hasattr(jogador.vida, 'hp') and hasattr(jogador.vida, 'max_hp'):
             jogador.vida.curar(30) # Cura 30 de vida
-            print(f"DEBUG(Efeito Cura): Vida do jogador curada! Vida atual: {jogador.vida.hp}/{jogador.vida.max_hp}")
-        else:
-            print("AVISO(Efeito Cura): Jogador sem sistema de vida curável ou atributos de vida (hp/max_hp) para exibir.")
+            #print(f"DEBUG(Efeito Cura): Vida do jogador curada! Vida atual: {jogador.vida.hp}/{jogador.vida.max_hp}")
+        
 
     def _efeito_lentidao(self, jogador):
         """Função de efeito: Aplica lentidão ao jogador."""
         if hasattr(jogador, 'velocidade') and hasattr(jogador, 'velocidade_original'):
             jogador.velocidade = jogador.velocidade_original * 0.5 # Reduz velocidade para 50%
             jogador.tempo_fim_efeito_lentidao = time.time() + DURACAO_EFEITO_COGUMELO_S # Duração de 10 segundos
-            print(f"DEBUG(Efeito Lentidão): Jogador ficou lento por {DURACAO_EFEITO_COGUMELO_S}s. Velocidade atual: {jogador.velocidade}")
-        else:
-            print("AVISO(Efeito Lentidão): Jogador sem atributo de velocidade para aplicar lentidão.")
+            #print(f"DEBUG(Efeito Lentidão): Jogador ficou lento por {DURACAO_EFEITO_COGUMELO_S}s. Velocidade atual: {jogador.velocidade}")
+      
 
     def _efeito_rapidez(self, jogador):
         """Função de efeito: Aplica rapidez ao jogador."""
         if hasattr(jogador, 'velocidade') and hasattr(jogador, 'velocidade_original'):
             jogador.velocidade = jogador.velocidade_original * 1.5 # Aumenta velocidade para 150%
             jogador.tempo_fim_efeito_rapidez = time.time() + DURACAO_EFEITO_COGUMELO_S # Duração de 10 segundos
-            print(f"DEBUG(Efeito Rapidez): Jogador ficou rápido por {DURACAO_EFEITO_COGUMELO_S}s. Velocidade atual: {jogador.velocidade}")
-        else:
-            print("AVISO(Efeito Rapidez): Jogador sem atributo de velocidade para aplicar rapidez.")
+            #print(f"DEBUG(Efeito Rapidez): Jogador ficou rápido por {DURACAO_EFEITO_COGUMELO_S}s. Velocidade atual: {jogador.velocidade}")
+      
 
     def desenhar(self, janela, camera_x, camera_y):
         """Desenha o cogumelo na tela."""

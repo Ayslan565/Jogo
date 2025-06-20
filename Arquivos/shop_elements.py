@@ -25,7 +25,7 @@ shop_arrow_target_pos = (0, 0) # Target position (center of the shop) for the ar
 try:
     from Spawn_Loja import PROBABILIDADE_SPAWN_LOJA, INTERVALO_MINIMO_SPAWN_LOJA
 except ImportError:
-    #print("DEBUG(shop_elements): Warning: Module 'Spawn_Loja.py' or variables 'PROBABILIDADE_SPAWN_LOJA', 'INTERVALO_MINIMO_SPAWN_LOJA' not found.")
+    print("DEBUG(shop_elements): Warning: Module 'Spawn_Loja.py' or variables 'PROBABILIDADE_SPAWN_LOJA', 'INTERVALO_MINIMO_SPAWN_LOJA' not found.")
     PROBABILIDADE_SPAWN_LOJA = 0.0 # Set probability to zero if file not found
     INTERVALO_MINIMO_SPAWN_LOJA = 0 # Set interval to zero if file not found
 
@@ -46,7 +46,7 @@ def spawn_shop_if_possible(jogador, est, blocos_gerados):
 
     # Check if player and Estacoes object exist before calculating the block
     if jogador is None or not hasattr(jogador, 'rect') or est is None:
-        #print("DEBUG(shop_elements): Warning: Player or Estacoes object missing. Could not attempt to spawn the shop.")
+        print("DEBUG(shop_elements): Warning: Player or Estacoes object missing. Could not attempt to spawn the shop.")
         return
 
     bloco_tamanho = 1080 # Block size used to avoid re-generating
@@ -68,7 +68,7 @@ def spawn_shop_if_possible(jogador, est, blocos_gerados):
 
                 if PROBABILIDADE_SPAWN_LOJA > 0 and (current_time - last_shop_spawn_time) >= INTERVALO_MINIMO_SPAWN_LOJA:
                     if random.random() < PROBABILIDADE_SPAWN_LOJA:
-                        #print(f"DEBUG(shop_elements): Shop spawn probability ({PROBABILIDADE_SPAWN_LOJA*100:.1f}%) successful in block {bloco_coord} and minimum interval passed!")
+                        print(f"DEBUG(shop_elements): Shop spawn probability ({PROBABILIDADE_SPAWN_LOJA*100:.1f}%) successful in block {bloco_coord} and minimum interval passed!")
 
                         base_x = (jogador_bloco_x + dx) * bloco_tamanho
                         base_y = (jogador_bloco_y + dy) * bloco_tamanho
@@ -81,14 +81,14 @@ def spawn_shop_if_possible(jogador, est, blocos_gerados):
                         try:
                             if os.path.exists(SHOP_SPRITE_PATH):
                                 shop_sprite_image = pygame.image.load(SHOP_SPRITE_PATH).convert_alpha()
-                                #print(f"DEBUG(shop_elements): Shop image loaded for spawn: {SHOP_SPRITE_PATH}")
+                                print(f"DEBUG(shop_elements): Shop image loaded for spawn: {SHOP_SPRITE_PATH}")
                             else:
-                                #print(f"DEBUG(shop_elements): Warning: Shop image not found for spawn: {SHOP_SPRITE_PATH}. Using placeholder.")
+                                print(f"DEBUG(shop_elements): Warning: Shop image not found for spawn: {SHOP_SPRITE_PATH}. Using placeholder.")
                                 # Create a placeholder if the image is not found
                                 shop_sprite_image = pygame.Surface(SHOP_PLACEHOLDER_SIZE, pygame.SRCALPHA)
                                 pygame.draw.rect(shop_sprite_image, (100, 50, 0), (0, 0, SHOP_PLACEHOLDER_SIZE[0], SHOP_PLACEHOLDER_SIZE[1])) # Brown placeholder
                         except pygame.error as e:
-                            #print(f"DEBUG(shop_elements): Error loading shop image for spawn: {e}. Using placeholder.")
+                            print(f"DEBUG(shop_elements): Error loading shop image for spawn: {e}. Using placeholder.")
                             # Create a placeholder in case of loading error
                             shop_sprite_image = pygame.Surface(SHOP_PLACEHOLDER_SIZE, pygame.SRCALPHA)
                             pygame.draw.rect(shop_sprite_image, (100, 50, 0), (0, 0, SHOP_PLACEHOLDER_SIZE[0], SHOP_PLACEHOLDER_SIZE[1])) # Brown placeholder
@@ -96,7 +96,7 @@ def spawn_shop_if_possible(jogador, est, blocos_gerados):
                         # Create the shop's collision rectangle at the calculated position
                         if shop_sprite_image is not None:
                             current_shop_rect = shop_sprite_image.get_rect(topleft=shop_world_pos)
-                            #print(f"DEBUG(shop_elements): Shop spawned at ({shop_world_pos[0]}, {shop_world_pos[1]}).") # Debug spawn position
+                            print(f"DEBUG(shop_elements): Shop spawned at ({shop_world_pos[0]}, {shop_world_pos[1]}).") # Debug spawn position
                             last_shop_spawn_time = current_time # Update the time of the last successful spawn
 
                             # Activate the pop-up and arrow
@@ -106,7 +106,7 @@ def spawn_shop_if_possible(jogador, est, blocos_gerados):
                             shop_arrow_display_time = 10000 # Display arrow for 10 seconds (in milliseconds)
                             # The arrow points to the center of the shop's rectangle
                             shop_arrow_target_pos = current_shop_rect.center
-                            ##print("DEBUG(shop_elements): Shop pop-up and arrow activated.") # Debug visual activation
+                            #print("DEBUG(shop_elements): Shop pop-up and arrow activated.") # Debug visual activation
 
 
 
@@ -167,13 +167,13 @@ def draw_shop_elements(janela, camera_x, camera_y, current_ticks):
         shop_popup_display_time -= dt_ms
         if shop_popup_display_time <= 0:
             shop_spawn_popup_message = ""
-            #print("DEBUG(shop_elements): Shop pop-up timer expired.")
+            print("DEBUG(shop_elements): Shop pop-up timer expired.")
 
     if shop_arrow_display_time > 0:
         shop_arrow_display_time -= dt_ms
         if shop_arrow_display_time <= 0:
             shop_arrow_visible = False
-            #print("DEBUG(shop_elements): Shop arrow timer expired.")
+            print("DEBUG(shop_elements): Shop arrow timer expired.")
 
     # Draw the shop pop-up (if active)
     if shop_popup_display_time > 0 and shop_spawn_popup_message:
@@ -240,5 +240,5 @@ def reset_shop_spawn():
     shop_popup_display_time = 0
     shop_arrow_visible = False
     shop_arrow_display_time = 0
-    #print("DEBUG(shop_elements): Shop spawn state reset.")
+    print("DEBUG(shop_elements): Shop spawn state reset.")
 

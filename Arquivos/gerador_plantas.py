@@ -35,7 +35,7 @@ def gerar_plantas_ao_redor_do_jogador(Asrahel, gramas, arvores, est, blocos_gera
                     gramas.append(Grama(x, y, 50, 50))
 
                 # Gerar árvores na área central
-                for _ in range(random.randint(1, 3)):  # Menos árvores do que gramas
+                for _ in range(random.randint(1, 15)):  # Menos árvores do que gramas
                     tipo_planta = 'arvore'
                     # Gerar no centro do bloco
                     x = base_x + random.randint(bloco_tamanho // 4, 3 * bloco_tamanho // 4)
