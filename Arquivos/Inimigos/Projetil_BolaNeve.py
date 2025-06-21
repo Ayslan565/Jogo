@@ -3,17 +3,17 @@ import math
 
 class ProjetilNeve(pygame.sprite.Sprite):
     """
-    Representa um projétil de bola de neve que segue o jogador (teleguiado)
-    e é compatível com a nova arquitetura do GerenciadorDeInimigos.
+    Representa um projétil de bola de neve que viaja em linha reta.
     """
-    def __init__(self, x_origem, y_origem, alvo_obj, dano, velocidade=200, tamanho=10, cor=(200, 200, 255), cor_contorno=(0,0,0), largura_contorno=1):
+    def __init__(self, x_origem, y_origem, x_alvo, y_alvo, dano, velocidade=200, tamanho=10, cor=(200, 200, 255), cor_contorno=(0,0,0), largura_contorno=1):
         """
-        Inicializa um novo projétil de neve teleguiado.
+        Inicializa um novo projétil de neve de tiro reto.
 
         Args:
             x_origem (int): A posição x inicial do projétil.
             y_origem (int): A posição y inicial do projétil.
-            alvo_obj (pygame.sprite.Sprite): O objeto do jogador a ser seguido.
+            x_alvo (int): A coordenada x do alvo no momento do disparo.
+            y_alvo (int): A coordenada y do alvo no momento do disparo.
             dano (int): O dano que o projétil causará.
             velocidade (float): A velocidade de movimento em pixels por segundo.
             tamanho (int): O raio do círculo que representa o projétil.
@@ -35,46 +35,42 @@ class ProjetilNeve(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(self.x, self.y))
         
         # Atributos de combate e de vida
-        self.alvo = alvo_obj # Armazena a referência do jogador
         self.dano = dano
         self.velocidade_magnitude = velocidade
         
+        # --- CÁLCULO DE DIREÇÃO FIXA ---
+        # A direção é calculada uma vez e não muda mais.
+        dx = x_alvo - self.x
+        dy = y_alvo - self.y
+        distancia = math.hypot(dx, dy)
+
+        if distancia > 0:
+            self.direcao_x = dx / distancia
+            self.direcao_y = dy / distancia
+        else:
+            self.direcao_x = 0
+            self.direcao_y = -1 # Padrão para atirar para cima se o alvo estiver na mesma posição
+        
         # Lógica de vida útil (o projétil se destrói sozinho após este tempo)
-        self.duracao_maxima_ms = 7000 # Duração de 7 segundos para ter tempo de perseguir
+        self.duracao_maxima_ms = 7000 
         self.tempo_criacao = pygame.time.get_ticks()
 
     def update(self, dt_ms):
         """
-        Atualiza a posição do projétil, recalculando a direção ao alvo a cada frame.
-        O método agora só precisa de 'dt_ms' para funcionar.
+        Atualiza a posição do projétil em sua trajetória linear.
         """
         agora = pygame.time.get_ticks()
         
-        # Condições para o projétil ser destruído: alvo inválido ou tempo de vida expirado
-        if not self.alvo or not self.alvo.esta_vivo() or (agora - self.tempo_criacao > self.duracao_maxima_ms):
-            self.kill() # Remove o sprite de todos os grupos
+        # O projétil é destruído apenas se seu tempo de vida expirar.
+        if (agora - self.tempo_criacao > self.duracao_maxima_ms):
+            self.kill() 
             return
 
-        # --- LÓGICA DE PERSEGUIÇÃO (HOMING) ---
-        # 1. Calcula a direção para o alvo NESTE FRAME
-        dx = self.alvo.rect.centerx - self.x
-        dy = self.alvo.rect.centery - self.y
-        distancia = math.hypot(dx, dy)
-
-        # 2. Normaliza o vetor de direção para manter a velocidade constante
-        if distancia > 0:
-            direcao_x = dx / distancia
-            direcao_y = dy / distancia
-        else:
-            # Se o projétil já alcançou o centro do alvo, ele não se move mais
-            direcao_x, direcao_y = 0, 0
-
-        # 3. Calcula o movimento com base no tempo (independente de FPS)
+        # --- LÓGICA DE MOVIMENTO EM LINHA RETA ---
         fator_tempo_seg = dt_ms / 1000.0
-        movimento_x = direcao_x * self.velocidade_magnitude * fator_tempo_seg
-        movimento_y = direcao_y * self.velocidade_magnitude * fator_tempo_seg
+        movimento_x = self.direcao_x * self.velocidade_magnitude * fator_tempo_seg
+        movimento_y = self.direcao_y * self.velocidade_magnitude * fator_tempo_seg
 
-        # 4. Aplica o movimento às coordenadas de ponto flutuante
         self.x += movimento_x
         self.y += movimento_y
         self.rect.center = (int(self.x), int(self.y))

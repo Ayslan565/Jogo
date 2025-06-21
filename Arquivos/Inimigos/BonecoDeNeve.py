@@ -105,7 +105,6 @@ class BonecoDeNeve(InimigoBase):
             sprite_path_principal_relativo_ao_jogo
         )
         
-        # Coordenadas de ponto flutuante para movimento suave
         self.x = float(x)
         self.y = float(y)
         
@@ -126,15 +125,12 @@ class BonecoDeNeve(InimigoBase):
         self.attack_range = 350
         self.attack_cooldown = 2.5
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
-        self.velocidade_projetil = 250
+        self.velocidade_projetil = 250 
         self.attack_prepare_duration = 500
         self.is_preparing_attack = False
         self.attack_prepare_start_time = 0
 
     def mover_em_direcao(self, ax, ay, dt_ms):
-        """
-        Calcula a direção ao alvo e move o inimigo.
-        """
         if dt_ms is None or dt_ms <= 0:
             return
             
@@ -143,16 +139,13 @@ class BonecoDeNeve(InimigoBase):
         distancia = math.hypot(direcao_x, direcao_y)
 
         if distancia > 0:
-            # Normaliza o vetor de direção
             direcao_x /= distancia
             direcao_y /= distancia
             
-            # Calcula o movimento baseado no tempo
             fator_tempo = dt_ms / 1000.0
             movimento_x = direcao_x * self.velocidade * fator_tempo
             movimento_y = direcao_y * self.velocidade * fator_tempo
             
-            # Atualiza as coordenadas de ponto flutuante e o rect
             self.x += movimento_x
             self.y += movimento_y
             self.rect.center = (int(self.x), int(self.y))
@@ -174,10 +167,13 @@ class BonecoDeNeve(InimigoBase):
         if self.is_preparing_attack:
             if agora - self.attack_prepare_start_time >= self.attack_prepare_duration:
                 if jogador_valido and ProjetilNeve is not None:
+                    # --- CORREÇÃO APLICADA AQUI ---
+                    # Passa as coordenadas do jogador como alvo, e não o objeto.
                     novo_projetil = ProjetilNeve(
                         x_origem=self.rect.centerx, 
                         y_origem=self.rect.centery,
-                        alvo_obj=player,
+                        x_alvo=player.rect.centerx, # Coordenada X do alvo
+                        y_alvo=player.rect.centery, # Coordenada Y do alvo
                         dano=self.attack_damage, 
                         velocidade=self.velocidade_projetil
                     )
@@ -187,27 +183,21 @@ class BonecoDeNeve(InimigoBase):
                 self.is_preparing_attack = False
                 self.last_attack_time = agora
 
-        elif jogador_valido and distancia_ao_jogador <= self.attack_range:
-             # Para de se mover e começa a preparar o ataque
-             if (agora - self.last_attack_time >= self.attack_cooldown * 1000):
-                self.is_preparing_attack = True
-                self.attack_prepare_start_time = agora
-        
-        # Só se move se não estiver preparando um ataque
+        elif jogador_valido and distancia_ao_jogador <= self.attack_range and \
+             (agora - self.last_attack_time >= self.attack_cooldown * 1000):
+            self.is_preparing_attack = True
+            self.attack_prepare_start_time = agora
+
         if not self.is_preparing_attack and jogador_valido:
-            # Move-se para longe se o jogador estiver muito perto
-            if distancia_ao_jogador < 150: # Distância mínima para recuar
-                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms) # Inverte a direção no método
-                 self.velocidade *= -1 # Inverte a velocidade para recuar
+            if distancia_ao_jogador < 150: 
+                 self.velocidade *= -1 
                  self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-                 self.velocidade *= -1 # Restaura a velocidade
-            # Move-se em direção se estiver longe
+                 self.velocidade *= -1
             elif distancia_ao_jogador > self.attack_range:
                  self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
 
         if hasattr(self, 'atualizar_animacao'):
             self.atualizar_animacao()
-
 
 if ProjetilNeve is None:
     pass
