@@ -1,97 +1,87 @@
-# Projetil_BolaNeve.py
-import time
 import pygame
-import math # Importa math para cálculo de direção e distância
+import math
 
 class ProjetilNeve(pygame.sprite.Sprite):
     """
-    Representa um projétil de bola de neve atirado pelo Boneco de Neve.
+    Representa um projétil de bola de neve que segue o jogador (teleguiado)
+    e é compatível com a nova arquitetura do GerenciadorDeInimigos.
     """
-    def __init__(self, x_origem, y_origem, x_alvo, y_alvo, dano, velocidade=5, tamanho=10, cor=(200, 200, 255), cor_contorno=(0,0,0), largura_contorno=1):
+    def __init__(self, x_origem, y_origem, alvo_obj, dano, velocidade=200, tamanho=10, cor=(200, 200, 255), cor_contorno=(0,0,0), largura_contorno=1):
         """
-        Inicializa um novo projétil de neve.
+        Inicializa um novo projétil de neve teleguiado.
 
         Args:
             x_origem (int): A posição x inicial do projétil.
             y_origem (int): A posição y inicial do projétil.
-            x_alvo (int): A posição x do alvo.
-            y_alvo (int): A posição y do alvo.
+            alvo_obj (pygame.sprite.Sprite): O objeto do jogador a ser seguido.
             dano (int): O dano que o projétil causará.
-            velocidade (float): A velocidade de movimento do projétil.
+            velocidade (float): A velocidade de movimento em pixels por segundo.
             tamanho (int): O raio do círculo que representa o projétil.
-            cor (tuple): A cor do projétil (R, G, B).
-            cor_contorno (tuple): A cor do contorno do projétil (R, G, B).
-            largura_contorno (int): A largura da linha do contorno.
         """
         super().__init__()
 
         self.tamanho = tamanho
-        self.cor = cor
-        self.cor_contorno = cor_contorno
-        self.largura_contorno = largura_contorno
-
+        
+        # Cria a imagem do projétil
         diametro_total = self.tamanho * 2
-        self.image = pygame.Surface((diametro_total, diametro_total), pygame.SRCALPHA) 
+        self.image = pygame.Surface((diametro_total, diametro_total), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, cor, (self.tamanho, self.tamanho), self.tamanho)
+        if largura_contorno > 0:
+            pygame.draw.circle(self.image, cor_contorno, (self.tamanho, self.tamanho), self.tamanho, largura_contorno)
+
+        # Atributos de posição e movimento
+        self.x = float(x_origem)
+        self.y = float(y_origem)
+        self.rect = self.image.get_rect(center=(self.x, self.y))
         
-        pygame.draw.circle(self.image, self.cor, (self.tamanho, self.tamanho), self.tamanho) 
+        # Atributos de combate e de vida
+        self.alvo = alvo_obj # Armazena a referência do jogador
+        self.dano = dano
+        self.velocidade_magnitude = velocidade
         
-        if self.largura_contorno > 0:
-            pygame.draw.circle(self.image, self.cor_contorno, (self.tamanho, self.tamanho), self.tamanho, self.largura_contorno)
+        # Lógica de vida útil (o projétil se destrói sozinho após este tempo)
+        self.duracao_maxima_ms = 7000 # Duração de 7 segundos para ter tempo de perseguir
+        self.tempo_criacao = pygame.time.get_ticks()
 
-        self.rect = self.image.get_rect(center=(x_origem, y_origem)) 
-        self.velocidade_magnitude = velocidade 
-        self.dano = dano 
-
-        dx = x_alvo - x_origem
-        dy = y_alvo - y_origem
-        distancia = math.hypot(dx, dy)
-
-        if distancia > 0:
-            self.velocidade_x = (dx / distancia) * self.velocidade_magnitude
-            self.velocidade_y = (dy / distancia) * self.velocidade_magnitude
-        else:
-            self.velocidade_x = 0
-            self.velocidade_y = -self.velocidade_magnitude 
-
-        self.atingiu = False 
-        self.tempo_criacao = time.time() 
-        self.vida_util = 5 
-        self.alive = True 
-
-
-    def update(self, player, tela_largura, tela_altura, dt_ms=None): 
+    def update(self, dt_ms):
         """
-        Atualiza a posição do projétil e verifica colisões.
+        Atualiza a posição do projétil, recalculando a direção ao alvo a cada frame.
+        O método agora só precisa de 'dt_ms' para funcionar.
         """
-        if not self.alive:
+        agora = pygame.time.get_ticks()
+        
+        # Condições para o projétil ser destruído: alvo inválido ou tempo de vida expirado
+        if not self.alvo or not self.alvo.esta_vivo() or (agora - self.tempo_criacao > self.duracao_maxima_ms):
+            self.kill() # Remove o sprite de todos os grupos
             return
 
-        fator_tempo = 1.0
-        if dt_ms is not None and dt_ms > 0:
-            fator_tempo = (dt_ms / (1000.0 / 60.0)) 
+        # --- LÓGICA DE PERSEGUIÇÃO (HOMING) ---
+        # 1. Calcula a direção para o alvo NESTE FRAME
+        dx = self.alvo.rect.centerx - self.x
+        dy = self.alvo.rect.centery - self.y
+        distancia = math.hypot(dx, dy)
 
+        # 2. Normaliza o vetor de direção para manter a velocidade constante
+        if distancia > 0:
+            direcao_x = dx / distancia
+            direcao_y = dy / distancia
+        else:
+            # Se o projétil já alcançou o centro do alvo, ele não se move mais
+            direcao_x, direcao_y = 0, 0
 
-        self.rect.x += self.velocidade_x * fator_tempo
-        self.rect.y += self.velocidade_y * fator_tempo
+        # 3. Calcula o movimento com base no tempo (independente de FPS)
+        fator_tempo_seg = dt_ms / 1000.0
+        movimento_x = direcao_x * self.velocidade_magnitude * fator_tempo_seg
+        movimento_y = direcao_y * self.velocidade_magnitude * fator_tempo_seg
 
-        if not self.atingiu and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo') and player.vida.esta_vivo():
-            if self.rect.colliderect(player.rect):
-                if hasattr(player, 'receber_dano'):
-                    player.receber_dano(self.dano)
-                    self.atingiu = True 
-                else:
-                    print("DEBUG(ProjetilNeve): Objeto player não tem método 'receber_dano'.")
+        # 4. Aplica o movimento às coordenadas de ponto flutuante
+        self.x += movimento_x
+        self.y += movimento_y
+        self.rect.center = (int(self.x), int(self.y))
         
-        if self.rect.right < 0 or self.rect.left > tela_largura or \
-           self.rect.bottom < 0 or self.rect.top > tela_altura or \
-           self.atingiu or (time.time() - self.tempo_criacao > self.vida_util):
-            self.kill() 
-            self.alive = False 
-
-
     def desenhar(self, surface, camera_x, camera_y):
         """
-        Desenha o projétil na superfície, aplicando o offset da câmera.
+        Desenha o projétil na tela, ajustado pela posição da câmera.
         """
-        if self.alive:
-            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+

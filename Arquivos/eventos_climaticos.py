@@ -21,7 +21,7 @@ class GerenciadorDeEventos:
         self.estacoes = estacoes_obj
 
         # --- Configurações do Ciclo Dia/Noite ---
-        self.duracao_dia_noite_seg = 30
+        self.duracao_dia_noite_seg = 50
         self.ultimo_tempo_ciclo = time.time()
         self.alpha_noite = 0
         self.e_noite = False
@@ -30,7 +30,7 @@ class GerenciadorDeEventos:
         self.particulas_chuva = []
         self.particulas_neve = []
         self.clima_atual = "limpo"
-        self.tempo_troca_clima_seg = 40
+        self.tempo_troca_clima_seg = 10
         self.ultimo_tempo_troca_clima = time.time()
         
         # --- Variáveis para Intensidade e Escurecimento ---

@@ -162,6 +162,6 @@ class Inimigo(pygame.sprite.Sprite):
             pygame.draw.rect(janela, (60, 179, 113), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2) 
             pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2) 
 
-    def verificar_colisao(self, outro_objeto):
-        outro_rect = getattr(outro_objeto, 'rect_colisao', getattr(outro_objeto, 'rect', None))
-        return self.rect.colliderect(outro_rect) if outro_rect else False
+        def verificar_colisao(self, outro_objeto):
+            outro_rect = getattr(outro_objeto, 'rect_colisao', getattr(outro_objeto, 'rect', None))
+            return self.rect.colliderect(outro_rect) if outro_rect else False

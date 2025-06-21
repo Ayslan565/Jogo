@@ -23,6 +23,8 @@ except ImportError as e:
             self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
             self.moedas_drop = 0
+            self.x = float(x)
+            self.y = float(y)
 
         def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
         def esta_vivo(self): return self.hp > 0
@@ -86,7 +88,7 @@ class BonecoDeNeve(InimigoBase):
             placeholder.fill((0, 0, 150, 200))
             BonecoDeNeve.sprites_animacao.append(placeholder)
 
-    def __init__(self, x, y, velocidade=1.2):
+    def __init__(self, x, y, velocidade=60):
         BonecoDeNeve.carregar_recursos()
 
         vida_boneco = 70
@@ -102,6 +104,10 @@ class BonecoDeNeve(InimigoBase):
             vida_boneco, velocidade, dano_contato_boneco, xp_boneco,
             sprite_path_principal_relativo_ao_jogo
         )
+        
+        # Coordenadas de ponto flutuante para movimento suave
+        self.x = float(x)
+        self.y = float(y)
         
         self.sprites = BonecoDeNeve.sprites_animacao
         if not self.sprites or not isinstance(self.sprites[0], pygame.Surface):
@@ -120,14 +126,36 @@ class BonecoDeNeve(InimigoBase):
         self.attack_range = 350
         self.attack_cooldown = 2.5
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
-        
-        # --- VELOCIDADE CORRIGIDA ---
-        # A velocidade do projétil agora é em pixels por segundo.
-        self.velocidade_projetil = 250 
-        
+        self.velocidade_projetil = 250
         self.attack_prepare_duration = 500
         self.is_preparing_attack = False
         self.attack_prepare_start_time = 0
+
+    def mover_em_direcao(self, ax, ay, dt_ms):
+        """
+        Calcula a direção ao alvo e move o inimigo.
+        """
+        if dt_ms is None or dt_ms <= 0:
+            return
+            
+        direcao_x = ax - self.x
+        direcao_y = ay - self.y
+        distancia = math.hypot(direcao_x, direcao_y)
+
+        if distancia > 0:
+            # Normaliza o vetor de direção
+            direcao_x /= distancia
+            direcao_y /= distancia
+            
+            # Calcula o movimento baseado no tempo
+            fator_tempo = dt_ms / 1000.0
+            movimento_x = direcao_x * self.velocidade * fator_tempo
+            movimento_y = direcao_y * self.velocidade * fator_tempo
+            
+            # Atualiza as coordenadas de ponto flutuante e o rect
+            self.x += movimento_x
+            self.y += movimento_y
+            self.rect.center = (int(self.x), int(self.y))
 
     def update(self, player, projeteis_inimigos_ref, tela_largura=None, altura_tela=None, dt_ms=None):
         if not self.esta_vivo():
@@ -137,7 +165,6 @@ class BonecoDeNeve(InimigoBase):
         agora = pygame.time.get_ticks()
         distancia_ao_jogador = float('inf')
 
-        # --- VALIDAÇÃO DO JOGADOR SIMPLIFICADA ---
         jogador_valido = (player and hasattr(player, 'esta_vivo') and player.esta_vivo())
 
         if jogador_valido:
@@ -147,8 +174,6 @@ class BonecoDeNeve(InimigoBase):
         if self.is_preparing_attack:
             if agora - self.attack_prepare_start_time >= self.attack_prepare_duration:
                 if jogador_valido and ProjetilNeve is not None:
-                    # --- CRIAÇÃO DO PROJÉTIL CORRIGIDA ---
-                    # Passa o objeto do jogador inteiro para o projétil teleguiado.
                     novo_projetil = ProjetilNeve(
                         x_origem=self.rect.centerx, 
                         y_origem=self.rect.centery,
@@ -162,18 +187,27 @@ class BonecoDeNeve(InimigoBase):
                 self.is_preparing_attack = False
                 self.last_attack_time = agora
 
-        elif jogador_valido and distancia_ao_jogador <= self.attack_range and \
-             (agora - self.last_attack_time >= self.attack_cooldown * 1000):
-            self.is_preparing_attack = True
-            self.attack_prepare_start_time = agora
-
-        if not self.is_preparing_attack and jogador_valido and hasattr(self, 'mover_em_direcao'):
-            self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
+        elif jogador_valido and distancia_ao_jogador <= self.attack_range:
+             # Para de se mover e começa a preparar o ataque
+             if (agora - self.last_attack_time >= self.attack_cooldown * 1000):
+                self.is_preparing_attack = True
+                self.attack_prepare_start_time = agora
+        
+        # Só se move se não estiver preparando um ataque
+        if not self.is_preparing_attack and jogador_valido:
+            # Move-se para longe se o jogador estiver muito perto
+            if distancia_ao_jogador < 150: # Distância mínima para recuar
+                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms) # Inverte a direção no método
+                 self.velocidade *= -1 # Inverte a velocidade para recuar
+                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
+                 self.velocidade *= -1 # Restaura a velocidade
+            # Move-se em direção se estiver longe
+            elif distancia_ao_jogador > self.attack_range:
+                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
 
         if hasattr(self, 'atualizar_animacao'):
             self.atualizar_animacao()
 
-        # A lógica de dano de contato foi centralizada no GerenciadorDeInimigos
 
 if ProjetilNeve is None:
     pass
