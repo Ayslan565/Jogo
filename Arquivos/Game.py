@@ -79,7 +79,7 @@ def inicializar_jogo(largura_tela, altura_tela):
     if Player is None:
         print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
         return (None,) * 13 # Ajustado para o novo retorno
-
+    
     jogador = Player(velocidade=5, vida_maxima=150)
     jogador.x = float(largura_tela // 2)
     jogador.y = float(altura_tela // 2)

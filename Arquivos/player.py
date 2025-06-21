@@ -20,7 +20,9 @@ SHOP_ITEM_TO_WEAPON_CLASS_MAP = {
     "Espada do Olhar Da Penitencia": EspadaPenitencia,
     "Espada Sacra Caida": EspadaCaida,
     "Espada Sacra do Lua": EspadaLua,
-    "Lâmina do Ceu Centilhante": LaminaDoCeuCentilhante,
+    
+    # CORREÇÃO APLICADA AQUI: Adicionado o acento em "Céu" para corresponder ao nome na loja.
+    "Lâmina do Céu Centilhante": LaminaDoCeuCentilhante,
     
     "Machado Bárbaro Cravejado": MachadoBarbaro,
     "Machado Cerúleo da Estrela Cadente": MachadoCeruleo,
@@ -134,9 +136,10 @@ class Player(pygame.sprite.Sprite):
         self.attack_hitbox = pygame.Rect(0,0,0,0) # Hitbox do ataque atual
         self.hit_enemies_this_attack = set() # Para garantir que cada inimigo seja atingido uma vez por swing
         
-        self.owned_weapons = [] # Lista de armas que o jogador possui
-        if self.current_weapon: # Adiciona a arma inicial à lista de possuídas, se foi equipada
-            self.owned_weapons.append(self.current_weapon)
+        # O inventário de armas começa com a arma inicial (se houver) e espaços vazios
+        self.owned_weapons = [None] * 4 # 4 espaços para armas
+        if self.current_weapon:
+            self.owned_weapons[0] = self.current_weapon
 
         # Controle de invencibilidade
         self.pode_levar_dano = True # Se o jogador pode receber dano
@@ -180,37 +183,35 @@ class Player(pygame.sprite.Sprite):
             print(f"ALERTA(Player.equip_weapon): Tentativa de equipar objeto inválido: {type(weapon_object)}. Esperava-se um objeto Weapon.")
 
     def add_owned_weapon(self, weapon_object: Weapon) -> bool:
-        """Adiciona uma arma ao inventário do jogador. Retorna True se bem sucedido."""
-        if Weapon is None: return False # Classe base não carregada
-        if not isinstance(weapon_object, Weapon): 
+        """Adiciona uma arma ao inventário do jogador em um espaço vazio."""
+        if Weapon is None:
+            return False
+
+        if not isinstance(weapon_object, Weapon):
             print(f"ALERTA(Player.add_owned_weapon): Tentativa de adicionar objeto inválido: {type(weapon_object)}")
             return False
-        
-        # Verifica se já possui uma arma com o mesmo nome base
+
+        # Verifica se já possui uma arma com o mesmo nome base para evitar duplicatas
         if hasattr(weapon_object, '_base_name'):
             if any(hasattr(w, '_base_name') and w._base_name == weapon_object._base_name for w in self.owned_weapons if w is not None):
                 print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' (ou uma versão dela) já está no inventário.")
-                return False # Já possui esta "linhagem" de arma
-        elif any(type(w) is type(weapon_object) for w in self.owned_weapons if w is not None): # Fallback: verifica por tipo exato
-             print(f"DEBUG(Player.add_owned_weapon): Arma do tipo '{type(weapon_object).__name__}' já está no inventário (verificação por tipo).")
-             return False
-
-
-        # Lógica para adicionar a arma (substitui None ou adiciona se houver espaço)
-        # Mantém um máximo de 3 armas no inventário rápido (owned_weapons)
-        if None in self.owned_weapons:
-            idx = self.owned_weapons.index(None)
-            self.owned_weapons[idx] = weapon_object
-        elif len(self.owned_weapons) < 3:
-            self.owned_weapons.append(weapon_object)
-        else:
-            print(f"DEBUG(Player.add_owned_weapon): Inventário de armas rápido cheio (3/3). Não foi possível adicionar '{weapon_object.name}'.")
-            return False # Inventário cheio
-
-        print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' adicionada ao inventário.")
-        if not self.current_weapon: # Se não tinha nenhuma arma equipada, equipa a nova
-            self.equip_weapon(weapon_object)
-        return True
+                return False
+        
+        # Procura por um espaço vazio (None) no inventário
+        try:
+            index_vazio = self.owned_weapons.index(None)
+            self.owned_weapons[index_vazio] = weapon_object
+            print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' adicionada ao inventário no espaço {index_vazio}.")
+            
+            # Se o jogador não tiver nenhuma arma equipada, equipa a nova
+            if self.current_weapon is None:
+                self.equip_weapon(weapon_object)
+            
+            return True
+        except ValueError:
+            # Se não houver espaços vazios
+            print(f"DEBUG(Player.add_owned_weapon): Inventário de armas cheio (4/4). Não foi possível adicionar '{weapon_object.name}'.")
+            return False
 
     def _carregar_sprites(self, caminhos, tamanho, nome_conjunto):
         """Carrega uma lista de sprites a partir de seus caminhos, com fallbacks."""

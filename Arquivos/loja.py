@@ -12,7 +12,7 @@ except ImportError as e:
     print(f"ERRO CRÍTICO(loja_modulo): Não foi possível importar de importacoes.py. Verifique o arquivo e o caminho. Erro: {e}")
     # Definir todas as classes de armas como None para evitar NameError mais tarde
     AdagaFogo = EspadaCaida = EspadaFogoAzul = EspadaLua = EspadaPenitencia = None
-    EspadaSacraCerulea = EspadaSacraDasBrasas = LaminaDoCeuCentilhante = None
+    EspadaSacraCerulea = EspadaSacraDasBrasas = LâminaDoCeuCentilhante = None
     MachadoBarbaro = MachadoCeruleo = MachadoDaDescidaSanta = MachadoDoFogoAbrasador = None
     MachadoMarfim = MachadoMacabro = None
     Cajado = None 
@@ -471,7 +471,7 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
         {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço."},
         {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Forjada sob a fúria de um Buraco Negro. Sua gema âmbar concede intuição aguçada para antecipar inimigos, sendo ideal para quem valoriza agilidade e estratégia, movendo-se como uma sombra para atacar com precisão."},
         {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares, encantada com o poder de uma estrela, ela guiará seus caminhos e voce jamais vai ficar na escuridão"},
-        {"nome": "Lâmina do Ceu Centilhante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. "}
+        {"nome": "Lâmina do Céu Centilhante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. "}
     ]
     itens_data_global["Machados"] = [
         {"nome": "Machado Bárbaro Cravejado", "preco": 120, "imagem": imagem_Machado_1, "descricao": "Bruto e eficaz para golpes pesados. Seu material é tão resistente que ele nunca te deixará na mão."},

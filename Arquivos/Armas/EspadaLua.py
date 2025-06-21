@@ -49,7 +49,7 @@ class EspadaLua(Weapon):
                 ],
                 "animation_speed": 85,     # CONFIGURÁVEL (ms por frame)
                 "animation_display_scale": 1.1, # CONFIGURÁVEL
-                "ui_icon": "Sprites/Armas/Espadas/EspadaLua/Icone_EL1.png" # Exemplo
+                "ui_icon": "Sprites//Armas//Espadas//Espada Sacra do Lua//E1.jpg" # Exemplo
             },
             1.5: {
                 "damage": 50.0, "range": 120.0, "cooldown": 1.15, "name_suffix": "(Azul com Roxo) +1",
@@ -63,7 +63,7 @@ class EspadaLua(Weapon):
                 ],
                 "animation_speed": 82,
                 "animation_display_scale": 1.1,
-                "ui_icon": "Sprites/Armas/Espadas/EspadaLua/Icone_EL1.png" # Pode ser o mesmo
+                "ui_icon": "Sprites//Armas//Espadas//Espada Sacra do Lua//E2.jpg" # Pode ser o mesmo
             },
             2.0: {
                 "damage": 62.0, "range": 130.0, "cooldown": 1.0, "name_suffix": "Crescente (Azul e Lilás)", # Exemplo de mudança de cor/nome
@@ -78,7 +78,7 @@ class EspadaLua(Weapon):
                 ],
                 "animation_speed": 80,
                 "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Espadas/EspadaLua/Icone_EL2.png" # Exemplo
+                "ui_icon": "Sprites//Armas//Espadas//Espada Sacra do Lua//E2.jpg" # Exemplo
             },
             2.5: {
                 "damage": 68.0, "range": 135.0, "cooldown": 0.95, "name_suffix": "Crescente (Azul e Lilás) +1",
@@ -93,7 +93,7 @@ class EspadaLua(Weapon):
                 ],
                 "animation_speed": 78,
                 "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Espadas/EspadaLua/Icone_EL2.png"
+                "ui_icon": "Sprites//Armas//Espadas//Espada Sacra do Lua//E2.jpg"
             },
             3.0: {
                 "damage": 85.0, "range": 150.0, "cooldown": 0.8, "name_suffix": "Plena (Índigo e Violeta)", # Exemplo
@@ -109,7 +109,7 @@ class EspadaLua(Weapon):
                 ],
                 "animation_speed": 75,
                 "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Espadas/EspadaLua/Icone_EL3.png" # Exemplo
+                "ui_icon": "Sprites//Armas//Espadas//Espada Sacra do Lua//E3.jpg" # Exemplo
             }
         }
 

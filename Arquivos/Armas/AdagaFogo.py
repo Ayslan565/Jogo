@@ -33,7 +33,7 @@ class AdagaFogo(Weapon):
                 "animation_speed": 80,
                 "animation_display_scale": 1.0,
                 # CORRIGIDO: Caminho aponta para a pasta 'Sprites'
-                "ui_icon": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Icone_AFC1.png"
+                "ui_icon": "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Adaga E-1.png"
             },
             2.0: {
                 "damage": 22.0, "range": 90.0, "cooldown": 0.55, "name_suffix": "Afiada",
@@ -51,7 +51,7 @@ class AdagaFogo(Weapon):
                 ],
                 "animation_speed": 70,
                 "animation_display_scale": 1.05,
-                "ui_icon": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Icone_AFC1.png"
+                "ui_icon": "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Adaga E-2.png"
             },
             3.0: {
                 "damage": 30.0, "range": 100.0, "cooldown": 0.5, "name_suffix": "Incandescente",
@@ -67,7 +67,7 @@ class AdagaFogo(Weapon):
                 ],
                 "animation_speed": 65,
                 "animation_display_scale": 1.1,
-                "ui_icon": "Sprites\\Armas\\Espadas\\Adaga do Fogo Contudente\\Icone_AFC2.png"
+                "ui_icon": "Sprites//Armas//Espadas//Adaga do Fogo Contudente//Adaga E-3.png.png"
             }
         }
 

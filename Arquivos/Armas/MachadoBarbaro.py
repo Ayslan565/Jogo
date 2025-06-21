@@ -42,11 +42,11 @@ class MachadoBarbaro(MachadoBase):
                 "effect_sprite_base": "Sprites\\Armas\\Machados\\MachadoBarbaro\\Efeitos\\ImpactoBrutoNv1.png", # Exemplo
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base0.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base1.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base2.png",
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base3.png", # Exemplo
-                    "Sprites\\Armas\\Machados\\Machado Bárbaro Cravejado\\Ataque\\AT1\\AT1-base4.png",  # Exemplo
+                    "Jogo//Sprites//Armas//Machados//Machado Bárbaro Cravejado//Ataque//AT1//AT1-base0.png", # Exemplo
+                    "Jogo//Sprites//Armas//Machados//Machado Bárbaro Cravejado//Ataque//AT1//AT1-base1.png", # Exemplo
+                    "Jogo//Sprites//Armas//Machados//Machado Bárbaro Cravejado//Ataque//AT1//AT1-base2.png",
+                    "Jogo//Sprites//Armas//Machados//Machado Bárbaro Cravejado//Ataque//AT1//AT1-base3.png", # Exemplo
+                    "Jogo//Sprites//Armas//Machados//Machado Bárbaro Cravejado//Ataque//AT1//AT1-base4.png",  # Exemplo
                 ],
                 "animation_speed": 120,     # CONFIGURÁVEL (ms por frame), machados podem ser mais lentos
                 "animation_display_scale": 3.0, # CONFIGURÁVEL, machados podem ser maiores
