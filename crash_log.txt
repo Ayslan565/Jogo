@@ -1,0 +1,8 @@
+Um erro fatal ocorreu:
+Traceback (most recent call last):
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 474, in <module>
+    main()
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 315, in main
+    if luta_boss is None:
+      ^^^^^^^^^
+NameError: name 'luta_boss' is not defined. Did you mean: 'Luta_boss'?

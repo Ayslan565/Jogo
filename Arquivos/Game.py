@@ -1,4 +1,4 @@
-# Arquivo: Game.py (Corrigido e com Lógica de Boss Fight)
+# Arquivo: Game.py (Finalizado com a Lógica da Boss Fight)
 
 import pygame
 import random
@@ -31,8 +31,7 @@ try:
     from cogumelo import Cogumelo
     from gerrador_cogumelo import GeradorCogumelos
     from eventos_climaticos import GerenciadorDeEventos
-    # --- MUDANÇA BOSS FIGHT: Importa o módulo de luta ---
-    import Luta_boss
+    import luta_boss # <--- IMPORTAÇÃO ADICIONADA
 except ImportError as e:
     print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
     traceback.print_exc() # Imprime o rastreamento completo do erro
@@ -42,8 +41,8 @@ except ImportError as e:
     BarraInventario = None
     Cogumelo = None
     GeradorCogumelos = None
-    GerenciadorDeEventos = None # Fallback para o novo gerenciador
-    Luta_boss = None # Fallback
+    GerenciadorDeEventos = None
+    luta_boss = None
 
 # --- Constantes e Configurações Globais ---
 MUSICAS_JOGO = [
@@ -67,7 +66,7 @@ jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
 gerador_cogumelos = None
-gerenciador_eventos = None 
+gerenciador_eventos = None
 
 def inicializar_jogo(largura_tela, altura_tela):
     """Prepara todos os objetos e variáveis para uma nova sessão de jogo."""
@@ -139,7 +138,6 @@ def inicializar_jogo(largura_tela, altura_tela):
            gerador_cogumelos, gerenciador_eventos
 
 def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista, estacoes_obj, blocos_ja_gerados_set, gerador_cogumelos_obj):
-    # (Este método permanece inalterado)
     if not all([jogador_obj, hasattr(jogador_obj, 'rect'), estacoes_obj, Grama, Arvore]):
         return
     
@@ -172,7 +170,6 @@ def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista
                     gerador_cogumelos_obj.tentar_gerar_cogumelo(jogador_obj.rect, blocos_ja_gerados_set)
 
 def tocar_musica_jogo():
-    # (Este método permanece inalterado)
     global game_music_volume, musica_gameplay_atual_path, musica_gameplay_atual_pos_ms
     if not MUSICAS_JOGO or not pygame.mixer.get_init(): return
     
@@ -190,7 +187,6 @@ def tocar_musica_jogo():
         musica_gameplay_atual_path = None
 
 def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
-    # (Este método permanece inalterado)
     if not (jogador_obj and getattr(jogador_obj, 'vida') and jogador_obj.esta_vivo() and jogador_obj.pode_levar_dano):
         return
     
@@ -205,7 +201,6 @@ def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
                 if inimigo_col_rect and jogador_col_rect.colliderect(inimigo_col_rect):
                     jogador_obj.receber_dano(dano_contato, inimigo_col_rect)
 
-# --- FUNÇÃO DE DESENHO MODIFICADA ---
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
                   gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui,
                   cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms, jogo_pausado_inv,
@@ -222,13 +217,8 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     sprites_do_mundo = []
     if jogador_obj:
         sprites_do_mundo.append(jogador_obj)
-    
     if gerenciador_inimigos_obj:
         sprites_do_mundo.extend(gerenciador_inimigos_obj.inimigos)
-        # --- MUDANÇA BOSS FIGHT: Garante que o chefe também seja adicionado à lista de renderização ---
-        if hasattr(gerenciador_inimigos_obj, 'grupo_chefe_ativo'):
-            sprites_do_mundo.extend(gerenciador_inimigos_obj.grupo_chefe_ativo.sprites())
-            
     if gerador_cogumelos_obj and hasattr(gerador_cogumelos_obj, 'cogumelos'):
         sprites_do_mundo.extend(gerador_cogumelos_obj.cogumelos)
     if shop_elements and hasattr(shop_elements, 'vendedor_instance') and shop_elements.vendedor_instance:
@@ -322,11 +312,12 @@ def main():
             barra_inventario, gerador_cogumelos, gerenciador_eventos = inicializar_jogo(largura_tela, altura_tela)
             
             if jogador is None: break
+            if luta_boss is None: 
+                print("ERRO CRÍTICO: Módulo luta_boss não foi carregado. As lutas de chefe não funcionarão.")
+                break
+
 
             if mixer_initialized: tocar_musica_jogo()
-            
-            # --- MUDANÇA BOSS FIGHT: Adiciona a variável de estado do jogo ---
-            game_state = "JOGANDO" # Estados possíveis: "JOGANDO", "LUTANDO_CHEFE"
             
             running_loop = True
             while running_loop:
@@ -335,7 +326,7 @@ def main():
                 cam_x = jogador.rect.centerx - largura_tela // 2
                 cam_y = jogador.rect.centery - altura_tela // 2
 
-                # --- Loop de Eventos (permanece o mesmo) ---
+                # --- Manipulação de Eventos ---
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT: running_loop = False; game_is_running_flag = False
                     if event.type == pygame.KEYDOWN:
@@ -364,28 +355,48 @@ def main():
                         barra_inventario.handle_input(event, jogador)
                 
                 if not running_loop: break
-
-                # --- MUDANÇA BOSS FIGHT: Lógica principal agora é baseada no game_state ---
+                
+                # =========================================================================
+                # INÍCIO DA LÓGICA CENTRAL DO JOGO
+                # =========================================================================
+                
+                # --- Atualizações Gerais (acontecem sempre que o jogo não está pausado) ---
+                teclas = pygame.key.get_pressed()
                 if not jogo_pausado_para_inventario:
-                    
-                    if game_state == "JOGANDO":
-                        # --- MODO DE JOGO NORMAL ---
-                        teclas = pygame.key.get_pressed()
-                        jogador.mover(teclas, arvores)
-                        jogador.update(dt_ms, teclas)
-                        
-                        # Verifica se é hora de iniciar uma luta contra chefe
-                        sinal_estacao = est.atualizar_ciclo_estacoes() if est else None
-                        if sinal_estacao == "INICIAR_LUTA_CHEFE" and Luta_boss:
-                            print("DEBUG(Game): Sinal para iniciar luta recebido!")
-                            if Luta_boss.iniciar_luta_chefe(jogador, est.indice_estacao_atual, gerenciador_inimigos, est, largura_tela, altura_tela):
-                                game_state = "LUTANDO_CHEFE"
-                                print("DEBUG(Game): Estado do jogo alterado para LUTANDO_CHEFE.")
-                            else:
-                                print("ERRO(Game): Falha ao iniciar a luta. Forçando avanço da estação.")
-                                if est: est.avancar_estacao_apos_chefe() # Evita que o jogo fique travado
+                    jogador.update(dt_ms, teclas)
 
-                        # Atualiza outros sistemas do jogo normal
+                # --- Gatilho da Luta de Chefe ---
+                sinal_estacoes = est.atualizar_ciclo_estacoes()
+                if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not luta_boss.esta_luta_ativa():
+                    print("DEBUG(Game.py): Sinal recebido! Iniciando luta contra o chefe.")
+                    luta_boss.iniciar_luta_chefe(
+                        jogador=jogador,
+                        indice_estacao=est.indice_estacao_atual,
+                        gerenciador_inimigos=gerenciador_inimigos,
+                        estacoes_obj=est,
+                        musica_atual_path=musica_gameplay_atual_path,
+                        musica_atual_pos_ms=pygame.mixer.music.get_pos()
+                    )
+
+                # --- Divisão da Lógica de Jogo (Luta de Chefe vs. Normal) ---
+                if luta_boss.esta_luta_ativa():
+                    # --- LÓGICA DURANTE A LUTA ---
+                    if not jogo_pausado_para_inventario:
+                        # Atualiza o estado da luta (verifica se o chefe morreu, prende o jogador)
+                        luta_boss.atualizar_luta(jogador, est, gerenciador_inimigos)
+                        
+                        # Movimento e Ações na Arena
+                        jogador.mover(teclas, []) # Não colide com árvores na arena
+                        gerenciador_inimigos.update_inimigos(jogador, dt_ms)
+                        gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
+                        jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
+                        verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
+
+                else:
+                    # --- LÓGICA DE JOGO NORMAL ---
+                    if not jogo_pausado_para_inventario:
+                        jogador.mover(teclas, arvores)
+                        
                         if gerenciador_eventos:
                             gerenciador_eventos.atualizar_clima()
                             gerenciador_eventos.atualizar_ciclo_dia_noite()
@@ -397,16 +408,15 @@ def main():
                             gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
 
                         if gerador_cogumelos:
+                            gerador_cogumelos.tentar_gerar_cogumelo(jogador.rect, blocos_gerados)
                             gerador_cogumelos.update(jogador, cam_x, cam_y, dt_ms)
-
+                        
                         gerar_elementos_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados, gerador_cogumelos)
                         
                         if gerenciador_inimigos:
                             jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
 
                         verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
-                        if not jogador.esta_vivo():
-                            jogador_morreu = True; running_loop = False
 
                         if shop_elements and loja_core and teclas[pygame.K_e]:
                             shop_rect = shop_elements.get_current_shop_rect()
@@ -415,67 +425,34 @@ def main():
                                 loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
                                 if mixer_initialized: pygame.mixer.music.unpause()
                                 shop_elements.reset_shop_spawn()
-                    
-                    elif game_state == "LUTANDO_CHEFE":
-                        # --- MODO DE LUTA CONTRA O CHEFE ---
-                        teclas = pygame.key.get_pressed()
-                        
-                        # Movimento do jogador, mas confinado na arena
-                        jogador.mover(teclas, []) # Sem obstáculos na arena
-                        arena_rect = Luta_boss.get_arena_rect()
-                        if arena_rect:
-                            jogador.rect.clamp_ip(arena_rect)
-                            # Corrige a posição float interna após o clamp
-                            jogador.x = float(jogador.rect.centerx)
-                            jogador.y = float(jogador.rect.centery)
-                            
-                        jogador.update(dt_ms, teclas)
 
-                        # Atualiza apenas o chefe e seus projéteis
-                        if gerenciador_inimigos:
-                            gerenciador_inimigos.update_chefe(jogador, dt_ms)
-                            gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
-                        
-                        # Jogador ataca apenas o chefe
-                        if gerenciador_inimigos and gerenciador_inimigos.grupo_chefe_ativo.sprite:
-                            jogador.atacar(gerenciador_inimigos.grupo_chefe_ativo.sprites(), dt_ms)
-                        
-                        # Verifica se o chefe foi derrotado
-                        chefe_derrotado = Luta_boss.atualizar_luta(jogador, est, gerenciador_inimigos)
-                        if chefe_derrotado:
-                            game_state = "JOGANDO" # Volta ao jogo normal
-                            print("DEBUG(Game): Chefe derrotado! Retornando ao estado JOGANDO.")
-                            # Atualiza sprites das árvores para a nova estação e reseta spawns
-                            for arvore in arvores: arvore.atualizar_sprite(est.indice_estacao_atual)
-                            if gerenciador_inimigos:
-                                gerenciador_inimigos.resetar_temporizador_spawn_estacao()
-                            # Restaura a música do jogo que estava tocando
-                            if mixer_initialized: tocar_musica_jogo() 
-
-                        # Verifica se o jogador morreu durante a luta
-                        if not jogador.esta_vivo():
-                            jogador_morreu = True; running_loop = False
-                            # Limpa o estado da luta se o jogador morrer
-                            Luta_boss.finalizar_luta_chefe(jogador, est, gerenciador_inimigos)
-
-                # --- Lógica de Desenho (fora do if/elif de estado) ---
+                # --- Verificação de Morte do Jogador (acontece em ambos os modos) ---
+                if not jogador.esta_vivo():
+                    jogador_morreu = True
+                    running_loop = False
+                
+                # =========================================================================
+                # FIM DA LÓGICA CENTRAL DO JOGO
+                # =========================================================================
+                
                 tempo_seg = (pygame.time.get_ticks() - tempo_inicio) // 1000
                 
+                # --- Lógica de Desenho ---
                 desenhar_cena(janela, est, gramas, arvores, jogador, gerenciador_inimigos,
                               vida_jogador_ref, barra_inventario,
                               cam_x, cam_y, tempo_seg, timer_obj, dt_ms, jogo_pausado_para_inventario,
                               gerador_cogumelos, gerenciador_eventos)
 
-                # --- MUDANÇA BOSS FIGHT: Desenha a arena durante a luta ---
-                if game_state == "LUTANDO_CHEFE" and not jogo_pausado_para_inventario and Luta_boss:
-                    arena = Luta_boss.get_arena_rect()
-                    if arena:
-                        # Desenha um retângulo vermelho semi-transparente para a arena
-                        arena_surface = pygame.Surface(arena.size, pygame.SRCALPHA)
-                        arena_surface.fill((255, 0, 0, 40)) # Vermelho com baixa opacidade
-                        pygame.draw.rect(arena_surface, (255, 100, 100, 120), arena_surface.get_rect(), 4) # Borda
-                        janela.blit(arena_surface, (arena.x - cam_x, arena.y - cam_y))
-                        
+                # Desenha a arena do chefe, se estiver ativa
+                if luta_boss.esta_luta_ativa():
+                    arena_rect = luta_boss.get_arena_rect()
+                    if arena_rect:
+                        # Cria uma superfície para desenhar a arena com transparência
+                        s = pygame.Surface(arena_rect.size, pygame.SRCALPHA)
+                        s.fill((255, 0, 0, 30)) # Preenchimento vermelho bem fraco
+                        pygame.draw.rect(s, (255, 20, 20, 180), s.get_rect(), 4, border_radius=15) # Borda vermelha forte
+                        janela.blit(s, (arena_rect.x - cam_x, arena_rect.y - cam_y))
+
                 if jogo_pausado_para_inventario and barra_inventario:
                     barra_inventario.desenhar(janela, jogador)
 
@@ -496,10 +473,15 @@ if __name__ == "__main__":
     try:
         main()
     except Exception:
-        traceback.print_exc()
+        exc_text = traceback.format_exc()
+        print(exc_text)
         if pygame.get_init():
             if 'gerenciador_inimigos' in locals() and gerenciador_inimigos:
                 gerenciador_inimigos.stop_threads()
             pygame.quit()
-        input("Pressione Enter para sair após o erro fatal...")
+        # Salva o erro em um arquivo para análise posterior
+        with open("crash_log.txt", "w") as f:
+            f.write("Um erro fatal ocorreu:\n")
+            f.write(exc_text)
+        input("\nPressione Enter para sair após o erro fatal...")
         sys.exit(1)

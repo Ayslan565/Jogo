@@ -427,11 +427,10 @@ class GerenciadorDeInimigos:
         chefe_spawnado = None
         # Mapeamento do índice da estação para o tipo de chefe
         boss_map = {
-            0: "ArvoreMaldita", # Primavera
-            # Adicione outros chefes aqui para outras estações, ex:
-            # 1: "NomeDoChefeVerao",
-            # 2: "NomeDoChefeOutono",
-            # 3: "NomeDoChefeInverno",
+            0: "ArvoreMaldita",  # Primavera
+            1: "Fenix",          # Verão
+            2: "Troll",          # Outono (Placeholder para "Morte", que não existe como classe)
+            3: "Golem_Neve",     # Inverno
         }
         
         chefe_tipo_str = boss_map.get(indice_estacao_chefe)
