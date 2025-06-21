@@ -106,7 +106,6 @@ class AdagaFogo(Weapon):
         if level_to_check in self._stats_by_level:
             return self._stats_by_level[level_to_check]
         else:
-            print(f"WARN(AdagaFogo): Nível {level_to_check} não encontrado. Usando fallback para o primeiro nível.")
             first_level_key = next(iter(self._stats_by_level))
             return self._stats_by_level[first_level_key]
 
@@ -115,17 +114,14 @@ class AdagaFogo(Weapon):
         
         # A lógica de usar caminhos relativos está mantida e correta.
         if not caminhos:
-            print("DEBUG(AdagaFogo): A lista de caminhos para os sprites de animação está vazia.")
             self.attack_animation_sprites = []
             return
 
-        print(f"--- Carregando Sprites para {self.name} ---")
 
         for path_relativo in caminhos:
             path_corrigido = path_relativo.replace("\\", os.sep).replace("//", os.sep)
             full_path = path_corrigido
             
-            print(f"DEBUG(AdagaFogo): Tentando carregar sprite: '{full_path}'")
 
             try:
                 if os.path.exists(full_path):
@@ -169,13 +165,11 @@ class AdagaFogo(Weapon):
         if target_level in self._stats_by_level:
             self.level = target_level
             self._apply_level_stats()
-        else:
-            print(f"WARN(AdagaFogo): Nível {target_level} inválido. Níveis disponíveis: {list(self._stats_by_level.keys())}")
+
 
     def _apply_level_stats(self):
         stats = self._get_stats_for_level_internal(self.level)
         if not stats:
-            print(f"ERROR(AdagaFogo): Falha crítica ao obter stats para Nível {self.level} de '{self.name}'.")
             return
 
         self.damage = stats["damage"]

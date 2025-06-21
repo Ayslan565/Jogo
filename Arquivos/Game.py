@@ -42,7 +42,6 @@ except ImportError as e:
     Cogumelo = None
     GeradorCogumelos = None
     GerenciadorDeEventos = None
-    luta_boss = None
 
 # --- Constantes e Configurações Globais ---
 MUSICAS_JOGO = [

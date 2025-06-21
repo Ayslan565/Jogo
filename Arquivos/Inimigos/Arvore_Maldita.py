@@ -9,7 +9,7 @@ from score import score_manager
 
 # --- Importação da Classe Base Inimigo ---
 try:
-    from Inimigos import Inimigo as InimigoBase
+    from .Inimigos import Inimigo as InimigoBase    # print("DEBUG(Morte): Classe base Inimigo importada com sucesso.")
     # print(f"DEBUG(Arvore_Maldita): Classe InimigoBase importada com sucesso.")
 except ImportError as e:
     # print(f"DEBUG(Arvore_Maldita): FALHA ao importar InimigoBase: {e}. Usando placeholder local MUITO BÁSICO.")
