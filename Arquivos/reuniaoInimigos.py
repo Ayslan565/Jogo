@@ -15,4 +15,7 @@ from .Inimigos.Golem_Neve import Golem_Neve
 from .Inimigos.Goblin import Goblin
 from .Inimigos.Vampiro import Vampiro
 from .Inimigos.Demonio import Demonio
+from .Inimigos.Maga import Maga
+from .Inimigos.Cavaleiro import Cavaleiro
+
 # ... e assim por diante para todas as outras classes de inimigos.

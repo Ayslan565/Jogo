@@ -32,14 +32,14 @@ class Estacoes:
         self.cor_fallback = (128, 128, 128)
         
         self.indice_estacao_atual = random.randint(0, 3)
-        self.tempo_troca_estacao_seg = 120
+        self.tempo_troca_estacao_seg = 120 # Tempo de duração de cada estação em segundos
         self.ultimo_tempo_troca_timestamp = time.time()
         
         self.mensagem_estacao_atual = ""
         self.tempo_inicio_mensagem_estacao = 0
 
-        self.chefe_primavera_pendente = False
-        self.chefe_primavera_derrotado_nesta_rodada_ciclica = False
+        # ADICIONADO: Flag genérica para controlar o estado de "chefe pendente"
+        self.chefe_pendente = False
         
         self._carregar_recursos_estacao(self.indice_estacao_atual)
         print(f"DEBUG(Estacoes): Iniciando na estação: {self.nome_estacao_atual()}")
@@ -62,9 +62,6 @@ class Estacoes:
             if caminho_imagem and os.path.exists(caminho_imagem):
                 imagem_original = pygame.image.load(caminho_imagem).convert()
                 
-                # --- ALTERAÇÃO PRINCIPAL: REDUZ AINDA MAIS O TAMANHO DO TILE ---
-                # Diminui o fator de escala para que mais tiles apareçam na tela.
-                # Um valor de 0.4 significa 40% do tamanho original.
                 fator_escala_tile = 0.4
                 
                 largura_original, altura_original = imagem_original.get_size()
@@ -84,36 +81,37 @@ class Estacoes:
         self.mensagem_estacao_atual = nome_estacao
         self.tempo_inicio_mensagem_estacao = time.time()
 
+    # MÉTODO MODIFICADO: Torna a verificação genérica para qualquer estação
     def atualizar_ciclo_estacoes(self):
+        """
+        Verifica se o tempo da estação acabou. Se sim, sinaliza que uma luta
+        contra o chefe deve começar.
+        Retorna um sinal para o loop principal do jogo.
+        """
         tempo_atual = time.time()
         if tempo_atual - self.ultimo_tempo_troca_timestamp > self.tempo_troca_estacao_seg:
-            if self.nome_estacao_atual() == "Primavera" and \
-               not self.chefe_primavera_pendente and \
-               not self.chefe_primavera_derrotado_nesta_rodada_ciclica:
-                
-                self.chefe_primavera_pendente = True
-                return "PENDENTE_CHEFE_PRIMAVERA"
-            else:
-                self._avancar_para_proxima_estacao_ciclica()
-                return True 
-        return False
+            # Se o tempo da estação acabou e um chefe ainda não está pendente para esta estação
+            if not self.chefe_pendente:
+                self.chefe_pendente = True
+                print(f"DEBUG(Estacoes): Fim da estação '{self.nome_estacao_atual()}'. Sinalizando para iniciar luta contra chefe.")
+                return "INICIAR_LUTA_CHEFE" # Sinal genérico para o Game.py
+        return False # Retorna False se não for hora de fazer nada
 
-    def _avancar_para_proxima_estacao_ciclica(self):
-        estacao_anterior_nome = self.nome_estacao_atual()
-        self.indice_estacao_atual = (self.indice_estacao_atual + 1) % len(self.nomes_estacoes_ordem)
-        
-        if self.nome_estacao_atual() == "Primavera" and estacao_anterior_nome == "Inverno":
-            self.chefe_primavera_derrotado_nesta_rodada_ciclica = False
-            self.chefe_primavera_pendente = False
-
-        self._carregar_recursos_estacao(self.indice_estacao_atual)
-        self.ultimo_tempo_troca_timestamp = time.time()
-
-    def confirmar_derrota_chefe_primavera_e_avancar(self):
-        if self.nome_estacao_atual() == "Primavera" and self.chefe_primavera_pendente:
-            self.chefe_primavera_pendente = False
-            self.chefe_primavera_derrotado_nesta_rodada_ciclica = True
-            self.indice_estacao_atual = 1
+    # NOVO MÉTODO: Generalizado para avançar a estação após qualquer chefe
+    def avancar_estacao_apos_chefe(self):
+        """
+        Avança para a próxima estação após a derrota de um chefe.
+        Este método deve ser chamado pelo loop principal do jogo (Game.py) ou pelo
+        módulo de luta (Luta_boss.py) quando a luta for concluída com sucesso.
+        """
+        if self.chefe_pendente:
+            print(f"DEBUG(Estacoes): Chefe da estação '{self.nome_estacao_atual()}' derrotado. Avançando para a próxima estação.")
+            self.chefe_pendente = False
+            
+            # Avança o índice da estação para a próxima de forma cíclica
+            self.indice_estacao_atual = (self.indice_estacao_atual + 1) % len(self.nomes_estacoes_ordem)
+            
+            # Carrega os recursos da nova estação e reseta o timer
             self._carregar_recursos_estacao(self.indice_estacao_atual)
             self.ultimo_tempo_troca_timestamp = time.time()
             return True
@@ -127,7 +125,6 @@ class Estacoes:
                 tela.fill(self.cor_fallback)
                 return
             
-            # Fator de parallax para o fundo distante (move-se bem devagar)
             parallax_factor = 1.0
             
             scroll_x = int(camera_x * parallax_factor)

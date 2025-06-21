@@ -1,4 +1,3 @@
-# GerenciadorDeInimigos.py
 import pygame
 import random
 import time
@@ -20,7 +19,9 @@ except ImportError as e:
     inimigo_classes_para_importar = [
         "ArvoreMaldita", "Fantasma", "BonecoDeNeve", "Planta_Carnivora", "Espantalho",
         "Fenix", "Mae_Natureza", "Espirito_Das_Flores", "Lobo", "Urso",
-        "Troll", "Golem_Neve", "Goblin", "Vampiro", "Demonio", "ProjetilNeve"
+        "Troll", "Golem_Neve", "Goblin", "Vampiro", "Demonio", "ProjetilNeve",
+        "Maga", # Adicionado: Maga
+        "Cavaleiro" # Adicionado: Cavaleiro
     ]
     for cls_name in inimigo_classes_para_importar:
         try:
@@ -34,6 +35,8 @@ except ImportError as e:
             elif cls_name == "Planta_Carnivora": module_name = "Inimigos.Planta_Carnivora"
             elif cls_name == "ArvoreMaldita": module_name = "Inimigos.Arvore_Maldita"
             elif cls_name == "ProjetilNeve": module_name = "Inimigos.Projetil_BolaNeve"
+            elif cls_name == "Maga": module_name = "Inimigos.Maga" # Adicionado: Importação específica para Maga
+            elif cls_name == "Cavaleiro": module_name = "Inimigos.Cavaleiro" # Adicionado: Importação específica para Cavaleiro
 
 
             # Importa dinamicamente a classe
@@ -127,187 +130,13 @@ except ImportError:
                 if curr_bar_w > 0: pygame.draw.rect(janela, (0,200,0), (bar_x, bar_y, curr_bar_w, bar_h), border_radius=2)
                 pygame.draw.rect(janela, (220,220,220), (bar_x, bar_y, bar_w, bar_h), 1, border_radius=2)
 
-class Inimigo(pygame.sprite.Sprite):
-    def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
-        super().__init__()
-        self.x = float(x)
-        self.y = float(y)
-        self.largura = largura
-        self.altura = altura
-        self.hp = vida_maxima
-        self.max_hp = vida_maxima
-        self.velocidade = velocidade
-        self.contact_damage = dano_contato
-        self.xp_value = xp_value
-        self.sprite_path_base = sprite_path
-        self.moedas_drop = getattr(self, 'moedas_drop', 0) # Garante que o atributo exista
-
-        if sprite_path:
-            self.image = self._carregar_sprite(sprite_path, (largura, altura))
-        else:
-            self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
-            self.image.fill((255, 0, 255, 100))
-
-        self.rect = self.image.get_rect(topleft=(self.x, self.y))
-
-        self.last_hit_time = 0
-        self.hit_flash_duration = 150
-        self.hit_flash_color = (255, 255, 255, 100)
-        self.facing_right = True
-        self.sprites = [self.image.copy()] if self.image and isinstance(self.image, pygame.Surface) else []
-        self.sprite_index = 0
-        self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
-        self.intervalo_animacao = 200
-        self.is_attacking = False
-        self.attack_hitbox = pygame.Rect(0,0,0,0)
-        self.hit_by_player_this_attack = False
-        self.contact_cooldown = 1000
-        self.last_contact_time = pygame.time.get_ticks() - self.contact_cooldown
-
-    def _carregar_sprite(self, path, tamanho):
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root_guess = os.path.dirname(base_dir)
-
-        # Tenta carregar de 'Sprites/' dentro do diretório raiz do projeto
-        full_path_project_root = os.path.join(project_root_guess, path.replace("\\", "/"))
-        # Tenta carregar do mesmo diretório do arquivo GerenciadorDeInimigos.py
-        full_path_current_dir = os.path.join(base_dir, path.replace("\\", "/"))
-        # Tenta carregar de 'Sprites/' dentro do diretório atual
-        full_path_sprites_subdir = os.path.join(base_dir, "Sprites", path.replace("\\", "/"))
-
-
-        if os.path.exists(full_path_project_root):
-            load_path = full_path_project_root
-        elif os.path.exists(full_path_sprites_subdir):
-            load_path = full_path_sprites_subdir
-        elif os.path.exists(full_path_current_dir):
-            load_path = full_path_current_dir
-        else:
-            img = pygame.Surface(tamanho, pygame.SRCALPHA)
-            img.fill((255,0,255,100)) # Rosa para indicar sprite ausente
-            # print(f"AVISO: Sprite não encontrado em nenhum dos caminhos para {path}. Usando placeholder.")
-            return img
-
-        try:
-            img = pygame.image.load(load_path).convert_alpha()
-            img = pygame.transform.scale(img, tamanho)
-            return img
-        except pygame.error as e:
-            # print(f"ERRO ao carregar sprite {load_path}: {e}")
-            img = pygame.Surface(tamanho, pygame.SRCALPHA)
-            img.fill((255,0,255,100))
-            return img
-
-    def receber_dano(self, dano, fonte_dano_rect=None):
-        if not self.esta_vivo(): return
-        self.hp -= dano
-        self.last_hit_time = pygame.time.get_ticks()
-        self.hp = max(0, self.hp)
-
-    def esta_vivo(self):
-        return self.hp > 0
-
-    def mover_em_direcao(self, alvo_x, alvo_y, dt_ms=None):
-        if self.esta_vivo() and self.velocidade > 0:
-            dx = alvo_x - self.rect.centerx
-            dy = alvo_y - self.rect.centery
-            dist = math.hypot(dx, dy)
-
-            fator_tempo = 1.0
-            if dt_ms is not None and dt_ms > 0:
-                fator_tempo = (dt_ms / (1000.0 / 60.0))
-
-            if dist > self.velocidade * fator_tempo:
-                mov_x = (dx / dist) * self.velocidade * fator_tempo
-                mov_y = (dy / dist) * self.velocidade * fator_tempo
-                self.rect.x += mov_x
-                self.rect.y += mov_y
-                self.x = float(self.rect.x)
-                self.y = float(self.rect.y)
-                if abs(dx) > 0.1: self.facing_right = dx > 0
-            elif dist > 0 :
-                 self.rect.centerx = round(alvo_x)
-                 self.rect.centery = round(alvo_y)
-                 self.x = float(self.rect.x)
-                 self.y = float(self.rect.y)
-
-    def atualizar_animacao(self):
-        agora = pygame.time.get_ticks()
-        if self.sprites and len(self.sprites) > 1 and self.esta_vivo():
-            if agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao:
-                self.tempo_ultimo_update_animacao = agora
-                self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
-
-        if self.sprites and len(self.sprites) > 0:
-            idx = int(self.sprite_index % len(self.sprites))
-            if idx < len(self.sprites) and self.sprites[idx] and isinstance(self.sprites[idx], pygame.Surface):
-                base_image = self.sprites[idx].copy()
-                self.image = pygame.transform.flip(base_image, not self.facing_right, False)
-            elif not (hasattr(self, 'image') and self.image and isinstance(self.image, pygame.Surface)):
-                self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA); self.image.fill((255,0,255, 50))
-
-    def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        """
-        Atualiza o estado do inimigo.
-        Recomenda-se que todas as classes de inimigos filhas implementem este método com a mesma assinatura.
-        Args:
-            player: A instância do jogador.
-            projeteis_inimigos_ref: Referência ao grupo de sprites de projéteis inimigos para adicionar novos projéteis.
-            tela_largura: Largura da tela do jogo.
-            altura_tela: Altura da tela do jogo.
-            dt_ms: Delta time em milissegundos para movimento independente de frame rate.
-        """
-        if self.esta_vivo():
-            if hasattr(player, 'rect') and player.rect is not None:
-                self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            self.atualizar_animacao()
-
-            current_ticks = pygame.time.get_ticks()
-            player_valido_para_contato = (
-                player and hasattr(player, 'rect') and player.rect is not None and
-                hasattr(player, 'esta_vivo') and callable(player.esta_vivo) and player.esta_vivo() and
-                hasattr(player, 'receber_dano') and callable(player.receber_dano)
-            )
-            if player_valido_para_contato and \
-               self.rect.colliderect(player.rect) and \
-               (current_ticks - self.last_contact_time >= self.contact_cooldown):
-                player.receber_dano(self.contact_damage, self.rect)
-                self.last_contact_time = current_ticks
-
-    def desenhar(self, janela, camera_x, camera_y):
-        if not (hasattr(self, 'image') and self.image and isinstance(self.image, pygame.Surface)):
-            largura_img = getattr(self, 'largura', 32); altura_img = getattr(self, 'altura', 32)
-            self.image = pygame.Surface((largura_img, altura_img), pygame.SRCALPHA)
-            self.image.fill((255,0,255, 100))
-        if not (hasattr(self, 'rect') and isinstance(self.rect, pygame.Rect)):
-            self.rect = self.image.get_rect(topleft=(getattr(self, 'x',0), getattr(self, 'y',0)))
-
-        screen_x = self.rect.x - camera_x
-        screen_y = self.rect.y - camera_y
-        janela.blit(self.image, (screen_x, screen_y))
-
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_hit_time < self.hit_flash_duration:
-            flash_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
-            flash_surface.fill(self.hit_flash_color)
-            janela.blit(flash_surface, (screen_x, screen_y), special_flags=pygame.BLEND_RGBA_ADD)
-
-        if self.hp < self.max_hp and self.hp > 0:
-            bar_w, bar_h = self.rect.width, 5
-            health_p = self.hp / self.max_hp
-            curr_bar_w = int(bar_w * health_p)
-            bar_x, bar_y = screen_x, screen_y - bar_h - 5
-            pygame.draw.rect(janela, (200,0,0), (bar_x, bar_y, bar_w, bar_h), border_radius=2)
-            if curr_bar_w > 0: pygame.draw.rect(janela, (0,200,0), (bar_x, bar_y, curr_bar_w, bar_h), border_radius=2)
-            pygame.draw.rect(janela, (220,220,220), (bar_x, bar_y, bar_w, bar_h), 1, border_radius=2)
-
 
 class GerenciadorDeInimigos:
     def __init__(self, estacoes_obj, tela_largura: int, altura_tela: int,
-                 gerenciador_moedas_ref=None, # Parâmetro adicionado
-                 intervalo_spawn_inicial: float = 3.0, spawns_iniciais: int = 5,
-                 limite_inimigos: int = 5000, fator_exponencial_spawn: float = 0.020,
-                 intervalo_spawn_minimo: float = 0.5, atraso_spawn_estacao_seg: float = 2.0):
+                     gerenciador_moedas_ref=None, # Parâmetro adicionado
+                     intervalo_spawn_inicial: float = 3.0, spawns_iniciais: int = 5,
+                     limite_inimigos: int = 5000, fator_exponencial_spawn: float = 0.020,
+                     intervalo_spawn_minimo: float = 0.5, atraso_spawn_estacao_seg: float = 2.0):
 
         self.estacoes = estacoes_obj
         self.inimigos = pygame.sprite.Group()
@@ -351,6 +180,8 @@ class GerenciadorDeInimigos:
             "goblin": globals().get("Goblin"),
             "vampiro": globals().get("Vampiro"),
             "demonio": globals().get("Demonio"),
+            "maga": globals().get("Maga"),  # Adicionado: Maga
+            "cavaleiro": globals().get("Cavaleiro") # Adicionado: Cavaleiro
         }
         # Filtra entradas None, caso alguma classe não tenha sido importada
         self.enemy_class_map = {k: v for k, v in self.enemy_class_map.items() if v is not None}
@@ -430,8 +261,8 @@ class GerenciadorDeInimigos:
             "inverno": ['fantasma', 'bonecodeneve', 'lobo', 'golem_neve'],
             "primavera": ['planta_carnivora', 'maenatureza', 'espiritodasflores'],
             "outono": ['espantalho', 'troll', 'goblin', 'vampiro'],
-            "verão": ['fenix', 'urso', 'demonio'],
-            "verao": ['fenix', 'urso', 'demonio'] # Adicionado para consistência, se houver variação
+            "verão": ['urso', 'demonio', 'cavaleiro', 'maga'], # Maga e Cavaleiro adicionados, Fenix removida
+            "verao": ['urso', 'demonio', 'cavaleiro', 'maga']  # Adicionado para consistência, se houver variação
         }
 
         # Filtra os tipos de inimigos disponíveis com base no que realmente foi importado
@@ -641,7 +472,7 @@ class GerenciadorDeInimigos:
             if hasattr(chefe, 'desenhar') and callable(chefe.desenhar):
                 chefe.desenhar(janela, camera_x, camera_y)
             elif isinstance(chefe, pygame.sprite.Sprite) and hasattr(chefe, 'image') and hasattr(chefe, 'rect'):
-                 if chefe.image and chefe.rect:
+                if chefe.image and chefe.rect:
                     janela.blit(chefe.image, (chefe.rect.x - camera_x, chefe.rect.y - camera_y))
 
     def limpar_chefe_ativo(self):
