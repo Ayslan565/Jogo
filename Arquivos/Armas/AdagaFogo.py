@@ -106,7 +106,6 @@ class AdagaFogo(Weapon):
         if level_to_check in self._stats_by_level:
             return self._stats_by_level[level_to_check]
         else:
-            print(f"WARN(AdagaFogo): Nível {level_to_check} não encontrado. Usando fallback para o primeiro nível.")
             first_level_key = next(iter(self._stats_by_level))
             return self._stats_by_level[first_level_key]
 
@@ -115,37 +114,31 @@ class AdagaFogo(Weapon):
         
         # A lógica de usar caminhos relativos está mantida e correta.
         if not caminhos:
-            print("DEBUG(AdagaFogo): A lista de caminhos para os sprites de animação está vazia.")
             self.attack_animation_sprites = []
             return
 
-        print(f"--- Carregando Sprites para {self.name} ---")
 
         for path_relativo in caminhos:
             path_corrigido = path_relativo.replace("\\", os.sep).replace("//", os.sep)
             full_path = path_corrigido
             
-            print(f"DEBUG(AdagaFogo): Tentando carregar sprite: '{full_path}'")
 
             try:
                 if os.path.exists(full_path):
-                    print(f"SUCCESS(AdagaFogo): Ficheiro encontrado! '{full_path}'")
+
                     imagem_original = pygame.image.load(full_path).convert_alpha()
                     novo_w, novo_h = 100, 100
                     imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
                     sprites_carregados.append(imagem)
                 else:
-                    print(f"!!! WARN(AdagaFogo): CAMINHO NÃO EXISTE: '{full_path}'. A criar placeholder.")
                     placeholder = pygame.Surface((100, 100), pygame.SRCALPHA); placeholder.fill((255,140,0,100))
                     sprites_carregados.append(placeholder)
             except pygame.error as e:
-                print(f"!!! ERROR(AdagaFogo): Erro ao carregar imagem em '{full_path}': {e}. A criar placeholder.")
                 placeholder = pygame.Surface((100, 100), pygame.SRCALPHA); placeholder.fill((255,0,0,150))
                 sprites_carregados.append(placeholder)
         
         self.attack_animation_sprites = sprites_carregados
         self.current_attack_animation_frame = 0
-        print(f"--- Carga de sprites para {self.name} concluída. Total de sprites carregados: {len(self.attack_animation_sprites)} ---")
 
     # --- MÉTODOS DE ANIMAÇÃO ADICIONADOS ---
     def start_attack_animation(self):
@@ -172,13 +165,11 @@ class AdagaFogo(Weapon):
         if target_level in self._stats_by_level:
             self.level = target_level
             self._apply_level_stats()
-        else:
-            print(f"WARN(AdagaFogo): Nível {target_level} inválido. Níveis disponíveis: {list(self._stats_by_level.keys())}")
+
 
     def _apply_level_stats(self):
         stats = self._get_stats_for_level_internal(self.level)
         if not stats:
-            print(f"ERROR(AdagaFogo): Falha crítica ao obter stats para Nível {self.level} de '{self.name}'.")
             return
 
         self.damage = stats["damage"]

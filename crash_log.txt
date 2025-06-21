@@ -1,0 +1,11 @@
+Um erro fatal ocorreu:
+Traceback (most recent call last):
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 452, in <module>
+    main()
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 407, in main
+    gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 191, in update_projeteis_inimigos
+    self.projeteis_inimigos.update(dt_ms)
+  File "C:\Users\aysla\AppData\Local\Programs\Python\Python312\Lib\site-packages\pygame\sprite.py", line 556, in update
+    sprite.update(*args, **kwargs)
+TypeError: ProjetilNeve.update() missing 2 required positional arguments: 'tela_largura' and 'tela_altura'

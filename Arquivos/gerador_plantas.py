@@ -1,43 +1,68 @@
+import pygame
 import random
-from grama import Grama
+import math
+
 from arvores import Arvore
-from Estacoes import Estacoes
-from vida import Vida
-from player import Player
+from grama import Grama
 
-# Armazena regiões já geradas (dividido em "blocos")
-blocos_gerados = set()
-Asrahel = Player()
+class GeradorPlantas:
+    def __init__(self, all_sprites, arvores, grama, player):
+        """
+        Inicializa o gerador de plantas.
 
-def gerar_plantas_ao_redor_do_jogador(Asrahel, gramas, arvores, est, blocos_gerados):
-    jogador = Asrahel
-    distancia_geracao = 1920  # distância do centro do jogador
-    bloco_tamanho = 1080  # tamanho do bloco usado para evitar gerar novamente
+        Args:
+            all_sprites (pygame.sprite.Group): Grupo principal de sprites.
+            arvores (pygame.sprite.Group): Grupo de sprites de árvores.
+            grama (pygame.sprite.Group): Grupo de sprites de grama.
+            player (Player): O objeto do jogador.
+        """
+        self.all_sprites = all_sprites
+        self.arvores = arvores
+        self.grama = grama
+        self.player = player
+        # --- MUDANÇA: O raio de spawn agora é a distância MÍNIMA de geração ---
+        self.spawn_radius = 900  # Aumentado para garantir que nasça fora da tela
 
-    jogador_bloco_x = jogador.rect.x // bloco_tamanho
-    jogador_bloco_y = jogador.rect.y // bloco_tamanho
+        # Gera 100 árvores iniciais em um círculo ao redor da posição inicial (0,0).
+        for _ in range(100):
+            angle = random.uniform(0, 2 * math.pi)
+            # --- MUDANÇA: Aumenta a distância mínima das árvores iniciais ---
+            # Gera as árvores a uma distância entre 900 e 2500 pixels do centro.
+            distance = random.uniform(self.spawn_radius, 2500)
+            x = distance * math.cos(angle)
+            y = distance * math.sin(angle)
+            
+            arvore = Arvore(x, y, 180, 180)
+            self.all_sprites.add(arvore)
+            self.arvores.add(arvore)
 
-    # Explora ao redor do jogador (9 blocos)
-    for dx in range(-1, 2):
-        for dy in range(-1, 2):
-            bloco_coord = (jogador_bloco_x + dx, jogador_bloco_y + dy)
-            if bloco_coord not in blocos_gerados:
-                blocos_gerados.add(bloco_coord)
-                base_x = (jogador_bloco_x + dx) * bloco_tamanho
-                base_y = (jogador_bloco_y + dy) * bloco_tamanho
+    def update(self):
+        """
+        Atualiza o gerador, criando novas plantas ao redor do jogador em movimento.
+        As plantas são geradas fora da tela para dar a impressão de um mundo contínuo.
+        """
+        # --- MUDANÇA: Reduz a frequência de geração para evitar excesso de plantas ---
+        # Gera novas plantas com uma chance menor para não sobrecarregar.
+        if random.randint(1, 10) == 1:
+            player_x, player_y = self.player.rect.center
+            rand_angle = random.uniform(0, 2 * math.pi)
+            
+            # --- MUDANÇA: Gera plantas mais longe do jogador ---
+            # As plantas nascerão entre 900 e 1300 pixels de distância.
+            rand_dist = random.uniform(self.spawn_radius, self.spawn_radius + 400)
+            
+            x = player_x + rand_dist * math.cos(rand_angle)
+            y = player_y + rand_dist * math.sin(rand_angle)
 
-                # Gerar gramas nas bordas
-                for _ in range(random.randint(15, 25)):
-                    tipo_planta = 'grama'
-                    # Gerar no limite do bloco (bordas)
-                    x = base_x + random.randint(0, bloco_tamanho)
-                    y = base_y + random.randint(0, bloco_tamanho)
-                    gramas.append(Grama(x, y, 50, 50))
+            tipo_planta = random.choice(['arvore', 'grama', 'grama', 'grama'])
 
-                # Gerar árvores na área central
-                for _ in range(random.randint(1, 15)):  # Menos árvores do que gramas
-                    tipo_planta = 'arvore'
-                    # Gerar no centro do bloco
-                    x = base_x + random.randint(bloco_tamanho // 4, 3 * bloco_tamanho // 4)
-                    y = base_y + random.randint(bloco_tamanho // 4, 3 * bloco_tamanho // 4)
-                    arvores.append(Arvore(x, y, 180, 180, est.i))
+            if tipo_planta == 'arvore':
+                if len(self.arvores) < 250:
+                    arvore = Arvore(x, y, 180, 180)
+                    self.all_sprites.add(arvore)
+                    self.arvores.add(arvore)
+            elif tipo_planta == 'grama':
+                if len(self.grama) < 400:
+                    folha = Grama(x, y, 50, 50)
+                    self.all_sprites.add(folha)
+                    self.grama.add(folha)

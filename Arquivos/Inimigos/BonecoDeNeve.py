@@ -4,15 +4,11 @@ import os
 import math
 import time # Usado para cooldowns de ataque
 
-# Removido: importação do score_manager, pois a lógica de recompensa é tratada pelo GerenciadorDeInimigos
-
 # --- Importação da Classe Base Inimigo ---
 try:
     # Correção: Importação relativa para a classe base Inimigo dentro do mesmo pacote 'Inimigos'
     from .Inimigos import Inimigo as InimigoBase
-    # print(f"DEBUG(BonecoDeNeve): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
-    # print(f"DEBUG(BonecoDeNeve): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
     class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
@@ -26,14 +22,13 @@ except ImportError as e:
             self.contact_cooldown = 1000; self.last_contact_time = 0
             self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
-            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
+            self.moedas_drop = 0
 
         def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
         def esta_vivo(self): return self.hp > 0
         def mover_em_direcao(self, ax, ay, dt=None): pass
         def atualizar_animacao(self): pass
         def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-            # Placeholder de update, a lógica real estará nas classes filhas
             pass
         def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
@@ -97,7 +92,7 @@ class BonecoDeNeve(InimigoBase):
         vida_boneco = 70
         dano_contato_boneco = 7
         xp_boneco = 30
-        self.moedas_drop = 10 # Mantido, pois o GerenciadorDeInimigos o acessa
+        self.moedas_drop = 10 
 
         sprite_path_principal_relativo_ao_jogo = "Sprites/Inimigos/Boneco de Neve/Boneco De Neve 1.png"
 
@@ -108,8 +103,6 @@ class BonecoDeNeve(InimigoBase):
             sprite_path_principal_relativo_ao_jogo
         )
         
-        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
-
         self.sprites = BonecoDeNeve.sprites_animacao
         if not self.sprites or not isinstance(self.sprites[0], pygame.Surface):
             if hasattr(self, 'image') and isinstance(self.image, pygame.Surface):
@@ -127,36 +120,41 @@ class BonecoDeNeve(InimigoBase):
         self.attack_range = 350
         self.attack_cooldown = 2.5
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
-        self.velocidade_projetil = 6
+        
+        # --- VELOCIDADE CORRIGIDA ---
+        # A velocidade do projétil agora é em pixels por segundo.
+        self.velocidade_projetil = 250 
+        
         self.attack_prepare_duration = 500
         self.is_preparing_attack = False
         self.attack_prepare_start_time = 0
 
     def update(self, player, projeteis_inimigos_ref, tela_largura=None, altura_tela=None, dt_ms=None):
-        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
         if not self.esta_vivo():
-            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
+            self.kill()
             return
 
         agora = pygame.time.get_ticks()
         distancia_ao_jogador = float('inf')
 
-        jogador_valido = (hasattr(player, 'rect') and
-                          hasattr(player, 'vida') and # Assumindo que o player tem um objeto 'vida'
-                          hasattr(player.vida, 'esta_vivo') and
-                          player.vida.esta_vivo())
+        # --- VALIDAÇÃO DO JOGADOR SIMPLIFICADA ---
+        jogador_valido = (player and hasattr(player, 'esta_vivo') and player.esta_vivo())
 
         if jogador_valido:
             distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx,
-                                             self.rect.centery - player.rect.centery)
+                                              self.rect.centery - player.rect.centery)
 
         if self.is_preparing_attack:
             if agora - self.attack_prepare_start_time >= self.attack_prepare_duration:
                 if jogador_valido and ProjetilNeve is not None:
+                    # --- CRIAÇÃO DO PROJÉTIL CORRIGIDA ---
+                    # Passa o objeto do jogador inteiro para o projétil teleguiado.
                     novo_projetil = ProjetilNeve(
-                        self.rect.centerx, self.rect.centery,
-                        player.rect.centerx, player.rect.centery,
-                        self.attack_damage, self.velocidade_projetil
+                        x_origem=self.rect.centerx, 
+                        y_origem=self.rect.centery,
+                        alvo_obj=player,
+                        dano=self.attack_damage, 
+                        velocidade=self.velocidade_projetil
                     )
                     if hasattr(projeteis_inimigos_ref, 'add'):
                         projeteis_inimigos_ref.add(novo_projetil)
@@ -175,14 +173,7 @@ class BonecoDeNeve(InimigoBase):
         if hasattr(self, 'atualizar_animacao'):
             self.atualizar_animacao()
 
-        # Lógica de dano de contato com o jogador
-        if jogador_valido and self.rect.colliderect(player.rect) and \
-           (agora - self.last_contact_time >= self.contact_cooldown):
-            if hasattr(player, 'receber_dano'):
-                player.receber_dano(self.contact_damage)
-                self.last_contact_time = agora
+        # A lógica de dano de contato foi centralizada no GerenciadorDeInimigos
 
-# O placeholder do projétil foi omitido para brevidade, pois não foi alterado.
 if ProjetilNeve is None:
-    # O código do placeholder para ProjetilNeve permanece aqui
     pass
