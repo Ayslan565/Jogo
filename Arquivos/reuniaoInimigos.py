@@ -28,7 +28,7 @@ def testar_importacao_inimigos():
         print("  (-) AVISO: Espantalho não encontrado.")
 
     try:
-        from Inimigos.Mae_Natureza import Mae_Natureza
+        from Arquivos.Inimigos.Mae_Natureza import Mae_Natureza
         print("  (+) Mae_Natureza importada.")
     except ImportError:
         print("  (-) AVISO: Mae_Natureza não encontrada.")

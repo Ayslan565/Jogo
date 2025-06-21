@@ -1,19 +1,15 @@
-# Mae_Natureza.py
 import pygame
 import os
 import math
 import time
 
-# Removido: importação do score_manager, pois a lógica de recompensa é tratada pelo GerenciadorDeInimigos
-
 # --- Importação da Classe Base Inimigo ---
 try:
-    # Correção: Importação relativa para a classe base Inimigo dentro do mesmo pacote 'Inimigos'
-    from .Inimigos import Inimigo as InimigoBase
-    # print(f"DEBUG(Mae_Natureza): Classe InimigoBase importada com sucesso de .Inimigos.")
+    # CORREÇÃO: Usando importação absoluta para robustez
+    from Inimigos.Inimigos import Inimigo as InimigoBase
 except ImportError as e:
-    # print(f"DEBUG(Mae_Natureza): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
     class InimigoBase(pygame.sprite.Sprite):
+        # ... (código do placeholder permanece o mesmo) ...
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
             self.rect = pygame.Rect(x, y, largura, altura)
@@ -28,25 +24,17 @@ except ImportError as e:
             self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
             self.x = float(x); self.y = float(y)
-            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
-
-        def _carregar_sprite(self, path, tamanho):
-            img = pygame.Surface(tamanho, pygame.SRCALPHA); img.fill((34, 139, 34, 128)); return img
+            self.moedas_drop = 0
         def receber_dano(self, dano, fonte_dano_rect=None): self.hp = max(0, self.hp - dano)
         def esta_vivo(self): return self.hp > 0
-        def mover_em_direcao(self, ax, ay, dt_ms=None): pass
-        def atualizar_animacao(self):
-            if self.sprites: self.image = self.sprites[0]
-        # Padronizado a assinatura do update do placeholder para consistência
-        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-            # Placeholder de update, a lógica real estará nas classes filhas
-            self.atualizar_animacao()
+        def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None): pass
         def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
                 janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
         def kill(self): super().kill()
 
 
+# CORREÇÃO: Nome da classe alterado para Mae_Natureza
 class Mae_Natureza(InimigoBase):
     sprites_andar_carregados = None
     sprites_atacar_carregados = None
@@ -60,8 +48,9 @@ class Mae_Natureza(InimigoBase):
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
         return os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
 
+    # ... (outros métodos estáticos permanecem os mesmos) ...
     @staticmethod
-    def _carregar_som_mae_natureza(caminho_relativo_a_raiz_jogo):
+    def _carregar_som_maenatureza(caminho_relativo_a_raiz_jogo):
         pasta_raiz_jogo = Mae_Natureza._obter_pasta_raiz_jogo()
         caminho_completo = os.path.join(pasta_raiz_jogo, caminho_relativo_a_raiz_jogo.replace("\\", "/"))
         if not os.path.exists(caminho_completo): return None
@@ -71,7 +60,7 @@ class Mae_Natureza(InimigoBase):
     @staticmethod
     def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, nome_anim):
         pasta_raiz_jogo = Mae_Natureza._obter_pasta_raiz_jogo()
-        if lista_destino is None: lista_destino = [] # Garante que lista_destino é uma lista
+        if lista_destino is None: lista_destino = []
         for path_relativo in caminhos:
             caminho_completo = os.path.join(pasta_raiz_jogo, path_relativo.replace("\\", "/"))
             try:
@@ -85,56 +74,52 @@ class Mae_Natureza(InimigoBase):
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((34, 139, 34, 180)); lista_destino.append(placeholder)
         if not lista_destino:
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((20, 100, 20, 200)); lista_destino.append(placeholder)
-        return lista_destino # Retorna a lista modificada
+        return lista_destino
 
     @staticmethod
-    def carregar_recursos_mae_natureza():
+    def carregar_recursos_maenatureza():
+        # CORREÇÃO: Referência estática usa o novo nome da classe Mae_Natureza
         if Mae_Natureza.sprites_andar_carregados is None:
             Mae_Natureza.sprites_andar_carregados = []
-            caminhos = ["Sprites/Inimigos/Mae_Natureza/Mae{}.png".format(i) for i in range(1, 4)]
+            caminhos = ["Sprites/Inimigos/MaeNatureza/Mae{}.png".format(i) for i in range(1, 4)]
             Mae_Natureza._carregar_lista_sprites_estatico(caminhos, Mae_Natureza.sprites_andar_carregados, Mae_Natureza.tamanho_sprite_definido, "Andar/Idle")
         if Mae_Natureza.sprites_atacar_carregados is None:
             Mae_Natureza.sprites_atacar_carregados = []
-            caminhos_atacar = ["Sprites/Inimigos/Mae_Natureza/Mae_Atacar{}.png".format(i) for i in range(1, 3)]
+            caminhos_atacar = ["Sprites/Inimigos/MaeNatureza/Mae_Atacar{}.png".format(i) for i in range(1, 3)]
             Mae_Natureza._carregar_lista_sprites_estatico(caminhos_atacar, Mae_Natureza.sprites_atacar_carregados, Mae_Natureza.tamanho_sprite_definido, "Atacar")
             if not Mae_Natureza.sprites_atacar_carregados and Mae_Natureza.sprites_andar_carregados:
                 Mae_Natureza.sprites_atacar_carregados = [Mae_Natureza.sprites_andar_carregados[0]]
         if not Mae_Natureza.sons_carregados:
-            # Carregar sons aqui
             Mae_Natureza.sons_carregados = True
 
     def __init__(self, x, y, velocidade=0.7):
-        Mae_Natureza.carregar_recursos_mae_natureza()
+        # CORREÇÃO: Chamada do método estático com nome correto e referência de classe correta
+        Mae_Natureza.carregar_recursos_maenatureza()
 
-        vida_mae_natureza = 120
-        dano_contato_mae_natureza = 12
-        xp_mae_natureza = 120
+        vida_maenatureza = 120
+        dano_contato_maenatureza = 12
+        xp_maenatureza = 120
         self.moedas_drop = 17
-
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Mae_Natureza/Mae1.png"
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/MaeNatureza/Mae1.png"
 
         super().__init__(
             x, y,
             Mae_Natureza.tamanho_sprite_definido[0], Mae_Natureza.tamanho_sprite_definido[1],
-            vida_mae_natureza, velocidade, dano_contato_mae_natureza,
-            xp_mae_natureza, sprite_path_principal_relativo_jogo
+            vida_maenatureza, velocidade, dano_contato_maenatureza,
+            xp_maenatureza, sprite_path_principal_relativo_jogo
         )
-
-        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
-
+        # ... (o resto do __init__ e dos outros métodos podem permanecer como estão) ...
         self.x = float(x)
         self.y = float(y)
         self.sprites_andar = Mae_Natureza.sprites_andar_carregados
         self.sprites_atacar = Mae_Natureza.sprites_atacar_carregados
         self.sprites = self.sprites_andar
-
         if not (hasattr(self, 'image') and isinstance(self.image, pygame.Surface)):
             if self.sprites: self.image = self.sprites[0]
             else:
                 self.image = pygame.Surface(Mae_Natureza.tamanho_sprite_definido, pygame.SRCALPHA); self.image.fill((20, 100, 20, 150))
                 if not self.sprites: self.sprites = [self.image]
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
-
         self.sprite_index = 0
         self.intervalo_animacao_andar = 300
         self.intervalo_animacao_atacar = 220
@@ -149,7 +134,8 @@ class Mae_Natureza(InimigoBase):
         self.attack_hitbox_size = (Mae_Natureza.tamanho_sprite_definido[0] * 1.5, Mae_Natureza.tamanho_sprite_definido[1] * 1.5)
         self.attack_hitbox = pygame.Rect(0,0,0,0)
         self.hit_player_this_attack_pulse = False
-        
+    
+    # ... (todos os outros métodos como `atacar`, `update`, `receber_dano` permanecem os mesmos) ...
     def _atualizar_hitbox_ataque(self):
         if not self.is_attacking:
             self.attack_hitbox.size = (0,0); return
@@ -170,21 +156,15 @@ class Mae_Natureza(InimigoBase):
             self.sprite_index = 0
 
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
         if not self.esta_vivo():
-            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
+            self.kill()
             return
-
         agora = pygame.time.get_ticks()
         jogador_valido = (player and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo'))
-
         if jogador_valido:
             if player.rect.centerx < self.rect.centerx: self.facing_right = False
             else: self.facing_right = True
-
-        # Chama o update da classe base para movimento e animação
         super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
-
         if self.is_attacking:
             if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
             self._atualizar_hitbox_ataque()
@@ -199,12 +179,6 @@ class Mae_Natureza(InimigoBase):
                 self.attack_hitbox.size = (0,0)
         else:
             if jogador_valido: self.atacar(player)
-            # A chamada super().update já cuida do mover_em_direcao e atualizar_animacao para o estado normal.
-            # Essas linhas foram comentadas porque a chamada super().update já as executa.
-            # if not self.is_attacking and jogador_valido and hasattr(self, 'mover_em_direcao'):
-            #     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            # if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao() # Já chamado na super.update
-
         if jogador_valido and self.rect.colliderect(player.rect) and (agora - self.last_contact_time >= self.contact_cooldown):
             if hasattr(player, 'receber_dano'): player.receber_dano(self.contact_damage, self.rect)
             self.last_contact_time = agora
@@ -213,6 +187,6 @@ class Mae_Natureza(InimigoBase):
         vida_antes = self.hp
         super().receber_dano(dano, fonte_dano_rect)
         if not self.esta_vivo() and vida_antes > 0 and self.som_morte_mae:
-             self.som_morte_mae.play()
+                 self.som_morte_mae.play()
         elif self.esta_vivo() and vida_antes > self.hp and self.som_dano_mae:
-             self.som_dano_mae.play()
+                 self.som_dano_mae.play()

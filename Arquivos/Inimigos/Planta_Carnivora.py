@@ -95,7 +95,7 @@ class Planta_Carnivora(InimigoBase):
             # Carregar sons aqui
             Planta_Carnivora.sons_carregados = True
 
-    def __init__(self, x, y, velocidade=0.5):
+    def __init__(self, x, y, velocidade=1):
         Planta_Carnivora.carregar_recursos_planta_carnivora()
 
         vida_planta = 90

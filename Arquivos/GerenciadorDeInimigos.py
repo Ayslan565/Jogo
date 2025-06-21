@@ -37,7 +37,7 @@ except ImportError:
         def esta_vivo(self): return self.hp > 0
         def update(self, *args, **kwargs): pass
         def desenhar(self, *args, **kwargs): pass
-        def kill(self): self.kill()
+        def kill(self): super().kill()
 
 
 class GerenciadorDeInimigos:
@@ -82,11 +82,12 @@ class GerenciadorDeInimigos:
         }
         self.enemy_class_map = self._load_enemy_classes()
         
+        # Dicionário de chefes por estação, usando as classes carregadas
         self.chefes_por_estacao = {
-            0: self.enemy_class_map.get("maenatureza"),
+            0: self.enemy_class_map.get("arvoremaldita"),
             1: self.enemy_class_map.get("fenix"),
-            2: self.enemy_class_map.get("demonio"),
-            3: self.enemy_class_map.get("morte")
+            2: self.enemy_class_map.get("morte"),
+            3: self.enemy_class_map.get("golem_neve")
         }
 
         self.spawn_controller_thread = threading.Thread(target=self._spawn_controller_task, daemon=True)
@@ -97,17 +98,12 @@ class GerenciadorDeInimigos:
         loaded_classes = {}
         for name, module_path in self.enemy_module_map.items():
             try:
-                # --- LÓGICA DE CONVERSÃO CORRIGIDA ---
-                # Converte nomes de arquivo como 'Mae_Natureza' para nomes de classe como 'MaeNatureza'
-                class_name = module_path.split('.')[-1].replace('_', ' ').title().replace(' ', '')
-                
+                class_name = module_path.split('.')[-1]
                 module = __import__(module_path, fromlist=[class_name])
                 loaded_classes[name] = getattr(module, class_name)
             except (ImportError, AttributeError) as e:
-                # Esta exceção agora captura corretamente erros de importação e nomes de classe incorretos.
                 print(f"AVISO(GerenciadorInimigos): Não foi possível carregar a classe para '{name}' de '{module_path}': {e}")
         return loaded_classes
-
 
     def pausar_spawn_normal(self, pausar: bool):
         self._spawn_normal_pausado = pausar
@@ -138,9 +134,6 @@ class GerenciadorDeInimigos:
                     self.ultimo_spawn_controlado_pelo_thread = agora
 
     def process_spawn_requests(self, jogador, dt_ms=None):
-        """
-        Processa as solicitações de spawn da fila.
-        """
         try:
             while not self.spawn_request_queue.empty():
                 self.spawn_request_queue.get_nowait()
@@ -152,9 +145,9 @@ class GerenciadorDeInimigos:
 
     def _spawn_inimigo_especifico_da_estacao(self, jogador):
         mapa_estacao_inimigos = {
-            "Inverno": ['fantasma', 'bonecodeneve', 'lobo', 'golem_neve'],
-            "Primavera": ['planta_carnivora', 'goblin', 'espiritodasflores'],
-            "Outono": ['espantalho', 'troll', 'vampiro', 'arvoremaldita'],
+            "Inverno": ['fantasma', 'bonecodeneve', 'lobo'],
+            "Primavera": ['planta_carnivora', 'goblin', 'espiritodasflores', 'maenatureza'],
+            "Outono": ['espantalho', 'troll', 'vampiro'],
             "Verão": ['urso', 'cavaleiro', 'maga']
         }
         est_nome = self.estacoes.nome_estacao_atual()
@@ -183,7 +176,8 @@ class GerenciadorDeInimigos:
                 self._spawn_inimigo_especifico_da_estacao(jogador)
 
     def update_inimigos(self, jogador, dt_ms):
-        self.inimigos.update(jogador, self.projeteis_inimigos, dt_ms)
+        self.inimigos.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
+        
         for inimigo in list(self.inimigos):
             if not inimigo.esta_vivo():
                 if self.gerenciador_moedas and hasattr(inimigo, 'moedas_drop'): self.gerenciador_moedas.create_coins_from_enemy(inimigo)
@@ -191,7 +185,12 @@ class GerenciadorDeInimigos:
                 inimigo.kill()
 
     def update_projeteis_inimigos(self, jogador, dt_ms):
+        # --- CORREÇÃO APLICADA AQUI ---
+        # A chamada de update para o grupo de projéteis agora passa
+        # apenas o 'dt_ms', que é o único argumento que o ProjetilMaga.update() espera.
         self.projeteis_inimigos.update(dt_ms)
+
+        # O resto da lógica, como a verificação de colisão, permanece o mesmo
         colisoes = pygame.sprite.spritecollide(jogador, self.projeteis_inimigos, True, pygame.sprite.collide_mask)
         for projetil in colisoes:
             if jogador.pode_levar_dano:
@@ -200,35 +199,26 @@ class GerenciadorDeInimigos:
     def spawn_chefe_estacao(self, indice_estacao_chefe, posicao_mundo_spawn):
         self.grupo_chefe_ativo.empty()
         
-        boss_map = {
-            0: "maenatureza", # Primavera
-            1: "fenix",       # Verão
-            2: "demonio",     # Outono
-            3: "morte"        # Inverno
-        }
+        ClasseChefe = self.chefes_por_estacao.get(indice_estacao_chefe)
         
-        chefe_tipo_str = boss_map.get(indice_estacao_chefe)
-        if not chefe_tipo_str:
-            print(f"ERRO: Nenhum chefe mapeado para o índice de estação {indice_estacao_chefe}.")
-            return None
-            
-        ClasseChefe = self.enemy_class_map.get(chefe_tipo_str)
         if not ClasseChefe:
-            print(f"ERRO: Classe do chefe '{chefe_tipo_str}' não foi carregada ou não existe.")
+            print(f"ERRO CRÍTICO: Classe do chefe para o índice {indice_estacao_chefe} não foi carregada ou não existe. Verifique o __init__.")
             return None
         
         try:
             chefe_spawnado = ClasseChefe(x=posicao_mundo_spawn[0], y=posicao_mundo_spawn[1])
             self.grupo_chefe_ativo.add(chefe_spawnado)
+            self.inimigos.add(chefe_spawnado)
+            
             print(f"DEBUG(GerenciadorInimigos): Chefe '{type(chefe_spawnado).__name__}' spawnado.")
             return chefe_spawnado
         except Exception as e:
-            print(f"ERRO CRÍTICO ao instanciar chefe {chefe_tipo_str}: {e}")
+            print(f"ERRO CRÍTICO ao instanciar chefe {ClasseChefe.__name__}: {e}")
             return None
 
     def update_chefe(self, jogador, dt_ms):
         if self.grupo_chefe_ativo.sprite:
-            self.grupo_chefe_ativo.update(jogador, self.projeteis_inimigos, dt_ms)
+            self.grupo_chefe_ativo.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
 
     def desenhar_inimigos(self, janela, camera_x, camera_y):
         for inimigo in self.inimigos:
@@ -243,9 +233,11 @@ class GerenciadorDeInimigos:
             proj.desenhar(surface, camera_x, camera_y)
 
     def limpar_todos_inimigos_normais(self):
-        self.inimigos.empty()
+        for inimigo in list(self.inimigos):
+            if inimigo not in self.grupo_chefe_ativo:
+                inimigo.kill()
         self.projeteis_inimigos.empty()
-        
+    
     def stop_threads(self):
         self.stop_spawn_thread_event.set()
         if self.spawn_controller_thread.is_alive():

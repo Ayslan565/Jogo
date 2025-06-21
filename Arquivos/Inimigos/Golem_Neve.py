@@ -291,7 +291,7 @@ class Golem_Neve(InimigoBase):
             Golem_Neve.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=0.5): # Golem é caracteristicamente lento
+    def __init__(self, x, y, velocidade=1): # Golem é caracteristicamente lento
         """
         Inicializa uma nova instância de Golem_Neve.
         x, y: Posição inicial do Golem.
@@ -342,8 +342,8 @@ class Golem_Neve(InimigoBase):
         self.is_attacking = False # Flag para estado de ataque
         self.attack_duration = 1.0 # Duração total do ataque em segundos
         self.attack_timer = 0.0 # Tempo em que o ataque começou (usando pygame.time.get_ticks())
-        self.attack_damage_especifico = 45 # Dano causado pelo ataque específico
-        self.attack_range = 110 # Alcance máximo para iniciar o ataque (pixels)
+        self.attack_damage_especifico = 25 # Dano causado pelo ataque específico
+        self.attack_range = 30 # Alcance máximo para iniciar o ataque (pixels)
         self.attack_cooldown = 3.8 # Cooldown entre ataques em segundos
         # Inicializa o cooldown para permitir o ataque quase imediato após o spawn
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)

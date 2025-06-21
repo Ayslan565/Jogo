@@ -1,5 +1,3 @@
-# Jogo/Arquivos/Inimigos/Maga.py
-
 import pygame
 import os
 import math
@@ -7,8 +5,9 @@ import time
 
 # Importação da Classe Base Inimigo e do Projétil
 try:
-    from .Inimigos import Inimigo as InimigoBase
-    from .ProjetilMaga import ProjetilMaga 
+    # Usando importações absolutas para maior robustez
+    from Inimigos.Inimigos import Inimigo as InimigoBase
+    from Inimigos.ProjetilMaga import ProjetilMaga 
 except ImportError as e:
     print(f"ERRO DE IMPORTAÇÃO: {e}. Verifique se 'Inimigos.py' e 'ProjetilMaga.py' estão acessíveis.")
     # Placeholders para evitar que o jogo trave
@@ -37,7 +36,6 @@ class Maga(InimigoBase):
 
     @staticmethod
     def _obter_pasta_raiz_jogo():
-        # O caminho correto a partir de Jogo/Arquivos/Inimigos/ é subir 2 pastas
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
         return os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
 
@@ -64,20 +62,18 @@ class Maga(InimigoBase):
 
     @staticmethod
     def carregar_recursos_maga():
-        # Nomes de animação podem ser ajustados conforme os arquivos
         if Maga.sprites_andar_carregados is None:
-            caminhos_andar = [f"Sprites/Inimigos/Maga/C ({i}).png" for i in range(1, 9)] # 8 frames de caminhada/flutuação
+            caminhos_andar = [f"Sprites/Inimigos/Maga/C ({i}).png" for i in range(1, 9)]
             Maga.sprites_andar_carregados = Maga._carregar_lista_sprites_estatico(caminhos_andar, [], Maga.tamanho_sprite_definido)
             
         if Maga.sprites_atacar_carregados is None:
-            caminhos_atacar = [f"Sprites/Inimigos/Maga/A ({i}).png" for i in range(1, 9)] # 8 frames de ataque
+            caminhos_atacar = [f"Sprites/Inimigos/Maga/A ({i}).png" for i in range(1, 9)]
             Maga.sprites_atacar_carregados = Maga._carregar_lista_sprites_estatico(caminhos_atacar, [], Maga.tamanho_sprite_definido)
 
         if not Maga.sons_carregados:
-            # Lógica para carregar sons aqui
             Maga.sons_carregados = True
 
-    def __init__(self, x, y, velocidade=70): # Velocidade em pixels/segundo
+    def __init__(self, x, y, velocidade=70):
         Maga.carregar_recursos_maga()
 
         vida_maga = 80
@@ -103,16 +99,16 @@ class Maga(InimigoBase):
         self.intervalo_animacao = self.intervalo_animacao_andar
         
         self.is_attacking = False
-        self.attack_duration_ms = len(self.sprites_atacar) * self.intervalo_animacao_atacar
+        self.attack_duration_ms = len(self.sprites_atacar) * self.intervalo_animacao_atacar if self.sprites_atacar else 0
         self.attack_timer = 0
         self.projectile_damage = 30
-        self.projectile_speed = 250 # pixels/segundo
-        self.attack_range = 350 # Ataca de longe
-        self.attack_cooldown = 2000 # ms
+        self.projectile_speed = 220 # Ajuste de velocidade para projétil teleguiado
+        self.attack_range = 350
+        self.attack_cooldown = 2000
         self.last_attack_time = -self.attack_cooldown
 
-        self.distancia_minima_do_jogador = 150 # Foge se o jogador estiver mais perto que isso
-        self.distancia_maxima_do_jogador = 320 # Persegue se o jogador estiver mais longe que isso
+        self.distancia_minima_do_jogador = 150
+        self.distancia_maxima_do_jogador = 320
 
     def atacar(self, player, projeteis_inimigos_ref, agora):
         if not self.is_attacking and (agora - self.last_attack_time >= self.attack_cooldown):
@@ -123,16 +119,17 @@ class Maga(InimigoBase):
             self.intervalo_animacao = self.intervalo_animacao_atacar
             self.sprite_index = 0
 
-            direcao_x = player.rect.centerx - self.rect.centerx
-            direcao_y = player.rect.centery - self.rect.centery
-            
-            # Ponto de origem do projétil (ajustável)
-            pos_inicial_x = self.rect.centerx
-            pos_inicial_y = self.rect.centery
-
-            novo_projetil = ProjetilMaga(pos_inicial_x, pos_inicial_y, direcao_x, direcao_y, 
-                                          self.projectile_damage, self.projectile_speed)
+            # --- CORREÇÃO APLICADA ---
+            # Cria o projétil teleguiado passando o jogador como o alvo.
+            novo_projetil = ProjetilMaga(
+                x_origem=self.rect.centerx,
+                y_origem=self.rect.centery,
+                alvo_obj=player,
+                dano=self.projectile_damage,
+                velocidade=self.projectile_speed
+            )
             projeteis_inimigos_ref.add(novo_projetil)
+            
             if Maga.som_conjura_maga:
                 Maga.som_conjura_maga.play()
 
@@ -142,7 +139,7 @@ class Maga(InimigoBase):
 
         agora = pygame.time.get_ticks()
         
-        # 1. Lógica de Comportamento e IA
+        # Lógica de Comportamento e IA
         distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery)
 
         if self.is_attacking:
@@ -156,17 +153,14 @@ class Maga(InimigoBase):
             # IA de Kiting: Mover-se para a posição ideal
             fator_tempo = dt_ms / 1000.0
             
-            # Se muito longe, se aproxima
+            direcao_x, direcao_y = 0, 0
             if distancia_ao_jogador > self.distancia_maxima_do_jogador:
                 direcao_x = player.rect.centerx - self.rect.centerx
                 direcao_y = player.rect.centery - self.rect.centery
-            # Se muito perto, se afasta
             elif distancia_ao_jogador < self.distancia_minima_do_jogador:
                 direcao_x = self.rect.centerx - player.rect.centerx
                 direcao_y = self.rect.centery - player.rect.centery
-            # Se na distância ideal, para e ataca
             else:
-                direcao_x, direcao_y = 0, 0 # Para de mover
                 self.atacar(player, projeteis_inimigos_ref, agora)
 
             # Mover com base na direção decidida
@@ -180,15 +174,9 @@ class Maga(InimigoBase):
                 if mov_x > 0.1: self.facing_right = True
                 elif mov_x < -0.1: self.facing_right = False
 
-        # 2. Atualizar Animação (usa método da classe base)
+        # Atualizar Animação (usa método da classe base Inimigo)
         self.atualizar_animacao()
         
-        # 3. Lidar com Dano de Contato
-        if self.rect.colliderect(player.rect) and (agora - self.last_contact_time >= self.contact_cooldown):
-            if hasattr(player, 'receber_dano'):
-                player.receber_dano(self.contact_damage)
-            self.last_contact_time = agora
-
     def receber_dano(self, dano, fonte_dano_rect=None):
         vida_antes = self.hp
         super().receber_dano(dano, fonte_dano_rect)

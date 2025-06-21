@@ -3,100 +3,111 @@ import math
 import os
 
 class ProjetilMaga(pygame.sprite.Sprite):
-    sprites_carregados = None
-    tamanho_sprite_definido = (30, 30) # Tamanho do projétil
+    """
+    Representa um projétil de energia roxa que segue o jogador (teleguiado)
+    e pulsa com um brilho.
+    """
+    tamanho_sprite_definido = (40, 40) 
 
-    @staticmethod
-    def _obter_pasta_raiz_jogo():
-        diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
-        return os.path.abspath(os.path.join(diretorio_script_atual, "..", "..", ".."))
+    def __init__(self, x_origem, y_origem, alvo_obj, dano, velocidade):
+        """
+        Inicializa um novo projétil de energia teleguiado.
 
-    @staticmethod
-    def carregar_recursos_projetil_maga():
-        if ProjetilMaga.sprites_carregados is None:
-            caminhos_sprites = ["Sprites/Inimigos/Maga/Projetil_1.png", # Exemplo de sprite de projétil
-                                "Sprites/Inimigos/Maga/Projetil_2.png"]
-            ProjetilMaga.sprites_carregados = []
-            pasta_raiz = ProjetilMaga._obter_pasta_raiz_jogo()
-            for path_relativo in caminhos_sprites:
-                caminho_completo = os.path.join(pasta_raiz, path_relativo.replace("/", os.sep))
-                try:
-                    if os.path.exists(caminho_completo):
-                        sprite = pygame.image.load(caminho_completo).convert_alpha()
-                        sprite = pygame.transform.scale(sprite, ProjetilMaga.tamanho_sprite_definido)
-                        ProjetilMaga.sprites_carregados.append(sprite)
-                    else:
-                        print(f"AVISO: Sprite de projétil '{caminho_completo}' não encontrado. Usando placeholder.")
-                        placeholder = pygame.Surface(ProjetilMaga.tamanho_sprite_definido, pygame.SRCALPHA)
-                        placeholder.fill((255, 100, 0, 200)) # Cor laranja/roxa para o projétil
-                        ProjetilMaga.sprites_carregados.append(placeholder)
-                except pygame.error as e:
-                    print(f"ERRO ao carregar sprite de projétil '{caminho_completo}': {e}. Usando placeholder.")
-                    placeholder = pygame.Surface(ProjetilMaga.tamanho_sprite_definido, pygame.SRCALPHA)
-                    placeholder.fill((255, 100, 0, 200))
-                    ProjetilMaga.sprites_carregados.append(placeholder)
-            if not ProjetilMaga.sprites_carregados:
-                placeholder = pygame.Surface(ProjetilMaga.tamanho_sprite_definido, pygame.SRCALPHA)
-                placeholder.fill((200, 50, 0, 255))
-                ProjetilMaga.sprites_carregados.append(placeholder)
-
-    def __init__(self, x, y, direcao_x, direcao_y, dano, velocidade, sprite_inicial=None):
+        Args:
+            x_origem (int): A posição x inicial do projétil.
+            y_origem (int): A posição y inicial do projétil.
+            alvo_obj (pygame.sprite.Sprite): O objeto do jogador a ser seguido.
+            dano (int): O dano que o projétil causará.
+            velocidade (float): A velocidade de movimento em pixels por segundo.
+        """
         super().__init__()
-        ProjetilMaga.carregar_recursos_projetil_maga()
 
-        self.x = float(x)
-        self.y = float(y)
-        self.direcao_x = direcao_x
-        self.direcao_y = direcao_y
-        self.dano = dano
-        self.velocidade = velocidade # Pixels por frame ou por segundo (depende de como dt_ms é usado)
-        self.sprites = ProjetilMaga.sprites_carregados
-        self.sprite_index = 0
-        self.intervalo_animacao = 100 # Animação do projétil
-        self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
-
-        if self.sprites:
-            self.image = self.sprites[self.sprite_index]
-        else:
-            self.image = pygame.Surface(ProjetilMaga.tamanho_sprite_definido, pygame.SRCALPHA)
-            self.image.fill((255, 100, 0, 200)) # Fallback para cor se não houver sprite
+        self.x = float(x_origem)
+        self.y = float(y_origem)
         
+        # --- Atributos para o Efeito Visual de Brilho ---
+        self.raio_nucleo = 7
+        self.raio_brilho_max = 18
+        self.cor_nucleo = (230, 200, 255) # Roxo bem claro, quase branco
+        self.cor_brilho = (150, 80, 220)  # Roxo para o brilho
+        
+        self.tempo_animacao = pygame.time.get_ticks()
+        self.frequencia_pulso = 0.005 # Controla a velocidade da pulsação
+
+        # Cria a superfície para desenhar o efeito
+        self.image = pygame.Surface(self.tamanho_sprite_definido, pygame.SRCALPHA)
         self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
-        self.esta_ativo_flag = True
-        self.duracao_maxima_ms = 5000 # Tempo máximo de vida do projétil em ms
+        
+        # --- Atributos de Combate e de Vida ---
+        self.alvo = alvo_obj # Armazena a referência do jogador
+        self.dano = dano
+        self.velocidade_magnitude = velocidade
+        
+        # Lógica de vida útil: projétil dura 5 segundos
+        self.duracao_maxima_ms = 5000 
         self.tempo_criacao = pygame.time.get_ticks()
 
+    def _desenhar_brilho(self):
+        """
+        Desenha a bola de energia com um efeito de brilho que pulsa.
+        """
+        self.image.fill((0, 0, 0, 0)) # Limpa a superfície para redesenhar
+        
+        fator_pulso = (math.sin(self.tempo_animacao * self.frequencia_pulso) + 1) / 2
+        
+        raio_brilho_atual = self.raio_nucleo + (self.raio_brilho_max - self.raio_nucleo) * fator_pulso
+        alpha_brilho = 50 + (100 * fator_pulso)
+        
+        centro_surf = (self.tamanho_sprite_definido[0] // 2, self.tamanho_sprite_definido[1] // 2)
+
+        # Desenha o brilho externo
+        pygame.draw.circle(
+            self.image,
+            (*self.cor_brilho, int(alpha_brilho)),
+            centro_surf,
+            int(raio_brilho_atual)
+        )
+        # Desenha o núcleo interno
+        pygame.draw.circle(
+            self.image,
+            self.cor_nucleo,
+            centro_surf,
+            self.raio_nucleo
+        )
+
     def update(self, dt_ms):
-        if not self.esta_ativo_flag:
-            return
-
+        """
+        Atualiza a posição (seguindo o alvo) e a animação de pulsação do projétil.
+        """
         agora = pygame.time.get_ticks()
-        if agora - self.tempo_criacao > self.duracao_maxima_ms:
-            self.kill() # Remove o projétil se ele durar muito tempo
-            self.esta_ativo_flag = False
+        # Se o alvo não existe, morreu, ou se o tempo de vida acabou, o projétil se destrói.
+        if not self.alvo or not self.alvo.esta_vivo() or (agora - self.tempo_criacao > self.duracao_maxima_ms):
+            self.kill()
             return
 
-        # Movimento do projétil
-        movimento_x = self.direcao_x * self.velocidade * (dt_ms / 1000.0) # Ajuste para dt_ms
-        movimento_y = self.direcao_y * self.velocidade * (dt_ms / 1000.0)
+        # --- LÓGICA DE PERSEGUIÇÃO (HOMING) ---
+        dx = self.alvo.rect.centerx - self.x
+        dy = self.alvo.rect.centery - self.y
+        distancia = math.hypot(dx, dy)
+
+        if distancia > 0:
+            direcao_x = dx / distancia
+            direcao_y = dy / distancia
+        else:
+            direcao_x, direcao_y = 0, 0
+
+        # Calcula e aplica o movimento
+        fator_tempo_seg = dt_ms / 1000.0
+        movimento_x = direcao_x * self.velocidade_magnitude * fator_tempo_seg
+        movimento_y = direcao_y * self.velocidade_magnitude * fator_tempo_seg
 
         self.x += movimento_x
         self.y += movimento_y
         self.rect.center = (int(self.x), int(self.y))
 
-        # Atualizar animação
-        if agora - self.tempo_ultimo_update_animacao > self.intervalo_animacao:
-            self.sprite_index = (self.sprite_index + 1) % len(self.sprites)
-            self.image = self.sprites[self.sprite_index]
-            self.tempo_ultimo_update_animacao = agora
+        # Atualiza o efeito visual
+        self.tempo_animacao += dt_ms
+        self._desenhar_brilho()
 
     def desenhar(self, janela, camera_x, camera_y):
-        if self.esta_ativo_flag:
-            janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-
-    def esta_ativo(self):
-        return self.esta_ativo_flag
-
-    def kill(self):
-        self.esta_ativo_flag = False
-        super().kill()
+        janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
