@@ -1,58 +1,64 @@
-# Jogo/Arquivos/Armas/CajadoDaSantaNatureza.py
-
 import pygame
 import os
-from .weapon import Weapon  # Herda diretamente da classe base principal
+import math # Importa o módulo math para calcular distâncias
+from .weapon import Weapon
 from .FolhaCortanteProjectile import FolhaCortanteProjectile
 
 class CajadoDaSantaNatureza(Weapon):
     """
-    Cajado mágico que dispara projéteis de Folha Cortante.
-    Versão corrigida para herdar de Weapon e inicializar corretamente.
+    Cajado mágico que dispara projéteis de Folha Cortante no inimigo mais próximo.
     """
     def __init__(self):
         # --- Constrói o caminho para a imagem de forma robusta ---
         caminho_icone = None
         try:
-            # Sobe na estrutura de pastas para encontrar a raiz do projeto (Jogo)
             project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             caminho_icone = os.path.join("Sprites", "Armas", "CajadoNatureza", "cajado.png")
-            # Validação extra do caminho completo para debug, se necessário
-            # full_path_validation = os.path.join(project_root, caminho_icone)
-            # if not os.path.exists(full_path_validation):
-            #     print(f"AVISO: Ícone para CajadoDaSantaNatureza não encontrado em {full_path_validation}")
         except Exception:
-             # Em caso de erro ao construir o caminho, ele permanecerá None
             caminho_icone = None
 
-        # --- Chama o inicializador da classe base 'Weapon' com todos os parâmetros ---
+        # --- Chama o inicializador da classe base 'Weapon' ---
         super().__init__(
             name="Cajado da Santa Natureza",
-            damage=22.0,            # Dano base do projétil
-            attack_range=700.0,     # Alcance para o jogador poder atirar
-            cooldown=1.0 / 1.5,     # Cooldown em segundos (convertido de attack_speed)
+            damage=22.0,
+            attack_range=700.0,
+            cooldown=1.0 / 1.5,
             description="Um cajado que canaliza a fúria da floresta.",
             rarity="Rara",
-            weapon_type="Cajado",
+            weapon_type="Cajado", # Importante para a lógica do jogador
             element="Natureza",
-            ui_icon_path=caminho_icone # Passa o caminho relativo para a classe base
+            ui_icon_path=caminho_icone
         )
-
-        # A classe Weapon já cuida do carregamento do ícone.
-        # Estes atributos são para a lógica específica de ataque deste cajado.
         self.last_shot_time = 0
 
     def can_attack(self):
         """Verifica se a arma pode atacar com base no cooldown."""
         return pygame.time.get_ticks() - self.last_shot_time >= (self.cooldown * 1000)
 
-    def attack(self, player, mouse_pos):
+    # --- MÉTODO DE ATAQUE ATUALIZADO ---
+    def attack(self, player, inimigos_lista):
         """
-        Cria e retorna um projétil de Folha Cortante se o cooldown permitir.
-        Este método é chamado pelo loop principal do jogo.
+        Encontra o inimigo mais próximo e cria um projétil na direção dele.
+        Agora recebe a lista de inimigos em vez da posição do mouse.
         """
         if self.can_attack():
             self.last_shot_time = pygame.time.get_ticks()
-            # O projétil usará o dano definido nos atributos da arma (self.damage)
-            return FolhaCortanteProjectile(player.rect.centerx, player.rect.centery, mouse_pos[0], mouse_pos[1])
+            
+            inimigo_mais_proximo = None
+            menor_distancia = float('inf')
+
+            # 1. Encontra o inimigo mais próximo do jogador
+            for inimigo in inimigos_lista:
+                distancia = math.hypot(player.rect.centerx - inimigo.rect.centerx, 
+                                      player.rect.centery - inimigo.rect.centery)
+                if distancia < menor_distancia:
+                    menor_distancia = distancia
+                    inimigo_mais_proximo = inimigo
+            
+            # 2. Se um inimigo foi encontrado, ataca na direção dele
+            if inimigo_mais_proximo:
+                alvo_pos = inimigo_mais_proximo.rect.center
+                # Cria o projétil passando a posição do alvo
+                return FolhaCortanteProjectile(player.rect.centerx, player.rect.centery, alvo_pos[0], alvo_pos[1])
+
         return None

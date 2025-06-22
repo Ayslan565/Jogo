@@ -13,8 +13,11 @@ class Inimigo(pygame.sprite.Sprite):
     def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
         super().__init__()
         
-        self.x = x
-        self.y = y
+        # --- CORREÇÃO APLICADA AQUI ---
+        # Garante que as posições X e Y sejam floats para movimento e colisão suaves.
+        self.x = float(x)
+        self.y = float(y)
+        
         self.largura = largura
         self.altura = altura
         self.hp = vida_maxima 
@@ -33,6 +36,7 @@ class Inimigo(pygame.sprite.Sprite):
         
         self.facing_right = True 
 
+        # Garante que a lista de sprites nunca esteja vazia
         if hasattr(self, 'image') and isinstance(self.image, pygame.Surface):
             self.sprites = [self.image]
         else: 
@@ -59,7 +63,6 @@ class Inimigo(pygame.sprite.Sprite):
         full_path = os.path.join(project_root, path)
 
         if not os.path.exists(full_path):
-            #print(f"AVISO (Inimigo): Arquivo de sprite não encontrado: {full_path}. Usando placeholder.")
             img = pygame.Surface(tamanho, pygame.SRCALPHA)
             pygame.draw.rect(img, (255, 0, 255), (0, 0, tamanho[0], tamanho[1])) 
             return img
@@ -88,14 +91,20 @@ class Inimigo(pygame.sprite.Sprite):
             dy = alvo_y - self.rect.centery
             distancia = math.hypot(dx, dy)
 
-            fator_tempo = (dt_ms / (1000.0 / 60.0)) if dt_ms and dt_ms > 0 else 1.0
+            fator_tempo = (dt_ms / 1000.0) if dt_ms and dt_ms > 0 else (1/60.0)
 
             if distancia > 0: 
-                mov_x = (dx / distancia) * self.velocidade * fator_tempo
-                mov_y = (dy / distancia) * self.velocidade * fator_tempo
+                mov_x = (dx / distancia) * self.velocidade * 60 * fator_tempo
+                mov_y = (dy / distancia) * self.velocidade * 60 * fator_tempo
                 
-                self.rect.x += mov_x
-                self.rect.y += mov_y
+                # --- CORREÇÃO APLICADA AQUI ---
+                # Atualiza as posições float para movimento suave
+                self.x += mov_x
+                self.y += mov_y
+                
+                # Atualiza o rect a partir das posições float
+                self.rect.x = int(self.x)
+                self.rect.y = int(self.y)
 
                 self.facing_right = dx > 0
 
@@ -110,11 +119,9 @@ class Inimigo(pygame.sprite.Sprite):
             base_image = self.sprites[int(self.sprite_index % len(self.sprites))]
             self.image = pygame.transform.flip(base_image, not self.facing_right, False)
         else:
-             self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
-             pygame.draw.rect(self.image, (255, 0, 255), self.image.get_rect())
+            self.image = pygame.Surface((self.largura, self.altura), pygame.SRCALPHA)
+            pygame.draw.rect(self.image, (255, 0, 255), self.image.get_rect())
 
-    # A lógica de colisão entre inimigos foi removida daqui.
-    # O método update agora tem uma assinatura mais simples.
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
         """Atualiza o estado do inimigo (movimento, animação, dano de contato)."""
         if not self.esta_vivo():
@@ -129,7 +136,7 @@ class Inimigo(pygame.sprite.Sprite):
         
         # 3. Lidar com dano de contato ao jogador
         current_ticks = pygame.time.get_ticks()
-        if hasattr(player, 'vida') and player.vida.esta_vivo() and self.rect.colliderect(player.rect):
+        if hasattr(player, 'vida') and player.esta_vivo() and self.rect.colliderect(player.rect):
             if (current_ticks - self.last_contact_time >= self.contact_cooldown):
                 if hasattr(player, 'receber_dano'):
                     player.receber_dano(self.contact_damage)
@@ -147,7 +154,7 @@ class Inimigo(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_hit_time < self.hit_flash_duration:
             flash_overlay = self.image.copy()
-            flash_overlay.fill(self.hit_flash_color[:3], special_flags=pygame.BLEND_RGB_ADD)
+            flash_overlay.fill(self.hit_flash_color, special_flags=pygame.BLEND_RGBA_MULT)
             janela.blit(flash_overlay, (screen_x, screen_y))
 
         if self.hp < self.max_hp and self.hp > 0: 
@@ -162,6 +169,6 @@ class Inimigo(pygame.sprite.Sprite):
             pygame.draw.rect(janela, (60, 179, 113), (bar_x, bar_y, current_bar_width, bar_height), border_radius=2) 
             pygame.draw.rect(janela, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1, border_radius=2) 
 
-        def verificar_colisao(self, outro_objeto):
-            outro_rect = getattr(outro_objeto, 'rect_colisao', getattr(outro_objeto, 'rect', None))
-            return self.rect.colliderect(outro_rect) if outro_rect else False
+    def verificar_colisao(self, outro_objeto):
+        outro_rect = getattr(outro_objeto, 'rect_colisao', getattr(outro_objeto, 'rect', None))
+        return self.rect.colliderect(outro_rect) if outro_rect else False

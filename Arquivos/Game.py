@@ -33,9 +33,9 @@ try:
     from eventos_climaticos import GerenciadorDeEventos
     from Luta_boss import *
     from Luta_boss import resetar_estado_luta_boss
-    from XPs_Orb import XPOrb # <<< NOVO: Importação da classe base para verificação no desenho
-    from GeradorXP import GeradorXP # <<< NOVO: Importa o Gerador de XP
-    import shop_elements # <<< ALTERAÇÃO: Importa o módulo da loja
+    from XPs_Orb import XPOrb 
+    from GeradorXP import GeradorXP 
+    import shop_elements
 except ImportError as e:
     print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
     traceback.print_exc() # Imprime o rastreamento completo do erro
@@ -254,10 +254,7 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
         
         if gerador_xp_obj and hasattr(gerador_xp_obj, 'orbes'):
             sprites_do_mundo.extend(gerador_xp_obj.orbes)
-
-        # Lógica de desenho da loja foi movida para shop_elements.draw_shop_elements
-        # if shop_elements and hasattr(shop_elements, 'vendedor_instance') and shop_elements.vendedor_instance:
-        #    sprites_do_mundo.append(shop_elements.vendedor_instance)
+        
         sprites_do_mundo.extend(arvores_lista)
 
         sprites_do_mundo.sort(key=lambda sprite: sprite.rect.bottom)
@@ -267,8 +264,7 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
                 sprite.desenhar(janela_surf, cam_x, cam_y)
             elif hasattr(sprite, 'desenhar'):
                 sprite.desenhar(janela_surf, cam_x, cam_y)
-        
-        # Desenha a loja (se existir) por cima dos elementos do mundo
+
         if shop_elements:
             shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms)
 
@@ -402,10 +398,13 @@ def main():
                     teclas = pygame.key.get_pressed()
                     jogador.update(dt_ms, teclas)
 
-                    sinal_estacoes = est.atualizar_ciclo_estacoes()
+                    # --- CORREÇÃO APLICADA AQUI ---
+                    # Adiciona uma verificação para garantir que 'est' não é None
+                    sinal_estacoes = None
+                    if est:
+                        sinal_estacoes = est.atualizar_ciclo_estacoes()
                     
                     if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not esta_luta_ativa():
-                        # --- ALTERAÇÃO 1: Interrompe o clima e a loja ---
                         if gerenciador_eventos:
                             gerenciador_eventos.interromper_evento_climatico()
                         if shop_elements:
@@ -424,7 +423,6 @@ def main():
                         gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
 
                     if esta_luta_ativa():
-                        # --- ALTERAÇÃO 2: Captura o sinal de fim de luta ---
                         sinal_luta = atualizar_luta(jogador, est, gerenciador_inimigos)
                         if sinal_luta == "FIM_DA_LUTA":
                             if gerenciador_eventos:
@@ -434,7 +432,6 @@ def main():
                         jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
                         verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
                     else:
-                        # Lógica normal do jogo (fora da luta)
                         jogador.mover(teclas, arvores)
                         if gerenciador_eventos:
                             gerenciador_eventos.atualizar_clima()
@@ -504,4 +501,3 @@ if __name__ == "__main__":
             f.write(exc_text)
         input("\nPressione Enter para sair após o erro fatal...")
         sys.exit(1)
-    

@@ -34,12 +34,11 @@ except ImportError:
             super().__init__()
             self.rect = pygame.Rect(x,y,32,32); self.image = pygame.Surface((32,32)); self.image.fill((255,0,0,100))
             self.hp = 1; self.max_hp = 1; self.xp_value = 0; self.moedas_drop = 0; self.contact_damage = 1
+            self.x = float(x); self.y = float(y) # Garante que x e y sejam floats
         def esta_vivo(self): return self.hp > 0
         def update(self, *args, **kwargs): pass
         def desenhar(self, *args, **kwargs): pass
         def kill(self): super().kill()
-
-
 
 
 class GerenciadorDeInimigos:
@@ -160,17 +159,9 @@ class GerenciadorDeInimigos:
         ClasseInimigo = self.enemy_class_map.get(tipo_escolhido)
         if not ClasseInimigo: return
 
-        # --- NOVA ESTRATÉGIA: Spawn circular fora da tela ---
-        # Calcula a distância do centro da tela até um dos cantos
         distancia_do_canto = math.hypot(self.tela_largura / 2, self.altura_tela / 2)
-        
-        # Define o raio de spawn para ser um pouco maior que essa distância, garantindo que seja fora da tela
-        raio_spawn = distancia_do_canto + 200 # 100 pixels de margem
-        
-        # Gera um ângulo aleatório
+        raio_spawn = distancia_do_canto + 200
         angulo = random.uniform(0, 2 * math.pi)
-        
-        # Calcula a posição de spawn em relação ao centro do jogador
         x = jogador.rect.centerx + raio_spawn * math.cos(angulo)
         y = jogador.rect.centery + raio_spawn * math.sin(angulo)
         
@@ -182,9 +173,59 @@ class GerenciadorDeInimigos:
             if len(self.inimigos) < self.limite_inimigos:
                 self._spawn_inimigo_especifico_da_estacao(jogador)
 
+    def _resolver_colisoes_entre_inimigos(self):
+        """
+        Verifica e resolve colisões entre inimigos de forma estável para evitar "malabarismo".
+        Calcula todas as forças de repulsão primeiro e depois aplica o movimento.
+        """
+        inimigos = self.inimigos.sprites()
+        forca_repulsao = 1.0  # Força do empurrão. Ajuste se necessário.
+        
+        # Dicionário para armazenar a força de repulsão total para cada inimigo
+        forcas_totais = {inimigo: pygame.math.Vector2(0, 0) for inimigo in inimigos}
+
+        # 1. Calcular todas as forças de repulsão
+        for i, inimigo_a in enumerate(inimigos):
+            if inimigo_a in self.grupo_chefe_ativo:
+                continue
+
+            for j in range(i + 1, len(inimigos)):
+                inimigo_b = inimigos[j]
+                if inimigo_b in self.grupo_chefe_ativo:
+                    continue
+
+                if inimigo_a.rect.colliderect(inimigo_b.rect):
+                    vetor_colisao = pygame.math.Vector2(inimigo_a.rect.center) - pygame.math.Vector2(inimigo_b.rect.center)
+                    
+                    if vetor_colisao.length() > 0:
+                        direcao = vetor_colisao.normalize()
+                        
+                        # Adiciona a força ao vetor total de cada inimigo
+                        forcas_totais[inimigo_a] += direcao
+                        forcas_totais[inimigo_b] -= direcao
+
+        # 2. Aplicar as forças calculadas a cada inimigo
+        for inimigo, forca_total in forcas_totais.items():
+            if forca_total.length() > 0:
+                # Normaliza a força total para obter a direção final do empurrão e aplica a força de repulsão
+                direcao_final = forca_total.normalize() * forca_repulsao
+                
+                # Aplica o movimento
+                inimigo.x += direcao_final.x
+                inimigo.y += direcao_final.y
+                
+                # Atualiza a posição do retângulo com base nos valores float
+                inimigo.rect.topleft = (inimigo.x, inimigo.y)
+
     def update_inimigos(self, jogador, dt_ms):
+        """Atualiza a lógica dos inimigos, incluindo movimento e colisões."""
+        # 1. Atualiza a lógica individual de cada inimigo (movimento, ataque, etc.)
         self.inimigos.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
         
+        # 2. Resolve as colisões entre os inimigos para o efeito de horda
+        self._resolver_colisoes_entre_inimigos()
+        
+        # 3. Remove inimigos mortos e concede recompensas
         for inimigo in list(self.inimigos):
             if not inimigo.esta_vivo():
                 if self.gerenciador_moedas and hasattr(inimigo, 'moedas_drop'): self.gerenciador_moedas.create_coins_from_enemy(inimigo)
@@ -193,7 +234,6 @@ class GerenciadorDeInimigos:
 
     def update_projeteis_inimigos(self, jogador, dt_ms):
         self.projeteis_inimigos.update(dt_ms)
-
         colisoes = pygame.sprite.spritecollide(jogador, self.projeteis_inimigos, True, pygame.sprite.collide_mask)
         for projetil in colisoes:
             if hasattr(jogador, 'pode_levar_dano') and jogador.pode_levar_dano:
@@ -201,18 +241,14 @@ class GerenciadorDeInimigos:
     
     def spawn_chefe_estacao(self, indice_estacao_chefe, posicao_mundo_spawn):
         self.grupo_chefe_ativo.empty()
-        
         ClasseChefe = self.chefes_por_estacao.get(indice_estacao_chefe)
-        
         if not ClasseChefe:
-            print(f"ERRO CRÍTICO: Classe do chefe para o índice {indice_estacao_chefe} não foi carregada ou não existe. Verifique o __init__.")
+            print(f"ERRO CRÍTICO: Classe do chefe para o índice {indice_estacao_chefe} não foi carregada.")
             return None
-        
         try:
             chefe_spawnado = ClasseChefe(x=posicao_mundo_spawn[0], y=posicao_mundo_spawn[1])
             self.grupo_chefe_ativo.add(chefe_spawnado)
             self.inimigos.add(chefe_spawnado)
-            
             print(f"DEBUG(GerenciadorInimigos): Chefe '{type(chefe_spawnado).__name__}' spawnado.")
             return chefe_spawnado
         except Exception as e:

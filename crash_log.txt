@@ -1,8 +1,17 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 494, in <module>
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 491, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 405, in main
-    sinal_estacoes = est.atualizar_ciclo_estacoes()
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'NoneType' object has no attribute 'atualizar_ciclo_estacoes'
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 352, in main
+    barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
+                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 122, in inicializar_jogo
+    gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 174, in spawn_inimigos_iniciais
+    self._spawn_inimigo_especifico_da_estacao(jogador)
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 168, in _spawn_inimigo_especifico_da_estacao
+    self.inimigos.add(ClasseInimigo(x=x, y=y))
+                      ^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Inimigos\BonecoDeNeve.py", line 74, in __init__
+    super().__init__(
+TypeError: InimigoBase.__init__() got an unexpected keyword argument 'vida_maxima'
