@@ -81,10 +81,10 @@ class Arvore_Maldita(InimigoBase):
     def __init__(self, x, y, velocidade=1.0):
         Arvore_Maldita.carregar_recursos_arvore_maldita()
 
-        vida_arvore = 1000
+        vida_arvore = 100
         dano_contato_arvore = 25
         xp_arvore = 1000
-        self.moedas_drop = 500
+        self.moedas_drop = 1500
         self.xp_value_boss = xp_arvore # Usado pela lógica de chefe em luta_boss.py
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Arvore Maldita/Arvore Maldita1.png"
 

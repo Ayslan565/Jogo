@@ -5,13 +5,7 @@ Traceback (most recent call last):
   File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 352, in main
     barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 122, in inicializar_jogo
-    gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 174, in spawn_inimigos_iniciais
-    self._spawn_inimigo_especifico_da_estacao(jogador)
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 168, in _spawn_inimigo_especifico_da_estacao
-    self.inimigos.add(ClasseInimigo(x=x, y=y))
-                      ^^^^^^^^^^^^^^^^^^^^^^^
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Inimigos\BonecoDeNeve.py", line 74, in __init__
-    super().__init__(
-TypeError: InimigoBase.__init__() got an unexpected keyword argument 'vida_maxima'
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 144, in inicializar_jogo
+    gerador_cogumelos = GeradorCogumelos()
+                        ^^^^^^^^^^^^^^^^^^
+TypeError: GeradorCogumelos.__init__() missing 4 required positional arguments: 'mapa', 'jogador', 'todos_os_sprites', and 'obstaculos'

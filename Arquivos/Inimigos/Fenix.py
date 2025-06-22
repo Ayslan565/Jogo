@@ -86,7 +86,7 @@ class Fenix(InimigoBase):
             # Carregar sons aqui
             Fenix.sons_carregados = True
 
-    def __init__(self, x, y, velocidade=2.8):
+    def __init__(self, x, y, velocidade=1.8):
         Fenix.carregar_recursos_fenix()
 
         vida_fenix = 110

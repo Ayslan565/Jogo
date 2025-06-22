@@ -16,7 +16,7 @@ class Arvore(pygame.sprite.Sprite):
         if self.estacao == 3:  # Inverno
             imagem_escolhida = random.choice([
                 './Sprites/Arvore/Arvore_Inverno.png',
-                'Sprites\Arvore\Carvalho_Inverno-.png'
+                'Sprites/Arvore/Carvalho_Inverno-.png'
             ])
         elif self.estacao == 1:  # Outono
             imagem_escolhida = random.choice([
