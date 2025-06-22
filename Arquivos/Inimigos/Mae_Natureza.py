@@ -78,14 +78,15 @@ class Mae_Natureza(InimigoBase):
 
     @staticmethod
     def carregar_recursos_maenatureza():
-        # CORREÇÃO: Referência estática usa o novo nome da classe Mae_Natureza
         if Mae_Natureza.sprites_andar_carregados is None:
             Mae_Natureza.sprites_andar_carregados = []
-            caminhos = ["Sprites/Inimigos/MaeNatureza/Mae{}.png".format(i) for i in range(1, 3)]
+            # --- CORREÇÃO APLICADA AQUI ---
+            caminhos = ["Sprites/Inimigos/Mae_Natureza/Mae{}.png".format(i) for i in range(1, 4)] # Corrigido para range(1, 4) e nome da pasta
             Mae_Natureza._carregar_lista_sprites_estatico(caminhos, Mae_Natureza.sprites_andar_carregados, Mae_Natureza.tamanho_sprite_definido, "Andar/Idle")
         if Mae_Natureza.sprites_atacar_carregados is None:
             Mae_Natureza.sprites_atacar_carregados = []
-            caminhos_atacar = ["Sprites/Inimigos/MaeNatureza/Mae{}.png".format(i) for i in range(1, 3)]
+            # --- CORREÇÃO APLICADA AQUI ---
+            caminhos_atacar = ["Sprites/Inimigos/Mae_Natureza/Mae{}.png".format(i) for i in range(1, 4)] # Corrigido para range(1, 4) e nome da pasta
             Mae_Natureza._carregar_lista_sprites_estatico(caminhos_atacar, Mae_Natureza.sprites_atacar_carregados, Mae_Natureza.tamanho_sprite_definido, "Atacar")
             if not Mae_Natureza.sprites_atacar_carregados and Mae_Natureza.sprites_andar_carregados:
                 Mae_Natureza.sprites_atacar_carregados = [Mae_Natureza.sprites_andar_carregados[0]]
@@ -93,14 +94,14 @@ class Mae_Natureza(InimigoBase):
             Mae_Natureza.sons_carregados = True
 
     def __init__(self, x, y, velocidade=0.7):
-        # CORREÇÃO: Chamada do método estático com nome correto e referência de classe correta
         Mae_Natureza.carregar_recursos_maenatureza()
 
         vida_maenatureza = 120
         dano_contato_maenatureza = 12
         xp_maenatureza = 120
         self.moedas_drop = 17
-        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/MaeNatureza/Mae1.png"
+        # --- CORREÇÃO APLICADA AQUI ---
+        sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Mae_Natureza/Mae1.png" # Corrigido nome da pasta
 
         super().__init__(
             x, y,
@@ -108,7 +109,6 @@ class Mae_Natureza(InimigoBase):
             vida_maenatureza, velocidade, dano_contato_maenatureza,
             xp_maenatureza, sprite_path_principal_relativo_jogo
         )
-        # ... (o resto do __init__ e dos outros métodos podem permanecer como estão) ...
         self.x = float(x)
         self.y = float(y)
         self.sprites_andar = Mae_Natureza.sprites_andar_carregados
@@ -135,7 +135,6 @@ class Mae_Natureza(InimigoBase):
         self.attack_hitbox = pygame.Rect(0,0,0,0)
         self.hit_player_this_attack_pulse = False
     
-    # ... (todos os outros métodos como `atacar`, `update`, `receber_dano` permanecem os mesmos) ...
     def _atualizar_hitbox_ataque(self):
         if not self.is_attacking:
             self.attack_hitbox.size = (0,0); return

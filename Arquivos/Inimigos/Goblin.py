@@ -79,15 +79,14 @@ class Goblin(InimigoBase):
     def carregar_recursos_goblin():
         if Goblin.sprites_andar_carregados is None:
             Goblin.sprites_andar_carregados = []
+            # --- Caminhos dos sprites de andar (correto) ---
             caminhos = ["Sprites/Inimigos/Goblin/goblin{}.png".format(i) for i in range(1, 5)]
             Goblin._carregar_lista_sprites_estatico(caminhos, Goblin.sprites_andar_carregados, Goblin.tamanho_sprite_definido, "Andar")
 
         if Goblin.sprites_atacar_carregados is None:
-            Goblin.sprites_atacar_carregados = []
-            caminhos_atacar = ["Sprites/Inimigos/Goblin/goblin_atacar{}.png".format(i) for i in range(1, 4)]
-            Goblin._carregar_lista_sprites_estatico(caminhos_atacar, Goblin.sprites_atacar_carregados, Goblin.tamanho_sprite_definido, "Atacar")
-            if not Goblin.sprites_atacar_carregados and Goblin.sprites_andar_carregados:
-                Goblin.sprites_atacar_carregados = [Goblin.sprites_andar_carregados[0]]
+            # --- CORREÇÃO APLICADA AQUI ---
+            # Define que os sprites de ataque são os mesmos que os de andar
+            Goblin.sprites_atacar_carregados = Goblin.sprites_andar_carregados
         
         if not Goblin.sons_carregados:
             # Carregar sons aqui
@@ -109,8 +108,6 @@ class Goblin(InimigoBase):
             xp_goblin, sprite_path_principal_relativo_jogo
         )
         
-        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
-
         self.sprites_andar = Goblin.sprites_andar_carregados
         self.sprites_atacar = Goblin.sprites_atacar_carregados
         self.sprites = self.sprites_andar
@@ -163,15 +160,13 @@ class Goblin(InimigoBase):
             self.sprite_index = 0
 
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
         if not self.esta_vivo():
-            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
+            self.kill()
             return
 
         agora = pygame.time.get_ticks()
         jogador_valido = (player and hasattr(player, 'rect') and hasattr(player, 'vida') and hasattr(player.vida, 'esta_vivo'))
 
-        # Chama o update da classe base para movimento e animação
         super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
 
         if self.is_attacking:
@@ -188,14 +183,7 @@ class Goblin(InimigoBase):
                 self.attack_hitbox.size = (0,0)
         else:
             if jogador_valido: self.atacar(player)
-            # A chamada super().update já cuida do mover_em_direcao e atualizar_animacao para o estado normal.
-            # As duas linhas abaixo foram comentadas em outras classes, mas aqui o Goblin pode atacar e não mover ao mesmo tempo.
-            # Então, mantemos a chamada ao mover_em_direcao se não estiver atacando.
-            # if not self.is_attacking and jogador_valido and hasattr(self, 'mover_em_direcao'):
-            #     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            # if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao() # Já chamado na super.update
 
-        # Lógica de dano de contato com o jogador
         if jogador_valido and self.rect.colliderect(player.rect) and (agora - self.last_contact_time >= self.contact_cooldown):
             if hasattr(player, 'receber_dano'): player.receber_dano(self.contact_damage)
             self.last_contact_time = agora

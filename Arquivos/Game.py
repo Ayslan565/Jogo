@@ -35,6 +35,7 @@ try:
     from Luta_boss import resetar_estado_luta_boss
     from XPs_Orb import XPOrb # <<< NOVO: Importação da classe base para verificação no desenho
     from GeradorXP import GeradorXP # <<< NOVO: Importa o Gerador de XP
+    import shop_elements # <<< ALTERAÇÃO: Importa o módulo da loja
 except ImportError as e:
     print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
     traceback.print_exc() # Imprime o rastreamento completo do erro
@@ -74,7 +75,7 @@ jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
 gerador_cogumelos = None
-gerador_xp = None # <<< NOVO: Variável para o gerador de XP
+gerador_xp = None
 gerenciador_eventos = None
 
 def inicializar_jogo(largura_tela, altura_tela):
@@ -145,7 +146,6 @@ def inicializar_jogo(largura_tela, altura_tela):
         gerador_cogumelos = None
         print("ERRO (Game.py): Classe GeradorCogumelos não foi importada.")
 
-    # <<< NOVO: Inicializa o gerador de XP >>>
     if GeradorXP:
         gerador_xp = GeradorXP()
     else:
@@ -180,8 +180,8 @@ def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista
                 if hasattr(estacoes_obj, 'indice_estacao_atual'):
                     for _ in range(random.randint(1, 3)):
                         arvores_lista.append(Arvore(base_x + random.randint(270, 810),
-                                                    base_y + random.randint(270, 810),
-                                                    180, 180, estacoes_obj.indice_estacao_atual))
+                                                  base_y + random.randint(270, 810),
+                                                  180, 180, estacoes_obj.indice_estacao_atual))
                 
                 if shop_elements:
                     shop_elements.spawn_shop_if_possible(jogador_obj, estacoes_obj, blocos_ja_gerados_set)
@@ -221,7 +221,6 @@ def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
                 if inimigo_col_rect and jogador_col_rect.colliderect(inimigo_col_rect):
                     jogador_obj.receber_dano(dano_contato, inimigo_col_rect)
 
-# <<< NOVO: Função para verificar colisão com orbes de XP >>>
 def verificar_colisao_orbes_xp(jogador_obj, gerador_xp_obj):
     if not all([jogador_obj, gerador_xp_obj, jogador_obj.xp_manager]):
         return
@@ -238,7 +237,7 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
                   gerador_cogumelos_obj, gerenciador_eventos_obj, gerador_xp_obj):
     global xp_manager, gerenciador_de_moedas
 
-    if not Luta_boss.esta_luta_ativa():
+    if not esta_luta_ativa():
         if estacoes_obj:
             estacoes_obj.desenhar(janela_surf, cam_x, cam_y)
 
@@ -253,25 +252,29 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
         if gerador_cogumelos_obj and hasattr(gerador_cogumelos_obj, 'cogumelos'):
             sprites_do_mundo.extend(gerador_cogumelos_obj.cogumelos)
         
-        # <<< NOVO: Adiciona as orbes de XP à lista de sprites do mundo >>>
         if gerador_xp_obj and hasattr(gerador_xp_obj, 'orbes'):
             sprites_do_mundo.extend(gerador_xp_obj.orbes)
 
-        if shop_elements and hasattr(shop_elements, 'vendedor_instance') and shop_elements.vendedor_instance:
-           sprites_do_mundo.append(shop_elements.vendedor_instance)
+        # Lógica de desenho da loja foi movida para shop_elements.draw_shop_elements
+        # if shop_elements and hasattr(shop_elements, 'vendedor_instance') and shop_elements.vendedor_instance:
+        #    sprites_do_mundo.append(shop_elements.vendedor_instance)
         sprites_do_mundo.extend(arvores_lista)
 
         sprites_do_mundo.sort(key=lambda sprite: sprite.rect.bottom)
 
         for sprite in sprites_do_mundo:
-            # Verifica se o sprite é uma orbe para usar o método de desenho correto
             if XPOrb and isinstance(sprite, XPOrb):
                 sprite.desenhar(janela_surf, cam_x, cam_y)
             elif hasattr(sprite, 'desenhar'):
-                 sprite.desenhar(janela_surf, cam_x, cam_y)
+                sprite.desenhar(janela_surf, cam_x, cam_y)
+        
+        # Desenha a loja (se existir) por cima dos elementos do mundo
+        if shop_elements:
+            shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms)
 
-    if Luta_boss.esta_luta_ativa():
-        Luta_boss.desenhar_efeitos_arena(janela_surf, cam_x, cam_y)
+
+    if esta_luta_ativa():
+        desenhar_efeitos_arena(janela_surf, cam_x, cam_y)
     
     if gerenciador_inimigos_obj:
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
@@ -280,9 +283,6 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
 
     if gerenciador_eventos_obj:
         gerenciador_eventos_obj.desenhar(janela_surf)
-
-    if shop_elements:
-        shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms)
 
     # UI
     if vida_ui_obj:
@@ -403,25 +403,38 @@ def main():
                     jogador.update(dt_ms, teclas)
 
                     sinal_estacoes = est.atualizar_ciclo_estacoes()
-                    if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not Luta_boss.esta_luta_ativa():
-                        Luta_boss.iniciar_luta_chefe(
+                    
+                    if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not esta_luta_ativa():
+                        # --- ALTERAÇÃO 1: Interrompe o clima e a loja ---
+                        if gerenciador_eventos:
+                            gerenciador_eventos.interromper_evento_climatico()
+                        if shop_elements:
+                            shop_elements.despawn_loja_imediatamente()
+                        
+                        iniciar_luta_chefe(
                             jogador=jogador, indice_estacao=est.indice_estacao_atual,
                             gerenciador_inimigos=gerenciador_inimigos, estacoes_obj=est,
                             largura_tela=largura_tela, altura_tela=altura_tela,
                             musica_atual_path=musica_gameplay_atual_path,
-                            musica_atual_pos_ms=pygame.mixer.music.get_pos()
+                            musica_atual_pos_ms=pygame.mixer.music.get_pos() if mixer_initialized else 0
                         )
                     
                     if gerenciador_inimigos:
                         gerenciador_inimigos.update_inimigos(jogador, dt_ms)
                         gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
 
-                    if Luta_boss.esta_luta_ativa():
-                        Luta_boss.atualizar_luta(jogador, est, gerenciador_inimigos)
+                    if esta_luta_ativa():
+                        # --- ALTERAÇÃO 2: Captura o sinal de fim de luta ---
+                        sinal_luta = atualizar_luta(jogador, est, gerenciador_inimigos)
+                        if sinal_luta == "FIM_DA_LUTA":
+                            if gerenciador_eventos:
+                                gerenciador_eventos.reativar_eventos_climaticos()
+                        
                         jogador.mover(teclas, [])
                         jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
                         verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
                     else:
+                        # Lógica normal do jogo (fora da luta)
                         jogador.mover(teclas, arvores)
                         if gerenciador_eventos:
                             gerenciador_eventos.atualizar_clima()
@@ -491,3 +504,4 @@ if __name__ == "__main__":
             f.write(exc_text)
         input("\nPressione Enter para sair após o erro fatal...")
         sys.exit(1)
+    

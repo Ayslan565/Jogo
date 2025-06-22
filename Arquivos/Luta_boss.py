@@ -19,6 +19,7 @@ if project_root_dir not in sys.path:
 
 # --- Importações Essenciais ---
 try:
+    # Anotações de tipo para clareza, não causam erro se falharem
     from importacoes import Player, GerenciadorDeInimigos, Estacoes
 except ImportError as e:
     print(f"AVISO (Luta_boss.py): Falha ao importar anotações de tipo: {e}")
@@ -28,21 +29,16 @@ except ImportError as e:
 
 
 # --- Configurações do Módulo Luta_boss ---
-# =====================================================================================
-# --- NOVAS CONFIGURAÇÕES (EDITÁVEL PELO USUÁRIO) ---
-# =====================================================================================
 CAMINHOS_TEXTURA_ARENA = [
-    "Sprites\\Chao\\A1.png", # Primavera
-    "Sprites\\Chao\\A2.png", # Verão
-    "Sprites\\Chao\\A3.png", # Outono
-    "Sprites\\Chao\\A4.png"  # Inverno
+    "Sprites/Chao/A1.png", # Primavera
+    "Sprites/Chao/A2.png", # Verão
+    "Sprites/Chao/A3.png", # Outono
+    "Sprites/Chao/A4.png"  # Inverno
 ]
 MUSICAS_CHEFE_OPCOES = [
-    "Musica\Boss Fight\Faixa1.mp3", "Musica\\Boss Fight\\Faixa2.mp3",
-
+    "Musica/Boss Fight/Faixa1.mp3", 
+    "Musica/Boss Fight/Faixa2.mp3",
 ]
-# =====================================================================================
-
 
 # --- Variáveis de Estado do Módulo Luta_boss ---
 _luta_ativa = False
@@ -50,12 +46,13 @@ _arena_centro = (0, 0)
 _arena_raio = 0
 _chefe_atual = None
 _jogador_em_luta = None
-_velocidade_original_jogador = None # <<< NOVO: Para guardar a velocidade normal
+_velocidade_original_jogador = None
 _musica_normal_anterior_pos = None
 _musica_normal_anterior_path = None
 _arena_chao_textura = None
 _cor_fallback_chao = (40, 35, 50)
 
+# Carrega os caminhos das músicas de chefe, verificando se os arquivos existem
 _project_root_for_music = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MUSICA_CHEFE_DEFAULT = [
     os.path.join(_project_root_for_music, path.replace("\\", os.sep))
@@ -82,20 +79,20 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
     _jogador_em_luta = jogador
     gerenciador_inimigos.limpar_todos_inimigos_normais()
 
-    # --- NOVO: Aumenta a velocidade do jogador ---
+    # Aumenta a velocidade do jogador para a luta
     if hasattr(jogador, 'velocidade'):
         _velocidade_original_jogador = jogador.velocidade
-        # >>> EDITE O VALOR 1.25 PARA MUDAR O BÔNUS (1.5 = 50% mais rápido) <<<
         jogador.velocidade *= 1.25 
         print(f"DEBUG(Luta_boss): Velocidade do jogador aumentada para {jogador.velocidade}")
 
-    # --- LÓGICA DA ARENA CIRCULAR ---
-    _arena_raio = min(largura_tela, altura_tela) * 0.45  # Diâmetro da arena = 90% da tela
+    # Define a arena circular
+    _arena_raio = min(largura_tela, altura_tela) * 0.45
     _arena_centro = (jogador.x, jogador.y)
     
+    # Carrega a textura da arena baseada na estação
     try:
         if 0 <= indice_estacao < len(CAMINHOS_TEXTURA_ARENA):
-            caminho_textura = CAMINHOS_TEXTURA_ARENA[indice_estacao]
+            caminho_textura = os.path.join(project_root_dir, CAMINHOS_TEXTURA_ARENA[indice_estacao].replace("\\", os.sep))
             textura_original = pygame.image.load(caminho_textura).convert()
             tamanho_textura = (_arena_raio * 2, _arena_raio * 2)
             _arena_chao_textura = pygame.transform.scale(textura_original, tamanho_textura)
@@ -105,14 +102,13 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
         print(f"AVISO(Luta_boss.py): Falha ao carregar textura da arena: {e}.")
         _arena_chao_textura = None
 
-    # --- LÓGICA DE SPAWN DO CHEFE ---
+    # Spawna o chefe em uma posição aleatória dentro da arena
     angulo_spawn = random.uniform(0, 2 * math.pi)
     distancia_spawn = _arena_raio * 0.75 
     spawn_x = _arena_centro[0] + distancia_spawn * math.cos(angulo_spawn)
     spawn_y = _arena_centro[1] + distancia_spawn * math.sin(angulo_spawn)
     
-    dist_jogador = math.hypot(spawn_x - jogador.rect.centerx, spawn_y - jogador.rect.centery)
-    if dist_jogador < 200:
+    if math.hypot(spawn_x - jogador.rect.centerx, spawn_y - jogador.rect.centery) < 200:
         spawn_x = _arena_centro[0] - (spawn_x - _arena_centro[0])
         spawn_y = _arena_centro[1] - (spawn_y - _arena_centro[1])
         
@@ -125,7 +121,7 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
     
     set_chefe_atual_para_monitoramento(chefe_spawnado)
 
-    # Gerenciamento da música
+    # Troca para a música de chefe
     if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
         _musica_normal_anterior_pos = musica_atual_pos_ms if musica_atual_pos_ms is not None else pygame.mixer.music.get_pos()
         _musica_normal_anterior_path = musica_atual_path
@@ -146,20 +142,25 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
 
 
 def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
+    """
+    Finaliza a luta, restaura o estado do jogador e do jogo.
+    """
     global _luta_ativa, _arena_centro, _arena_raio, _chefe_atual, _musica_normal_anterior_pos, _musica_normal_anterior_path, _arena_chao_textura, _jogador_em_luta, _velocidade_original_jogador
 
-    # --- NOVO: Restaura a velocidade original do jogador ---
+    # Restaura a velocidade original do jogador
     if hasattr(jogador, 'velocidade') and _velocidade_original_jogador is not None:
         jogador.velocidade = _velocidade_original_jogador
         print(f"DEBUG(Luta_boss): Velocidade do jogador restaurada para {jogador.velocidade}")
         _velocidade_original_jogador = None
 
+    # Reseta as variáveis de estado da luta
     _luta_ativa = False
     _jogador_em_luta = None
     _arena_centro = (0,0)
     _arena_raio = 0
     _arena_chao_textura = None 
     
+    # Concede a recompensa de XP do chefe
     if _chefe_atual and hasattr(jogador, 'xp_manager') and hasattr(_chefe_atual, 'xp_value_boss'):
         xp_do_chefe = getattr(_chefe_atual, 'xp_value_boss', 100)
         if hasattr(jogador.xp_manager, 'gain_xp'):
@@ -168,6 +169,7 @@ def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
     
     _chefe_atual = None 
     
+    # Restaura a música normal do jogo
     if pygame.mixer.get_init():
         pygame.mixer.music.fadeout(1500)
         if _musica_normal_anterior_path and os.path.exists(_musica_normal_anterior_path):
@@ -182,21 +184,27 @@ def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
     _musica_normal_anterior_path = None
     _musica_normal_anterior_pos = None
 
+    # Avança para a próxima estação
     if hasattr(estacoes_obj, 'avancar_estacao_apos_chefe'): 
         estacoes_obj.avancar_estacao_apos_chefe()
     else:
         print("AVISO (Luta_boss.py): Objeto de estações não possui 'avancar_estacao_apos_chefe'.")
 
+    # Reativa o spawn de inimigos normais
     gerenciador_inimigos.pausar_spawn_normal(False)
     gerenciador_inimigos.resetar_temporizador_spawn_estacao()
     gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
 
 
 def atualizar_luta(jogador, estacoes_obj, gerenciador_inimigos):
+    """
+    Atualiza a lógica da luta e retorna um sinal se a luta terminou.
+    """
     global _chefe_atual 
     if not _luta_ativa:
-        return False 
+        return None
 
+    # Mantém jogador e chefe dentro da arena
     for combatente in [_jogador_em_luta, _chefe_atual]:
         if combatente and hasattr(combatente, 'rect'):
             dist = math.hypot(combatente.rect.centerx - _arena_centro[0], combatente.rect.centery - _arena_centro[1])
@@ -208,25 +216,32 @@ def atualizar_luta(jogador, estacoes_obj, gerenciador_inimigos):
                     combatente.x = float(combatente.rect.centerx)
                     combatente.y = float(combatente.rect.centery)
 
+    # Verifica se o chefe foi derrotado
     if _chefe_atual:
         if hasattr(_chefe_atual, 'esta_vivo') and not _chefe_atual.esta_vivo():
             finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos)
-            return True
+            return "FIM_DA_LUTA"
+            
     elif _luta_ativa: 
         print("AVISO CRÍTICO (Luta_boss.py): Luta ativa mas _chefe_atual é None.")
         finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos)
-        return True
+        return "FIM_DA_LUTA"
 
-    return False
+    return None # Retorna None se a luta continua
+
 
 def desenhar_efeitos_arena(surface, camera_x, camera_y):
+    """
+    Desenha o chão da arena e os combatentes.
+    """
     global _jogador_em_luta, _chefe_atual
 
     if not _luta_ativa:
         return
 
-    surface.fill((0, 0, 0))
+    surface.fill((0, 0, 0)) # Fundo preto fora da arena
 
+    # Desenha o chão da arena (textura ou cor sólida)
     arena_surf = pygame.Surface((_arena_raio * 2, _arena_raio * 2), pygame.SRCALPHA)
     if _arena_chao_textura:
         pygame.draw.circle(arena_surf, (255, 255, 255), (_arena_raio, _arena_raio), _arena_raio)
@@ -238,6 +253,7 @@ def desenhar_efeitos_arena(surface, camera_x, camera_y):
     pos_chao_y = _arena_centro[1] - _arena_raio - camera_y
     surface.blit(arena_surf, (pos_chao_x, pos_chao_y))
     
+    # Desenha o jogador e o chefe, ordenados pela posição Y para dar profundidade
     sprites_na_arena = []
     if _jogador_em_luta: sprites_na_arena.append(_jogador_em_luta)
     if _chefe_atual: sprites_na_arena.append(_chefe_atual)
@@ -249,22 +265,27 @@ def desenhar_efeitos_arena(surface, camera_x, camera_y):
             sprite.desenhar(surface, camera_x, camera_y)
 
 
-# --- Funções de Acesso (Getters/Setters) ---
+# --- Funções de Acesso ao Estado ---
 def esta_luta_ativa():
+    """Retorna True se uma luta de chefe está em andamento."""
     return _luta_ativa
 
 def get_arena_raio_e_centro():
+    """Retorna o raio e o centro da arena atual."""
     return (_arena_raio, _arena_centro)
 
 def get_chefe_atual():
+    """Retorna a instância do chefe atual."""
     return _chefe_atual
 
 def set_chefe_atual_para_monitoramento(instancia_chefe):
+    """Define o chefe atual para ser monitorado pela luta."""
     global _chefe_atual
     _chefe_atual = instancia_chefe
 
 
 def resetar_estado_luta_boss():
+    """Reseta todas as variáveis de estado do módulo para um novo jogo."""
     global _luta_ativa, _arena_centro, _arena_raio, _chefe_atual, _musica_normal_anterior_pos, _musica_normal_anterior_path, _arena_chao_textura, _jogador_em_luta, _velocidade_original_jogador
     
     print("DEBUG(Luta_boss.py): Resetando estado da luta de chefe.")
@@ -273,7 +294,7 @@ def resetar_estado_luta_boss():
     _arena_raio = 0
     _chefe_atual = None
     _jogador_em_luta = None
-    _velocidade_original_jogador = None # <<< NOVO: Garante o reset
+    _velocidade_original_jogador = None
     _musica_normal_anterior_pos = None
     _musica_normal_anterior_path = None
     _arena_chao_textura = None

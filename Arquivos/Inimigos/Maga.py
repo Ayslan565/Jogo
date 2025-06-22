@@ -63,11 +63,13 @@ class Maga(InimigoBase):
     @staticmethod
     def carregar_recursos_maga():
         if Maga.sprites_andar_carregados is None:
-            caminhos_andar = [f"Sprites/Inimigos/Maga/C ({i}).png" for i in range(1, 8)]
+            # --- CORREÇÃO APLICADA AQUI ---
+            caminhos_andar = [f"Sprites/Inimigos/Maga/C ({i}).png" for i in range(1, 5)] # Corrigido de 8 para 5, conforme a imagem
             Maga.sprites_andar_carregados = Maga._carregar_lista_sprites_estatico(caminhos_andar, [], Maga.tamanho_sprite_definido)
             
         if Maga.sprites_atacar_carregados is None:
-            caminhos_atacar = [f"Sprites/Inimigos/Maga/A ({i}).png" for i in range(1, 4)]
+            # --- CORREÇÃO APLICADA AQUI ---
+            caminhos_atacar = [f"Sprites/Inimigos/Maga/A ({i}).png" for i in range(1, 9)] # Corrigido de 4 para 9, conforme a imagem
             Maga.sprites_atacar_carregados = Maga._carregar_lista_sprites_estatico(caminhos_atacar, [], Maga.tamanho_sprite_definido)
 
         if not Maga.sons_carregados:
@@ -94,8 +96,8 @@ class Maga(InimigoBase):
         self.sprites = self.sprites_andar
         self.sprite_index = 0
 
-        self.intervalo_animacao_andar = 250
-        self.intervalo_animacao_atacar = 120
+        self.intervalo_animacao_andar = 120 # Tornando a animação de andar um pouco mais rápida
+        self.intervalo_animacao_atacar = 100 # Tornando a animação de ataque um pouco mais rápida
         self.intervalo_animacao = self.intervalo_animacao_andar
         
         self.is_attacking = False
@@ -119,7 +121,6 @@ class Maga(InimigoBase):
             self.intervalo_animacao = self.intervalo_animacao_atacar
             self.sprite_index = 0
 
-            # --- CORREÇÃO APLICADA ---
             # Cria o projétil teleguiado passando o jogador como o alvo.
             novo_projetil = ProjetilMaga(
                 x_origem=self.rect.centerx,
@@ -140,7 +141,12 @@ class Maga(InimigoBase):
         agora = pygame.time.get_ticks()
         
         # Lógica de Comportamento e IA
-        distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery)
+        if player and hasattr(player, 'rect'):
+            distancia_ao_jogador = math.hypot(self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery)
+        else:
+            self.atualizar_animacao()
+            return
+
 
         if self.is_attacking:
             # Termina a animação de ataque
@@ -151,7 +157,7 @@ class Maga(InimigoBase):
                 self.sprite_index = 0
         else:
             # IA de Kiting: Mover-se para a posição ideal
-            fator_tempo = dt_ms / 1000.0
+            fator_tempo = dt_ms / 1000.0 if dt_ms else 0.016
             
             direcao_x, direcao_y = 0, 0
             if distancia_ao_jogador > self.distancia_maxima_do_jogador:
@@ -166,13 +172,14 @@ class Maga(InimigoBase):
             # Mover com base na direção decidida
             if direcao_x != 0 or direcao_y != 0:
                 norma = math.hypot(direcao_x, direcao_y)
-                mov_x = (direcao_x / norma) * self.velocidade * fator_tempo
-                mov_y = (direcao_y / norma) * self.velocidade * fator_tempo
-                self.x += mov_x
-                self.y += mov_y
-                self.rect.topleft = (self.x, self.y)
-                if mov_x > 0.1: self.facing_right = True
-                elif mov_x < -0.1: self.facing_right = False
+                if norma > 0:
+                    mov_x = (direcao_x / norma) * self.velocidade * fator_tempo
+                    mov_y = (direcao_y / norma) * self.velocidade * fator_tempo
+                    self.x += mov_x
+                    self.y += mov_y
+                    self.rect.topleft = (self.x, self.y)
+                    if mov_x > 0.1: self.facing_right = True
+                    elif mov_x < -0.1: self.facing_right = False
 
         # Atualizar Animação (usa método da classe base Inimigo)
         self.atualizar_animacao()

@@ -1,4 +1,4 @@
-# Arquivo: eventos_climaticos.py (Atualizado com Escurecimento Gradual)
+# Arquivo: eventos_climaticos.py (Atualizado e com método de interrupção)
 
 import pygame
 import random
@@ -100,8 +100,6 @@ class GerenciadorDeEventos:
                 if probabilidade < 0.15: # 15% de chance de chuva de verão
                     novo_clima = "chuva"
             
-            # Se o clima mudou para um evento, reseta o temporizador de intensidade
-            # Não reseta se já estiver chovendo/nevando para manter a intensidade
             if novo_clima != self.clima_atual and novo_clima != "limpo":
                 self.tempo_inicio_evento = time.time()
             
@@ -117,7 +115,6 @@ class GerenciadorDeEventos:
             tempo_decorrido = time.time() - self.tempo_inicio_evento
             progresso = min(1.0, tempo_decorrido / self.duracao_intensificacao)
             
-            # Atualiza o alpha do escurecimento
             self.alpha_clima = int(progresso * self.max_alpha_clima)
 
             if self.clima_atual == "chuva":
@@ -132,7 +129,6 @@ class GerenciadorDeEventos:
                     self.particulas_neve.append(self._criar_particula_neve())
                 self.particulas_chuva.clear()
         else:
-            # Clareia a tela e remove partículas gradualmente
             if self.alpha_clima > 0:
                 self.alpha_clima = max(0, self.alpha_clima - 2)
             if self.particulas_chuva: self.particulas_chuva.pop(0)
@@ -175,3 +171,20 @@ class GerenciadorDeEventos:
 
         for particula in self.particulas_neve:
             pygame.draw.circle(tela, particula["cor"], (int(particula["x"]), int(particula["y"])), particula["raio"])
+
+    # <<< MÉTODO ADICIONADO AQUI >>>
+    def interromper_evento_climatico(self):
+        """
+        Interrompe forçadamente qualquer evento climático (chuva ou neve).
+        Usado para momentos de transição, como o início de uma luta de chefe.
+        Não afeta o ciclo de dia/noite.
+        """
+        if self.clima_atual != "limpo":
+            print(f"INFO: Interrompendo evento climático '{self.clima_atual}' para a luta de chefe.")
+        
+        self.clima_atual = "limpo"
+        self.particulas_chuva.clear()
+        self.particulas_neve.clear()
+        self.alpha_clima = 0 # Remove o escurecimento do clima imediatamente
+        # Reseta o timer de troca de clima para evitar que outro evento comece logo em seguida
+        self.ultimo_tempo_troca_clima = time.time()

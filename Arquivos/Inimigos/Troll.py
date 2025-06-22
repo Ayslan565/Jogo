@@ -10,9 +10,7 @@ import time
 try:
     # Correção: Importação relativa para a classe base Inimigo dentro do mesmo pacote 'Inimigos'
     from .Inimigos import Inimigo as InimigoBase
-    # print(f"DEBUG(Troll): Classe InimigoBase importada com sucesso de .Inimigos.")
 except ImportError as e:
-    # print(f"DEBUG(Troll): FALHA ao importar InimigoBase de .Inimigos: {e}. Usando placeholder local MUITO BÁSICO.")
     class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path=""):
             super().__init__()
@@ -28,7 +26,7 @@ except ImportError as e:
             self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
             self.x = float(x); self.y = float(y)
-            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
+            self.moedas_drop = 0
 
         def _carregar_sprite(self, path, tamanho):
             img = pygame.Surface(tamanho, pygame.SRCALPHA); img.fill((0,80,0, 128)); return img
@@ -41,9 +39,7 @@ except ImportError as e:
             if self.sprites: self.image = self.sprites[0]
             if hasattr(self, 'facing_right') and not self.facing_right:
                 self.image = pygame.transform.flip(self.image, True, False)
-        # Padronizado a assinatura do update do placeholder para consistência
         def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-            # Placeholder de update, a lógica real estará nas classes filhas
             self.atualizar_animacao()
         def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
@@ -66,7 +62,7 @@ class Troll(InimigoBase):
     @staticmethod
     def _carregar_lista_sprites_estatico(caminhos, lista_destino, tamanho, nome_anim):
         pasta_raiz = Troll._obter_pasta_raiz_jogo()
-        if lista_destino is None: lista_destino = [] # Garante que lista_destino é uma lista
+        if lista_destino is None: lista_destino = []
         for path_relativo in caminhos:
             caminho_completo = os.path.join(pasta_raiz, path_relativo.replace("\\", os.sep))
             try:
@@ -80,20 +76,22 @@ class Troll(InimigoBase):
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((0, 80, 0, 180)); lista_destino.append(placeholder)
         if not lista_destino:
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((0, 50, 0, 200)); lista_destino.append(placeholder)
-        return lista_destino # Retorna a lista modificada
+        return lista_destino
 
     @staticmethod
     def carregar_recursos_troll():
         if Troll.sprites_andar_carregados is None:
-            caminhos_andar = ["Sprites/Inimigos/Troll/Troll{}.png".format(i) for i in range(1, 9)]
+            # --- CORREÇÃO APLICADA AQUI ---
+            # Carrega todos os 10 sprites de andar, de 1 a 10.
+            caminhos_andar = ["Sprites/Inimigos/Troll/Troll{}.png".format(i) for i in range(1, 11)]
             Troll.sprites_andar_carregados = []
             Troll._carregar_lista_sprites_estatico(caminhos_andar, Troll.sprites_andar_carregados, Troll.tamanho_sprite_definido, "Andar")
+        
         if Troll.sprites_atacar_carregados is None:
-            Troll.sprites_atacar_carregados = []
-            # Supondo que não há sprites de ataque específicos, usar os de andar como fallback
-            Troll._carregar_lista_sprites_estatico([], Troll.sprites_atacar_carregados, Troll.tamanho_sprite_definido, "Atacar")
-            if not Troll.sprites_atacar_carregados and Troll.sprites_andar_carregados:
-                Troll.sprites_atacar_carregados = Troll.sprites_andar_carregados # Fallback
+            # --- CORREÇÃO APLICADA AQUI ---
+            # Define que os sprites de ataque são os mesmos de andar, como solicitado.
+            Troll.sprites_atacar_carregados = Troll.sprites_andar_carregados
+        
         if not Troll.sons_carregados:
             # Carregar sons aqui
             Troll.sons_carregados = True
@@ -114,8 +112,6 @@ class Troll(InimigoBase):
             xp_troll, sprite_path_principal_relativo_jogo
         )
         
-        # Removido: Flag self.recursos_concedidos, pois a lógica de recompensa é externa
-
         self.x = float(x)
         self.y = float(y)
         self.sprites_andar = Troll.sprites_andar_carregados
@@ -130,8 +126,8 @@ class Troll(InimigoBase):
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
         self.sprite_index = 0
-        self.intervalo_animacao_andar = 250
-        self.intervalo_animacao_atacar = 200
+        self.intervalo_animacao_andar = 120 # Tornando a animação mais rápida para 10 frames
+        self.intervalo_animacao_atacar = 100 # Ataque um pouco mais rápido que andar
         self.intervalo_animacao = self.intervalo_animacao_andar
         self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
 
@@ -173,9 +169,8 @@ class Troll(InimigoBase):
             self.sprite_index = 0
 
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
-        # Lógica de recompensa ao morrer foi movida para GerenciadorDeInimigos.py
         if not self.esta_vivo():
-            self.kill() # O GerenciadorDeInimigos.py cuidará das recompensas e remoção
+            self.kill()
             return
 
         agora = pygame.time.get_ticks()
@@ -185,7 +180,6 @@ class Troll(InimigoBase):
             if player.rect.centerx < self.rect.centerx: self.facing_right = False
             else: self.facing_right = True
 
-        # Chama o update da classe base para movimento e animação
         super().update(player, projeteis_inimigos_ref, tela_largura, altura_tela, dt_ms)
 
         if self.is_attacking:
@@ -203,12 +197,7 @@ class Troll(InimigoBase):
                 self.attack_hitbox.size = (0,0)
         else:
             if jogador_valido: self.atacar(player)
-            # As chamadas a mover_em_direcao e atualizar_animacao são cobertas pela super().update()
-            # que é chamada no início deste método update. Remover estas linhas duplicadas.
-            # if not self.is_attacking and jogador_valido and hasattr(self, 'mover_em_direcao'):
-            #     self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-            # if hasattr(self, 'atualizar_animacao'): self.atualizar_animacao()
-
+            
         if jogador_valido and self.rect.colliderect(player.rect) and (agora - self.last_contact_time >= self.contact_cooldown):
             if hasattr(player, 'receber_dano'): player.receber_dano(self.contact_damage, self.rect)
             self.last_contact_time = agora
