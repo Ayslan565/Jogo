@@ -22,10 +22,10 @@ class Estacoes:
         self.nomes_estacoes_ordem = ["Primavera", "Verão", "Outono", "Inverno"]
         
         self.caminhos_imagens = {
-            "Primavera": "Sprites\\Chao\\Primavera.png",
-            "Verão": "Sprites\\Chao\\Verao.png",
-            "Outono": "Sprites\\Chao\\Outono.png",
-            "Inverno": "Sprites\\Chao\\Inverno.png"
+            "Primavera": "Sprites/Chao/Primavera.png",
+            "Verão": "Sprites/Chao/Verao.png",
+            "Outono": "Sprites/Chao/Outono.png",
+            "Inverno": "Sprites/Chao/Inverno.png"
         }
         
         self.imagem_fundo_tile = None 
@@ -38,7 +38,7 @@ class Estacoes:
         self.mensagem_estacao_atual = ""
         self.tempo_inicio_mensagem_estacao = 0
 
-        # ADICIONADO: Flag genérica para controlar o estado de "chefe pendente"
+        # Flag genérica para controlar o estado de "chefe pendente"
         self.chefe_pendente = False
         
         self._carregar_recursos_estacao(self.indice_estacao_atual)
@@ -50,8 +50,12 @@ class Estacoes:
     def _carregar_recursos_estacao(self, indice):
         """Carrega e redimensiona o sprite de fundo (tile) para a estação atual."""
         nome_estacao = self.nomes_estacoes_ordem[indice]
-        caminho_imagem = self.caminhos_imagens.get(nome_estacao)
         
+        # Define um caminho absoluto para a imagem
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        caminho_relativo = self.caminhos_imagens.get(nome_estacao)
+        caminho_imagem = os.path.join(project_root, caminho_relativo.replace("\\", os.sep))
+
         cores_fallback = {
             "Primavera": (137, 183, 137), "Verão": (81, 170, 72),
             "Outono": (204, 153, 102), "Inverno": (200, 220, 255)
@@ -81,41 +85,49 @@ class Estacoes:
         self.mensagem_estacao_atual = nome_estacao
         self.tempo_inicio_mensagem_estacao = time.time()
 
-    # MÉTODO MODIFICADO: Torna a verificação genérica para qualquer estação
     def atualizar_ciclo_estacoes(self):
         """
         Verifica se o tempo da estação acabou. Se sim, sinaliza que uma luta
-        contra o chefe deve começar.
-        Retorna um sinal para o loop principal do jogo.
+        contra o chefe deve começar. Retorna um sinal para o loop principal do jogo.
         """
         tempo_atual = time.time()
         if tempo_atual - self.ultimo_tempo_troca_timestamp > self.tempo_troca_estacao_seg:
-            # Se o tempo da estação acabou e um chefe ainda não está pendente para esta estação
             if not self.chefe_pendente:
                 self.chefe_pendente = True
                 print(f"DEBUG(Estacoes): Fim da estação '{self.nome_estacao_atual()}'. Sinalizando para iniciar luta contra chefe.")
-                return "INICIAR_LUTA_CHEFE" # Sinal genérico para o Game.py
-        return False # Retorna False se não for hora de fazer nada
+                return "INICIAR_LUTA_CHEFE"
+        return False
 
-    # NOVO MÉTODO: Generalizado para avançar a estação após qualquer chefe
     def avancar_estacao_apos_chefe(self):
         """
         Avança para a próxima estação após a derrota de um chefe.
-        Este método deve ser chamado pelo loop principal do jogo (Game.py) ou pelo
-        módulo de luta (Luta_boss.py) quando a luta for concluída com sucesso.
         """
         if self.chefe_pendente:
             print(f"DEBUG(Estacoes): Chefe da estação '{self.nome_estacao_atual()}' derrotado. Avançando para a próxima estação.")
             self.chefe_pendente = False
             
-            # Avança o índice da estação para a próxima de forma cíclica
             self.indice_estacao_atual = (self.indice_estacao_atual + 1) % len(self.nomes_estacoes_ordem)
             
-            # Carrega os recursos da nova estação e reseta o timer
             self._carregar_recursos_estacao(self.indice_estacao_atual)
             self.ultimo_tempo_troca_timestamp = time.time()
             return True
         return False
+
+    # --- NOVO MÉTODO ADICIONADO ---
+    def get_tempo_restante_formatado(self):
+        """
+        Calcula e retorna o tempo restante para a próxima estação no formato MM:SS.
+        """
+        if self.ultimo_tempo_troca_timestamp is None:
+            return "00:00"
+            
+        tempo_decorrido = time.time() - self.ultimo_tempo_troca_timestamp
+        tempo_restante_seg = max(0, self.tempo_troca_estacao_seg - tempo_decorrido)
+        
+        minutos = int(tempo_restante_seg // 60)
+        segundos = int(tempo_restante_seg % 60)
+        
+        return f"{minutos:02d}:{segundos:02d}"
 
     def desenhar(self, tela, camera_x, camera_y):
         """Desenha o fundo da estação com efeito parallax distante."""
@@ -125,21 +137,35 @@ class Estacoes:
                 tela.fill(self.cor_fallback)
                 return
             
+            # --- ALTERAÇÃO APLICADA AQUI: Ajuste do Efeito Parallax ---
+            # O parallax_factor controla a velocidade do fundo em relação à câmera.
+            # 0.0 = Fundo completamente parado (muito distante).
+            # 1.0 = Fundo se move junto com a câmera (sem efeito de profundidade).
+            # Valores baixos como 0.2 criam uma sensação de grande profundidade, fazendo o fundo mover-se lentamente.
             parallax_factor = 1.0
+
             
-            scroll_x = int(camera_x * parallax_factor)
-            scroll_y = int(camera_y * parallax_factor)
+            # Calcula o deslocamento do fundo com base na câmera e no fator de parallax.
+            # Mantemos como float para maior precisão no cálculo do módulo.
+            scroll_x = camera_x * parallax_factor
+            scroll_y = camera_y * parallax_factor
             
+            # Calcula a posição inicial para o primeiro tile para garantir o tiling contínuo e sem falhas.
+            # O operador de módulo (%) garante que o valor esteja sempre dentro da largura/altura de um tile.
             start_x = -(scroll_x % tile_w)
             start_y = -(scroll_y % tile_h)
             
-            for y in range(start_y, self.altura_tela, tile_h):
-                for x in range(start_x, self.largura_tela, tile_w):
+            # Desenha os tiles para preencher a tela, começando da posição calculada.
+            # Convertemos para int() apenas no momento de usar no range e no blit.
+            for y in range(int(start_y), self.altura_tela + tile_h, tile_h):
+                for x in range(int(start_x), self.largura_tela + tile_w, tile_w):
                     tela.blit(self.imagem_fundo_tile, (x, y))
         else:
+            # Se a imagem não pôde ser carregada, preenche com uma cor sólida.
             tela.fill(self.cor_fallback)
 
     def desenhar_mensagem_estacao(self, janela):
+        """Desenha a mensagem de mudança de estação com efeito de fade-out."""
         tempo_passado = time.time() - self.tempo_inicio_mensagem_estacao
         duracao_fade = 2.5
         if tempo_passado > duracao_fade:
@@ -150,9 +176,12 @@ class Estacoes:
         largura_tela, altura_tela = janela.get_size()
 
         try:
-            fonte = pygame.font.Font(FONTE_RETRO_PATH, 52) 
+            # Garante que o caminho da fonte seja absoluto
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            fonte_path = os.path.join(project_root, FONTE_RETRO_PATH)
+            fonte = pygame.font.Font(fonte_path, 52)
         except pygame.error:
-            fonte = pygame.font.Font(pygame.font.get_default_font(), 40)
+            fonte = pygame.font.Font(None, 60)
 
         texto_renderizado = fonte.render(self.mensagem_estacao_atual.upper(), True, (255, 255, 255))
         largura_texto, altura_texto = texto_renderizado.get_size()

@@ -1,0 +1,8 @@
+Um erro fatal ocorreu:
+Traceback (most recent call last):
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 494, in <module>
+    main()
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 405, in main
+    sinal_estacoes = est.atualizar_ciclo_estacoes()
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'atualizar_ciclo_estacoes'
