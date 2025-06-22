@@ -85,7 +85,7 @@ class Troll(InimigoBase):
     @staticmethod
     def carregar_recursos_troll():
         if Troll.sprites_andar_carregados is None:
-            caminhos_andar = ["Sprites/Inimigos/Troll/Troll{}.png".format(i) for i in range(1, 11)]
+            caminhos_andar = ["Sprites/Inimigos/Troll/Troll{}.png".format(i) for i in range(1, 9)]
             Troll.sprites_andar_carregados = []
             Troll._carregar_lista_sprites_estatico(caminhos_andar, Troll.sprites_andar_carregados, Troll.tamanho_sprite_definido, "Andar")
         if Troll.sprites_atacar_carregados is None:

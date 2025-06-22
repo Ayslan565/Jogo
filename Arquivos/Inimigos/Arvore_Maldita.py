@@ -78,7 +78,7 @@ class Arvore_Maldita(InimigoBase):
         if not Arvore_Maldita.sons_carregados:
             Arvore_Maldita.sons_carregados = True
 
-    def __init__(self, x, y, velocidade=0.3):
+    def __init__(self, x, y, velocidade=1.0):
         Arvore_Maldita.carregar_recursos_arvore_maldita()
 
         vida_arvore = 1000

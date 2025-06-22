@@ -38,8 +38,8 @@ CAMINHOS_TEXTURA_ARENA = [
     "Sprites\\Chao\\A4.png"  # Inverno
 ]
 MUSICAS_CHEFE_OPCOES = [
-    "Musica\\Boss Fight\\Faixa1.mp3",
-    "Musica\\Boss Fight\\Faixa2.mp3"
+    "Musica\Boss Fight\Faixa1.mp3", "Musica\\Boss Fight\\Faixa2.mp3",
+
 ]
 # =====================================================================================
 
