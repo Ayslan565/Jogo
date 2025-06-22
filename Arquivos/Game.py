@@ -33,6 +33,8 @@ try:
     from eventos_climaticos import GerenciadorDeEventos
     import luta_boss
     from luta_boss import resetar_estado_luta_boss
+    from XPs_Orb import XPOrb # <<< NOVO: Importação da classe base para verificação no desenho
+    from GeradorXP import GeradorXP # <<< NOVO: Importa o Gerador de XP
 except ImportError as e:
     print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
     traceback.print_exc() # Imprime o rastreamento completo do erro
@@ -44,6 +46,9 @@ except ImportError as e:
     GeradorCogumelos = None
     GerenciadorDeEventos = None
     resetar_estado_luta_boss = None
+    XPOrb = None # Fallback
+    GeradorXP = None # Fallback
+
 
 # --- Constantes e Configurações Globais ---
 MUSICAS_JOGO = [
@@ -69,13 +74,14 @@ jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
 gerador_cogumelos = None
+gerador_xp = None # <<< NOVO: Variável para o gerador de XP
 gerenciador_eventos = None
 
 def inicializar_jogo(largura_tela, altura_tela):
     """Prepara todos os objetos e variáveis para uma nova sessão de jogo."""
     global jogador, pause_manager, xp_manager, barra_inventario, gerenciador_inimigos, \
            musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas, \
-           gerador_cogumelos, gerenciador_eventos
+           gerador_cogumelos, gerenciador_eventos, gerador_xp
 
     if resetar_estado_luta_boss:
         resetar_estado_luta_boss()
@@ -84,9 +90,7 @@ def inicializar_jogo(largura_tela, altura_tela):
 
     if Player is None:
         print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
-        return (None,) * 13 # Ajustado para o novo retorno
-    
-        return (None,) * 13
+        return (None,) * 14
 
     jogador = Player(velocidade=5, vida_maxima=150)
     jogador.x = float(largura_tela // 2)
@@ -141,9 +145,17 @@ def inicializar_jogo(largura_tela, altura_tela):
         gerador_cogumelos = None
         print("ERRO (Game.py): Classe GeradorCogumelos não foi importada.")
 
+    # <<< NOVO: Inicializa o gerador de XP >>>
+    if GeradorXP:
+        gerador_xp = GeradorXP()
+    else:
+        gerador_xp = None
+        print("ERRO (Game.py): Classe GeradorXP não foi importada.")
+
     return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, \
            gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario, \
-           gerador_cogumelos, gerenciador_eventos
+           gerador_cogumelos, gerenciador_eventos, gerador_xp
+
 
 def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista, estacoes_obj, blocos_ja_gerados_set, gerador_cogumelos_obj):
     if not all([jogador_obj, hasattr(jogador_obj, 'rect'), estacoes_obj, Grama, Arvore]):
@@ -209,41 +221,58 @@ def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
                 if inimigo_col_rect and jogador_col_rect.colliderect(inimigo_col_rect):
                     jogador_obj.receber_dano(dano_contato, inimigo_col_rect)
 
+# <<< NOVO: Função para verificar colisão com orbes de XP >>>
+def verificar_colisao_orbes_xp(jogador_obj, gerador_xp_obj):
+    if not all([jogador_obj, gerador_xp_obj, jogador_obj.xp_manager]):
+        return
+    
+    orbes_coletadas = pygame.sprite.spritecollide(jogador_obj, gerador_xp_obj.orbes, True, pygame.sprite.collide_circle_ratio(0.8))
+    
+    for orbe in orbes_coletadas:
+        jogador_obj.xp_manager.gain_xp(orbe.xp_value)
+
+
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
                   gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui,
                   cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms, jogo_pausado_inv,
-                  gerador_cogumelos_obj, gerenciador_eventos_obj):
+                  gerador_cogumelos_obj, gerenciador_eventos_obj, gerador_xp_obj):
     global xp_manager, gerenciador_de_moedas
 
-    # Desenha o fundo normal do jogo
-    if estacoes_obj:
-        estacoes_obj.desenhar(janela_surf, cam_x, cam_y)
+    if not luta_boss.esta_luta_ativa():
+        if estacoes_obj:
+            estacoes_obj.desenhar(janela_surf, cam_x, cam_y)
 
-    for grama in gramas_lista:
-        grama.desenhar(janela_surf, cam_x, cam_y)
+        for grama in gramas_lista:
+            grama.desenhar(janela_surf, cam_x, cam_y)
 
-    # Ordena e desenha os sprites do mundo
-    sprites_do_mundo = []
-    if jogador_obj:
-        sprites_do_mundo.append(jogador_obj)
-    if gerenciador_inimigos_obj:
-        sprites_do_mundo.extend(gerenciador_inimigos_obj.inimigos)
-    if gerador_cogumelos_obj and hasattr(gerador_cogumelos_obj, 'cogumelos'):
-        sprites_do_mundo.extend(gerador_cogumelos_obj.cogumelos)
-    if shop_elements and hasattr(shop_elements, 'vendedor_instance') and shop_elements.vendedor_instance:
-       sprites_do_mundo.append(shop_elements.vendedor_instance)
-    sprites_do_mundo.extend(arvores_lista)
+        sprites_do_mundo = []
+        if jogador_obj:
+            sprites_do_mundo.append(jogador_obj)
+        if gerenciador_inimigos_obj:
+            sprites_do_mundo.extend(gerenciador_inimigos_obj.inimigos)
+        if gerador_cogumelos_obj and hasattr(gerador_cogumelos_obj, 'cogumelos'):
+            sprites_do_mundo.extend(gerador_cogumelos_obj.cogumelos)
+        
+        # <<< NOVO: Adiciona as orbes de XP à lista de sprites do mundo >>>
+        if gerador_xp_obj and hasattr(gerador_xp_obj, 'orbes'):
+            sprites_do_mundo.extend(gerador_xp_obj.orbes)
 
-    sprites_do_mundo.sort(key=lambda sprite: sprite.rect.bottom)
+        if shop_elements and hasattr(shop_elements, 'vendedor_instance') and shop_elements.vendedor_instance:
+           sprites_do_mundo.append(shop_elements.vendedor_instance)
+        sprites_do_mundo.extend(arvores_lista)
 
-    for sprite in sprites_do_mundo:
-        sprite.desenhar(janela_surf, cam_x, cam_y)
+        sprites_do_mundo.sort(key=lambda sprite: sprite.rect.bottom)
 
-    # Se a luta estiver ativa, desenha os efeitos da arena por cima do mundo
+        for sprite in sprites_do_mundo:
+            # Verifica se o sprite é uma orbe para usar o método de desenho correto
+            if XPOrb and isinstance(sprite, XPOrb):
+                sprite.desenhar(janela_surf, cam_x, cam_y)
+            elif hasattr(sprite, 'desenhar'):
+                 sprite.desenhar(janela_surf, cam_x, cam_y)
+
     if luta_boss.esta_luta_ativa():
         luta_boss.desenhar_efeitos_arena(janela_surf, cam_x, cam_y)
     
-    # Desenha projéteis e efeitos
     if gerenciador_inimigos_obj:
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
     if jogador_obj and hasattr(jogador_obj, 'arma_atual') and jogador_obj.arma_atual and hasattr(jogador_obj.arma_atual, 'desenhar_projeteis'):
@@ -255,7 +284,7 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     if shop_elements:
         shop_elements.draw_shop_elements(janela_surf, cam_x, cam_y, delta_time_ms)
 
-    # Desenha a UI (Interface do Usuário) por cima de tudo
+    # UI
     if vida_ui_obj:
         vida_ui_obj.desenhar(janela_surf, 20, 20)
     if estacoes_obj:
@@ -275,7 +304,7 @@ def main():
     global jogador, game_music_volume, game_sfx_volume, pause_manager, game_is_running_flag, \
            xp_manager, barra_inventario, jogo_pausado_para_inventario, gerenciador_inimigos, \
            musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas, \
-           gerador_cogumelos, gerenciador_eventos
+           gerador_cogumelos, gerenciador_eventos, gerador_xp
 
     pygame.init()
     if not pygame.font.get_init(): pygame.font.init()
@@ -299,7 +328,7 @@ def main():
     pygame.display.set_caption("Lenda de Asrahel")
     clock = pygame.time.Clock()
 
-    while True: # Loop de Menu/Jogo
+    while True:
         menu_obj = Menu(largura_tela, altura_tela) if Menu else None
         if not menu_obj: break
 
@@ -324,11 +353,11 @@ def main():
 
             jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, \
             gerenciador_inimigos, jogador_morreu, tempo_inicio, timer_obj, \
-            barra_inventario, gerador_cogumelos, gerenciador_eventos = inicializar_jogo(largura_tela, altura_tela)
+            barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
             
             if jogador is None: break
             if luta_boss is None: 
-                print("ERRO CRÍTICO: Módulo luta_boss não foi carregado. As lutas de chefe não funcionarão.")
+                print("ERRO CRÍTICO: Módulo luta_boss não foi carregado.")
                 break
 
             if mixer_initialized: tocar_musica_jogo()
@@ -340,7 +369,6 @@ def main():
                 cam_x = jogador.rect.centerx - largura_tela // 2
                 cam_y = jogador.rect.centery - altura_tela // 2
 
-                # --- Manipulação de Eventos ---
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT: running_loop = False; game_is_running_flag = False
                     if event.type == pygame.KEYDOWN:
@@ -370,31 +398,27 @@ def main():
                 
                 if not running_loop: break
                 
-                # --- Lógica de Atualização Central ---
                 if not jogo_pausado_para_inventario:
                     teclas = pygame.key.get_pressed()
                     jogador.update(dt_ms, teclas)
 
                     sinal_estacoes = est.atualizar_ciclo_estacoes()
                     if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not luta_boss.esta_luta_ativa():
-                        print("DEBUG(Game.py): Sinal recebido! Iniciando luta contra o chefe.")
-                        # --- CORREÇÃO APLICADA AQUI ---
                         luta_boss.iniciar_luta_chefe(
-                            jogador=jogador,
-                            indice_estacao=est.indice_estacao_atual,
-                            gerenciador_inimigos=gerenciador_inimigos,
-                            estacoes_obj=est,
-                            largura_tela=largura_tela, # Argumento necessário adicionado
-                            altura_tela=altura_tela,   # Argumento necessário adicionado
+                            jogador=jogador, indice_estacao=est.indice_estacao_atual,
+                            gerenciador_inimigos=gerenciador_inimigos, estacoes_obj=est,
+                            largura_tela=largura_tela, altura_tela=altura_tela,
                             musica_atual_path=musica_gameplay_atual_path,
                             musica_atual_pos_ms=pygame.mixer.music.get_pos()
                         )
+                    
+                    if gerenciador_inimigos:
+                        gerenciador_inimigos.update_inimigos(jogador, dt_ms)
+                        gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
 
                     if luta_boss.esta_luta_ativa():
                         luta_boss.atualizar_luta(jogador, est, gerenciador_inimigos)
                         jogador.mover(teclas, [])
-                        gerenciador_inimigos.update_inimigos(jogador, dt_ms)
-                        gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
                         jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
                         verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
                     else:
@@ -405,11 +429,15 @@ def main():
                             gerenciador_eventos.atualizar_particulas()
                         if gerenciador_inimigos:
                             gerenciador_inimigos.process_spawn_requests(jogador, dt_ms)
-                            gerenciador_inimigos.update_inimigos(jogador, dt_ms)
-                            gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
                         if gerador_cogumelos:
                             gerador_cogumelos.tentar_gerar_cogumelo(jogador.rect, blocos_gerados)
                             gerador_cogumelos.update(jogador, cam_x, cam_y, dt_ms)
+                        
+                        if gerador_xp:
+                            gerador_xp.tentar_gerar_orbe(jogador.rect)
+                            gerador_xp.update(dt_ms)
+                            verificar_colisao_orbes_xp(jogador, gerador_xp)
+                        
                         gerar_elementos_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados, gerador_cogumelos)
                         if gerenciador_inimigos:
                             jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
@@ -426,12 +454,11 @@ def main():
                     jogador_morreu = True
                     running_loop = False
                 
-                # --- Lógica de Desenho ---
                 tempo_seg = (pygame.time.get_ticks() - tempo_inicio) // 1000
                 desenhar_cena(janela, est, gramas, arvores, jogador, gerenciador_inimigos,
                               vida_jogador_ref, barra_inventario,
                               cam_x, cam_y, tempo_seg, timer_obj, dt_ms, jogo_pausado_para_inventario,
-                              gerador_cogumelos, gerenciador_eventos)
+                              gerador_cogumelos, gerenciador_eventos, gerador_xp)
 
                 if jogo_pausado_para_inventario and barra_inventario:
                     barra_inventario.desenhar(janela, jogador)

@@ -40,11 +40,13 @@ except ImportError:
         def kill(self): super().kill()
 
 
+
+
 class GerenciadorDeInimigos:
     def __init__(self, estacoes_obj, tela_largura: int, altura_tela: int,
                  gerenciador_moedas_ref=None,
-                 intervalo_spawn_inicial: float = 3.0, spawns_iniciais: int = 5,
-                 limite_inimigos: int = 50, fator_exponencial_spawn: float = 0.020,
+                 intervalo_spawn_inicial: float = 3.0, spawns_iniciais: int = 20,
+                 limite_inimigos: int = 500, fator_exponencial_spawn: float = 0.020,
                  intervalo_spawn_minimo: float = 0.5, atraso_spawn_estacao_seg: float = 2.0):
 
         self.estacoes = estacoes_obj
@@ -158,14 +160,19 @@ class GerenciadorDeInimigos:
         ClasseInimigo = self.enemy_class_map.get(tipo_escolhido)
         if not ClasseInimigo: return
 
-        cam_rect = pygame.Rect(jogador.rect.centerx - self.tela_largura / 2, jogador.rect.centery - self.altura_tela / 2, self.tela_largura, self.altura_tela)
-        spawn_margin = 100
-        edge = random.choice(["top", "bottom", "left", "right"])
-
-        if edge == "top": x, y = random.uniform(cam_rect.left, cam_rect.right), cam_rect.top - spawn_margin
-        elif edge == "bottom": x, y = random.uniform(cam_rect.left, cam_rect.right), cam_rect.bottom + spawn_margin
-        elif edge == "left": x, y = cam_rect.left - spawn_margin, random.uniform(cam_rect.top, cam_rect.bottom)
-        else: x, y = cam_rect.right + spawn_margin, random.uniform(cam_rect.top, cam_rect.bottom)
+        # --- NOVA ESTRATÉGIA: Spawn circular fora da tela ---
+        # Calcula a distância do centro da tela até um dos cantos
+        distancia_do_canto = math.hypot(self.tela_largura / 2, self.altura_tela / 2)
+        
+        # Define o raio de spawn para ser um pouco maior que essa distância, garantindo que seja fora da tela
+        raio_spawn = distancia_do_canto + 200 # 100 pixels de margem
+        
+        # Gera um ângulo aleatório
+        angulo = random.uniform(0, 2 * math.pi)
+        
+        # Calcula a posição de spawn em relação ao centro do jogador
+        x = jogador.rect.centerx + raio_spawn * math.cos(angulo)
+        y = jogador.rect.centery + raio_spawn * math.sin(angulo)
         
         self.inimigos.add(ClasseInimigo(x=x, y=y))
 
@@ -185,15 +192,11 @@ class GerenciadorDeInimigos:
                 inimigo.kill()
 
     def update_projeteis_inimigos(self, jogador, dt_ms):
-        # --- CORREÇÃO APLICADA AQUI ---
-        # A chamada de update para o grupo de projéteis agora passa
-        # apenas o 'dt_ms', que é o único argumento que o ProjetilMaga.update() espera.
         self.projeteis_inimigos.update(dt_ms)
 
-        # O resto da lógica, como a verificação de colisão, permanece o mesmo
         colisoes = pygame.sprite.spritecollide(jogador, self.projeteis_inimigos, True, pygame.sprite.collide_mask)
         for projetil in colisoes:
-            if jogador.pode_levar_dano:
+            if hasattr(jogador, 'pode_levar_dano') and jogador.pode_levar_dano:
                 jogador.receber_dano(projetil.dano, projetil.rect)
     
     def spawn_chefe_estacao(self, indice_estacao_chefe, posicao_mundo_spawn):

@@ -81,11 +81,11 @@ class Mae_Natureza(InimigoBase):
         # CORREÇÃO: Referência estática usa o novo nome da classe Mae_Natureza
         if Mae_Natureza.sprites_andar_carregados is None:
             Mae_Natureza.sprites_andar_carregados = []
-            caminhos = ["Sprites/Inimigos/MaeNatureza/Mae{}.png".format(i) for i in range(1, 4)]
+            caminhos = ["Sprites/Inimigos/MaeNatureza/Mae{}.png".format(i) for i in range(1, 3)]
             Mae_Natureza._carregar_lista_sprites_estatico(caminhos, Mae_Natureza.sprites_andar_carregados, Mae_Natureza.tamanho_sprite_definido, "Andar/Idle")
         if Mae_Natureza.sprites_atacar_carregados is None:
             Mae_Natureza.sprites_atacar_carregados = []
-            caminhos_atacar = ["Sprites/Inimigos/MaeNatureza/Mae_Atacar{}.png".format(i) for i in range(1, 3)]
+            caminhos_atacar = ["Sprites/Inimigos/MaeNatureza/Mae{}.png".format(i) for i in range(1, 3)]
             Mae_Natureza._carregar_lista_sprites_estatico(caminhos_atacar, Mae_Natureza.sprites_atacar_carregados, Mae_Natureza.tamanho_sprite_definido, "Atacar")
             if not Mae_Natureza.sprites_atacar_carregados and Mae_Natureza.sprites_andar_carregados:
                 Mae_Natureza.sprites_atacar_carregados = [Mae_Natureza.sprites_andar_carregados[0]]

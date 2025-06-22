@@ -63,11 +63,11 @@ class Maga(InimigoBase):
     @staticmethod
     def carregar_recursos_maga():
         if Maga.sprites_andar_carregados is None:
-            caminhos_andar = [f"Sprites/Inimigos/Maga/C ({i}).png" for i in range(1, 9)]
+            caminhos_andar = [f"Sprites/Inimigos/Maga/C ({i}).png" for i in range(1, 8)]
             Maga.sprites_andar_carregados = Maga._carregar_lista_sprites_estatico(caminhos_andar, [], Maga.tamanho_sprite_definido)
             
         if Maga.sprites_atacar_carregados is None:
-            caminhos_atacar = [f"Sprites/Inimigos/Maga/A ({i}).png" for i in range(1, 9)]
+            caminhos_atacar = [f"Sprites/Inimigos/Maga/A ({i}).png" for i in range(1, 4)]
             Maga.sprites_atacar_carregados = Maga._carregar_lista_sprites_estatico(caminhos_atacar, [], Maga.tamanho_sprite_definido)
 
         if not Maga.sons_carregados:
