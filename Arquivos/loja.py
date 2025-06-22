@@ -147,9 +147,9 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor_img=(600, 4
             "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png", 
             "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png", 
             "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/E1.png", 
-            "Sprites/Armas/Espadas/Espada Sacra Caida/Espada dos Corrompidos -E1.png", 
-            "Sprites/Armas/Espadas/Espada Sacra do Lua/E1.jpg", 
-            "Sprites/Armas/Espadas/Lâmina do Ceu Centilhante/E1.jpg" 
+            "Sprites\Armas\Espadas\Espada Sacra Caida\Espada Sacra Caida E1.png", 
+            "Sprites/Armas/Espadas/Espada Sacra do Lua/E1.png", 
+            "Sprites/Armas/Espadas/Lâmina do Ceu Centilhante/E1.png" 
         ]
         espadas_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in espadas_paths_rel]
         full_espadas_list = (espadas_imgs_loaded + [placeholder_img_item]*7)[:7] 
@@ -158,8 +158,8 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor_img=(600, 4
         machados_paths_rel = [
             "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-1.png", 
             "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png", 
-            "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg", 
-            "Sprites/Armas/Machados/Machado do Fogo Abrasador/E1.jpg", 
+            "Sprites/Armas/Machados/Machado da Descida Santa/E1.png", 
+            "Sprites/Armas/Machados/Machado do Fogo Abrasador/E1.png", 
             "Sprites/Armas/Machados/Machado do Marfim Resplendor/E1.png", 
             "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png", 
         ]

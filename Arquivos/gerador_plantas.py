@@ -6,6 +6,7 @@ from arvores import Arvore
 from Estacoes import Estacoes
 from vida import Vida
 from player import Player
+from grama import Grama
 
 # Armazena regiões já geradas (dividido em "blocos")
 blocos_gerados = set()

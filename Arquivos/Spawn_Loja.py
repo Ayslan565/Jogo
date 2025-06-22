@@ -6,4 +6,4 @@ PROBABILIDADE_SPAWN_LOJA = 1.0
 
 # Intervalo mínimo em segundos entre os spawns da loja.
 # Isso evita que a loja apareça muito rapidamente após um spawn anterior.
-INTERVALO_MINIMO_SPAWN_LOJA = 2# 60 segundos (1 minuto)
+INTERVALO_MINIMO_SPAWN_LOJA = 6# 60 segundos (1 minuto)

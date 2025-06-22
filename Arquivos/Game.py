@@ -31,8 +31,8 @@ try:
     from cogumelo import Cogumelo
     from gerrador_cogumelo import GeradorCogumelos
     from eventos_climaticos import GerenciadorDeEventos
-    import luta_boss
-    from luta_boss import resetar_estado_luta_boss
+    from Luta_boss import *
+    from Luta_boss import resetar_estado_luta_boss
     from XPs_Orb import XPOrb # <<< NOVO: Importação da classe base para verificação no desenho
     from GeradorXP import GeradorXP # <<< NOVO: Importa o Gerador de XP
 except ImportError as e:
@@ -238,7 +238,7 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
                   gerador_cogumelos_obj, gerenciador_eventos_obj, gerador_xp_obj):
     global xp_manager, gerenciador_de_moedas
 
-    if not luta_boss.esta_luta_ativa():
+    if not Luta_boss.esta_luta_ativa():
         if estacoes_obj:
             estacoes_obj.desenhar(janela_surf, cam_x, cam_y)
 
@@ -270,8 +270,8 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
             elif hasattr(sprite, 'desenhar'):
                  sprite.desenhar(janela_surf, cam_x, cam_y)
 
-    if luta_boss.esta_luta_ativa():
-        luta_boss.desenhar_efeitos_arena(janela_surf, cam_x, cam_y)
+    if Luta_boss.esta_luta_ativa():
+        Luta_boss.desenhar_efeitos_arena(janela_surf, cam_x, cam_y)
     
     if gerenciador_inimigos_obj:
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
@@ -356,8 +356,8 @@ def main():
             barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
             
             if jogador is None: break
-            if luta_boss is None: 
-                print("ERRO CRÍTICO: Módulo luta_boss não foi carregado.")
+            if Luta_boss is None: 
+                print("ERRO CRÍTICO: Módulo Luta_boss não foi carregado.")
                 break
 
             if mixer_initialized: tocar_musica_jogo()
@@ -403,8 +403,8 @@ def main():
                     jogador.update(dt_ms, teclas)
 
                     sinal_estacoes = est.atualizar_ciclo_estacoes()
-                    if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not luta_boss.esta_luta_ativa():
-                        luta_boss.iniciar_luta_chefe(
+                    if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not Luta_boss.esta_luta_ativa():
+                        Luta_boss.iniciar_luta_chefe(
                             jogador=jogador, indice_estacao=est.indice_estacao_atual,
                             gerenciador_inimigos=gerenciador_inimigos, estacoes_obj=est,
                             largura_tela=largura_tela, altura_tela=altura_tela,
@@ -416,8 +416,8 @@ def main():
                         gerenciador_inimigos.update_inimigos(jogador, dt_ms)
                         gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
 
-                    if luta_boss.esta_luta_ativa():
-                        luta_boss.atualizar_luta(jogador, est, gerenciador_inimigos)
+                    if Luta_boss.esta_luta_ativa():
+                        Luta_boss.atualizar_luta(jogador, est, gerenciador_inimigos)
                         jogador.mover(teclas, [])
                         jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
                         verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
