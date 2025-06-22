@@ -1,14 +1,11 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 454, in <module>
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 481, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 408, in main
-    gerenciador_inimigos.update_inimigos(jogador, dt_ms)
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 179, in update_inimigos
-    self.inimigos.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
-  File "C:\Users\aysla\AppData\Local\Programs\Python\Python312\Lib\site-packages\pygame\sprite.py", line 556, in update
-    sprite.update(*args, **kwargs)
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Inimigos\BonecoDeNeve.py", line 177, in update
-    novo_projetil = ProjetilNeve(
-                    ^^^^^^^^^^^^^
-TypeError: ProjetilNeve.__init__() got an unexpected keyword argument 'alvo_obj'
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 356, in main
+    barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
+                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 95, in inicializar_jogo
+    jogador = Player(velocidade=5, vida_maxima=150)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Player() takes no arguments

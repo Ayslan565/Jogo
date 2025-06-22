@@ -312,8 +312,11 @@ class Player(pygame.sprite.Sprite):
         if hasattr(self, 'rect_colisao'): 
             self.rect_colisao.center = self.rect.center
 
+    # #############################################################################
+    # ## FUNÇÃO CORRIGIDA ##
+    # #############################################################################
     def mover(self, teclas, arvores):
-        """Calcula o movimento do jogador com base nas teclas pressionadas e verifica colisões."""
+        """Calcula o movimento do jogador com base nas teclas pressionadas, sem colisão com árvores."""
         if not hasattr(self, 'rect_colisao'): return
 
         current_dx, current_dy = 0.0, 0.0
@@ -337,31 +340,17 @@ class Player(pygame.sprite.Sprite):
         
         self.parado = not (current_dx != 0.0 or current_dy != 0.0)
         
-        # Movimento e Colisão no eixo X
+        # Movimento no eixo X (sem verificação de colisão com árvores)
         self.x += current_dx
         self.rect_colisao.centerx = round(self.x)
-        if arvores and current_dx != 0:
-            for arvore in arvores:
-                arvore_col_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
-                if arvore_col_rect and self.rect_colisao.colliderect(arvore_col_rect):
-                    if current_dx > 0: self.rect_colisao.right = arvore_col_rect.left
-                    elif current_dx < 0: self.rect_colisao.left = arvore_col_rect.right
-                    self.x = float(self.rect_colisao.centerx)
-                    break 
         
-        # Movimento e Colisão no eixo Y
+        # Movimento no eixo Y (sem verificação de colisão com árvores)
         self.y += current_dy
         self.rect_colisao.centery = round(self.y)
-        if arvores and current_dy != 0:
-            for arvore in arvores:
-                arvore_col_rect = getattr(arvore, 'rect_colisao', getattr(arvore, 'rect', None))
-                if arvore_col_rect and self.rect_colisao.colliderect(arvore_col_rect):
-                    if current_dy > 0: self.rect_colisao.bottom = arvore_col_rect.top
-                    elif current_dy < 0: self.rect_colisao.top = arvore_col_rect.bottom
-                    self.y = float(self.rect_colisao.centery)
-                    break
         
+        # Atualiza a posição final do rect principal
         if hasattr(self, 'rect'): self.rect.center = (round(self.x), round(self.y))
+    # #############################################################################
 
     def atacar(self, inimigos, dt_ms=None):
         """Inicia e gerencia a lógica de ataque, incluindo criação de hitbox e detecção de acertos."""

@@ -126,8 +126,8 @@ class Fenix(InimigoBase):
         self.attack_damage_especifico = 18
         self.attack_hitbox_size = (self.rect.width * 1.5, self.rect.height * 0.5)
         self.attack_hitbox = pygame.Rect(0, 0, 0, 0)
-        self.attack_range = 150
-        self.attack_cooldown = 2.5
+        self.attack_range = 100
+        self.attack_cooldown = 3.5
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
         self.hit_player_this_attack_burst = False
         self.canal_voo = None
