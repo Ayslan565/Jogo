@@ -31,7 +31,8 @@ class Estacoes:
         self.imagem_fundo_tile = None 
         self.cor_fallback = (128, 128, 128)
         
-        self.indice_estacao_atual = random.randint(0, 3)
+        # MODIFICAÇÃO: Inicia sempre na Primavera (índice 0)
+        self.indice_estacao_atual = 0 # random.randint(0, 3)
         self.tempo_troca_estacao_seg = 30 # Tempo de duração de cada estação em segundos
         self.ultimo_tempo_troca_timestamp = time.time()
         

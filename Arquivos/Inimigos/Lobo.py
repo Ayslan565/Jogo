@@ -112,7 +112,7 @@ class Lobo(InimigoBase):
             # Futuramente, carregar os sons aqui
             Lobo.sons_carregados = True
 
-    def __init__(self, x, y, velocidade=2.8):
+    def __init__(self, x, y, velocidade=1.8):
         Lobo.carregar_recursos_lobo()
 
         super().__init__(
