@@ -22,11 +22,11 @@ class Cogumelo(pygame.sprite.Sprite):
         self.coletado = False
         self.tipo_cogumelo = tipo_cogumelo # Define o tipo de cogumelo (cura, lentidao, rapidez)
 
-        # Caminhos dos sprites dos cogumelos (AGORA INDEPENDENTES DO TIPO E COM CAMINHO CORRETO)
+        # --- CORRIGIDO: Nomes dos arquivos de sprite atualizados para corresponder à imagem. ---
         sprite_paths_disponiveis = [
-            os.path.join("Sprites", "Cogumelos", "cogumelo1.png"),
-            os.path.join("Sprites", "Cogumelos", "cogumelo2.png"),
-            os.path.join("Sprites", "Cogumelos", "cogumelo3.png"),
+            os.path.join("Sprites", "Cogumelos", "Cogumelo 1.png"),
+            os.path.join("Sprites", "Cogumelos", "Cogumelo 2.png"),
+            os.path.join("Sprites", "Cogumelos", "Cogumelo 3.png"),
         ]
         
         # Escolhe um sprite aleatoriamente para este cogumelo
@@ -100,7 +100,7 @@ class Cogumelo(pygame.sprite.Sprite):
            hasattr(jogador.vida, 'hp') and hasattr(jogador.vida, 'max_hp'):
             jogador.vida.curar(30) # Cura 30 de vida
             #print(f"DEBUG(Efeito Cura): Vida do jogador curada! Vida atual: {jogador.vida.hp}/{jogador.vida.max_hp}")
-        
+    
 
     def _efeito_lentidao(self, jogador):
         """Função de efeito: Aplica lentidão ao jogador."""
@@ -108,7 +108,7 @@ class Cogumelo(pygame.sprite.Sprite):
             jogador.velocidade = jogador.velocidade_original * 0.5 # Reduz velocidade para 50%
             jogador.tempo_fim_efeito_lentidao = time.time() + DURACAO_EFEITO_COGUMELO_S # Duração de 10 segundos
             #print(f"DEBUG(Efeito Lentidão): Jogador ficou lento por {DURACAO_EFEITO_COGUMELO_S}s. Velocidade atual: {jogador.velocidade}")
-      
+    
 
     def _efeito_rapidez(self, jogador):
         """Função de efeito: Aplica rapidez ao jogador."""
@@ -116,7 +116,7 @@ class Cogumelo(pygame.sprite.Sprite):
             jogador.velocidade = jogador.velocidade_original * 1.5 # Aumenta velocidade para 150%
             jogador.tempo_fim_efeito_rapidez = time.time() + DURACAO_EFEITO_COGUMELO_S # Duração de 10 segundos
             #print(f"DEBUG(Efeito Rapidez): Jogador ficou rápido por {DURACAO_EFEITO_COGUMELO_S}s. Velocidade atual: {jogador.velocidade}")
-      
+    
 
     def desenhar(self, janela, camera_x, camera_y):
         """Desenha o cogumelo na tela."""

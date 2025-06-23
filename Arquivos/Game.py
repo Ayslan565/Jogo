@@ -28,6 +28,7 @@ except ImportError:
 try:
     from importacoes import *
     from inventario_barra import BarraInventario
+    ### ADICIONADO PARA COGUMELOS ###
     from cogumelo import Cogumelo
     from gerador_cogumelo import GeradorCogumelos
     from eventos_climaticos import GerenciadorDeEventos
@@ -43,6 +44,7 @@ except ImportError as e:
     Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, ItemInventario, GerenciadorMoedas = (None,) * 15
     AdagaFogo = None
     BarraInventario = None
+    ### ADICIONADO PARA COGUMELOS ###
     Cogumelo = None
     GeradorCogumelos = None
     GerenciadorDeEventos = None
@@ -74,6 +76,7 @@ game_is_running_flag = True
 jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
+### ADICIONADO PARA COGUMELOS ###
 gerador_cogumelos = None
 gerador_xp = None
 gerenciador_eventos = None
@@ -140,6 +143,8 @@ def inicializar_jogo(largura_tela, altura_tela):
     musica_gameplay_atual_path = None
     musica_gameplay_atual_pos_ms = 0
 
+    ### ADICIONADO PARA COGUMELOS ###
+    # Instancia o gerador de cogumelos
     if GeradorCogumelos:
         gerador_cogumelos = GeradorCogumelos()
     else:
@@ -180,12 +185,14 @@ def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista
                 if hasattr(estacoes_obj, 'indice_estacao_atual'):
                     for _ in range(random.randint(1, 3)):
                         arvores_lista.append(Arvore(base_x + random.randint(270, 810),
-                                                  base_y + random.randint(270, 810),
-                                                  180, 180, estacoes_obj.indice_estacao_atual))
+                                                    base_y + random.randint(270, 810),
+                                                    180, 180, estacoes_obj.indice_estacao_atual))
                 
                 if shop_elements:
                     shop_elements.spawn_shop_if_possible(jogador_obj, estacoes_obj, blocos_ja_gerados_set)
                 
+                ### ADICIONADO PARA COGUMELOS ###
+                # Chama o gerador de cogumelos para tentar criar um cogumelo no novo bloco
                 if gerador_cogumelos_obj:
                     gerador_cogumelos_obj.tentar_gerar_cogumelo(jogador_obj.rect, blocos_ja_gerados_set)
 
@@ -249,6 +256,8 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
             sprites_do_mundo.append(jogador_obj)
         if gerenciador_inimigos_obj:
             sprites_do_mundo.extend(gerenciador_inimigos_obj.inimigos)
+        ### ADICIONADO PARA COGUMELOS ###
+        # Adiciona os cogumelos à lista de sprites para serem desenhados
         if gerador_cogumelos_obj and hasattr(gerador_cogumelos_obj, 'cogumelos'):
             sprites_do_mundo.extend(gerador_cogumelos_obj.cogumelos)
         
@@ -439,7 +448,12 @@ def main():
                             gerenciador_eventos.atualizar_particulas()
                         if gerenciador_inimigos:
                             gerenciador_inimigos.process_spawn_requests(jogador, dt_ms)
+
+                        ### ADICIONADO PARA COGUMELOS ###
+                        # Atualiza o gerador de cogumelos a cada frame
                         if gerador_cogumelos:
+                            # A geração é chamada dentro de 'gerar_elementos_ao_redor_do_jogador'
+                            # e também aqui para garantir a geração aleatória contínua.
                             gerador_cogumelos.tentar_gerar_cogumelo(jogador.rect, blocos_gerados)
                             gerador_cogumelos.update(jogador, cam_x, cam_y, dt_ms)
                         
