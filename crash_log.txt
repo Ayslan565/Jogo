@@ -1,0 +1,12 @@
+Um erro fatal ocorreu:
+Traceback (most recent call last):
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 505, in <module>
+    main()
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 431, in main
+    gerenciador_inimigos.update_inimigos(jogador, dt_ms)
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 269, in update_inimigos
+    self._verificar_e_ativar_horda(jogador, vetor_movimento)
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 226, in _verificar_e_ativar_horda
+    distancia_jogador_horda = jogador.rect.center.distance_to(centro_massa_inimigos)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'tuple' object has no attribute 'distance_to'

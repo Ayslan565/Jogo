@@ -70,6 +70,14 @@ class GerenciadorDeInimigos:
         self.atraso_spawn_continuo_ativo = False
         self._spawn_normal_pausado = False
 
+        ### LÓGICA DA HORDA: INÍCIO ###
+        self.distancia_ativacao_horda = 1500  # Distância em pixels para ativar a horda
+        self.tamanho_horda = 10              # Quantidade de inimigos na horda
+        self.cooldown_horda_s = 15.0         # Cooldown de 15s entre hordas
+        self.tempo_ultima_horda = 0
+        self.ultima_posicao_jogador = None   # Para rastrear a direção de movimento do jogador
+        ### LÓGICA DA HORDA: FIM ###
+
         # Mapeamento de nomes para o caminho do módulo
         self.enemy_module_map = {
             "arvoremaldita": "Inimigos.Arvore_Maldita", "fantasma": "Inimigos.Fantasma",
@@ -144,7 +152,8 @@ class GerenciadorDeInimigos:
         except queue.Empty:
             pass
 
-    def _spawn_inimigo_especifico_da_estacao(self, jogador):
+    def _get_enemy_types_for_current_season(self):
+        """Retorna uma lista de nomes de inimigos para a estação atual."""
         mapa_estacao_inimigos = {
             "Inverno": ['fantasma', 'bonecodeneve', 'lobo'],
             "Primavera": ['planta_carnivora', 'goblin', 'espiritodasflores', 'maenatureza'],
@@ -152,20 +161,27 @@ class GerenciadorDeInimigos:
             "Verão": ['urso', 'cavaleiro', 'maga']
         }
         est_nome = self.estacoes.nome_estacao_atual()
-        tipos_disponiveis = [tipo for tipo in mapa_estacao_inimigos.get(est_nome, []) if tipo in self.enemy_class_map]
-        
-        if not tipos_disponiveis: return
+        return [tipo for tipo in mapa_estacao_inimigos.get(est_nome, []) if tipo in self.enemy_class_map]
+
+    def _spawn_inimigo_em_posicao(self, x, y):
+        """Spawna um inimigo da estação atual em uma posição específica."""
+        tipos_disponiveis = self._get_enemy_types_for_current_season()
+        if not tipos_disponiveis:
+            return
+
         tipo_escolhido = random.choice(tipos_disponiveis)
         ClasseInimigo = self.enemy_class_map.get(tipo_escolhido)
-        if not ClasseInimigo: return
+        if ClasseInimigo and len(self.inimigos) < self.limite_inimigos:
+            self.inimigos.add(ClasseInimigo(x=x, y=y))
 
+    def _spawn_inimigo_especifico_da_estacao(self, jogador):
+        """Spawna um inimigo da estação atual em um ângulo aleatório ao redor do jogador."""
         distancia_do_canto = math.hypot(self.tela_largura / 2, self.altura_tela / 2)
         raio_spawn = distancia_do_canto + 200
         angulo = random.uniform(0, 2 * math.pi)
         x = jogador.rect.centerx + raio_spawn * math.cos(angulo)
         y = jogador.rect.centery + raio_spawn * math.sin(angulo)
-        
-        self.inimigos.add(ClasseInimigo(x=x, y=y))
+        self._spawn_inimigo_em_posicao(x, y)
 
     def spawn_inimigos_iniciais(self, jogador):
         if self._spawn_normal_pausado: return
@@ -173,52 +189,92 @@ class GerenciadorDeInimigos:
             if len(self.inimigos) < self.limite_inimigos:
                 self._spawn_inimigo_especifico_da_estacao(jogador)
 
+    ### LÓGICA DA HORDA: INÍCIO ###
+    def _spawn_horda(self, jogador, direcao_horda):
+        """Spawna uma onda de inimigos na frente do jogador."""
+        print("DEBUG: Ativando horda!")
+        # Distância à frente do jogador para spawnar a horda
+        distancia_spawn_frente = math.hypot(self.tela_largura / 2, self.altura_tela / 2) + 100
+
+        # Ponto central para o spawn da horda
+        ponto_central_spawn = pygame.math.Vector2(jogador.rect.center) + direcao_horda * distancia_spawn_frente
+
+        for _ in range(self.tamanho_horda):
+            # Adiciona uma pequena variação aleatória para espalhar a horda
+            offset_x = random.uniform(-150, 150)
+            offset_y = random.uniform(-150, 150)
+            self._spawn_inimigo_em_posicao(ponto_central_spawn.x + offset_x, ponto_central_spawn.y + offset_y)
+
+    def _verificar_e_ativar_horda(self, jogador, vetor_movimento_jogador):
+        """Verifica se as condições para uma horda são atendidas e a ativa."""
+        # 1. Verificar se a horda está em cooldown
+        if time.time() - self.tempo_ultima_horda < self.cooldown_horda_s:
+            return
+
+        # 2. Verificar se há inimigos na tela para calcular a distância
+        if not self.inimigos:
+            return
+
+        # 3. Calcular o ponto central dos inimigos
+        soma_x, soma_y = 0, 0
+        for inimigo in self.inimigos:
+            soma_x += inimigo.rect.centerx
+            soma_y += inimigo.rect.centery
+        centro_massa_inimigos = pygame.math.Vector2(soma_x / len(self.inimigos), soma_y / len(self.inimigos))
+
+        # --- CORREÇÃO DO ERRO ---
+        # Converte o 'center' (tupla) do jogador para um Vetor2D antes de calcular a distância.
+        posicao_jogador_vetor = pygame.math.Vector2(jogador.rect.center)
+        distancia_jogador_horda = posicao_jogador_vetor.distance_to(centro_massa_inimigos)
+
+        # 5. Ativar se a distância for maior que o limite
+        if distancia_jogador_horda > self.distancia_ativacao_horda:
+            self.tempo_ultima_horda = time.time()  # Ativa o cooldown
+            direcao_normalizada = vetor_movimento_jogador.normalize()
+            self._spawn_horda(jogador, direcao_normalizada)
+    ### LÓGICA DA HORDA: FIM ###
+
     def _resolver_colisoes_entre_inimigos(self):
-        """
-        Verifica e resolve colisões entre inimigos de forma estável para evitar "malabarismo".
-        Calcula todas as forças de repulsão primeiro e depois aplica o movimento.
-        """
+        """Verifica e resolve colisões entre inimigos para evitar sobreposição."""
         inimigos = self.inimigos.sprites()
-        forca_repulsao = 1.0  # Força do empurrão. Ajuste se necessário.
-        
-        # Dicionário para armazenar a força de repulsão total para cada inimigo
+        forca_repulsao = 1.0
         forcas_totais = {inimigo: pygame.math.Vector2(0, 0) for inimigo in inimigos}
 
-        # 1. Calcular todas as forças de repulsão
         for i, inimigo_a in enumerate(inimigos):
-            if inimigo_a in self.grupo_chefe_ativo:
-                continue
-
+            if inimigo_a in self.grupo_chefe_ativo: continue
             for j in range(i + 1, len(inimigos)):
                 inimigo_b = inimigos[j]
-                if inimigo_b in self.grupo_chefe_ativo:
-                    continue
+                if inimigo_b in self.grupo_chefe_ativo: continue
 
                 if inimigo_a.rect.colliderect(inimigo_b.rect):
                     vetor_colisao = pygame.math.Vector2(inimigo_a.rect.center) - pygame.math.Vector2(inimigo_b.rect.center)
-                    
                     if vetor_colisao.length() > 0:
                         direcao = vetor_colisao.normalize()
-                        
-                        # Adiciona a força ao vetor total de cada inimigo
                         forcas_totais[inimigo_a] += direcao
                         forcas_totais[inimigo_b] -= direcao
 
-        # 2. Aplicar as forças calculadas a cada inimigo
         for inimigo, forca_total in forcas_totais.items():
             if forca_total.length() > 0:
-                # Normaliza a força total para obter a direção final do empurrão e aplica a força de repulsão
                 direcao_final = forca_total.normalize() * forca_repulsao
-                
-                # Aplica o movimento
                 inimigo.x += direcao_final.x
                 inimigo.y += direcao_final.y
-                
-                # Atualiza a posição do retângulo com base nos valores float
                 inimigo.rect.topleft = (inimigo.x, inimigo.y)
 
     def update_inimigos(self, jogador, dt_ms):
-        """Atualiza a lógica dos inimigos, incluindo movimento e colisões."""
+        """Atualiza a lógica dos inimigos, incluindo movimento, colisões e a nova lógica de horda."""
+        ### LÓGICA DA HORDA: INÍCIO ###
+        if self.ultima_posicao_jogador is not None and jogador is not None:
+            # Calcula o vetor de movimento do jogador desde o último frame
+            vetor_movimento = pygame.math.Vector2(jogador.rect.center) - self.ultima_posicao_jogador
+            # Só verifica a horda se o jogador estiver se movendo
+            if vetor_movimento.length() > 1:
+                self._verificar_e_ativar_horda(jogador, vetor_movimento)
+        
+        # Atualiza a última posição do jogador para o próximo frame
+        if jogador is not None:
+            self.ultima_posicao_jogador = pygame.math.Vector2(jogador.rect.center)
+        ### LÓGICA DA HORDA: FIM ###
+        
         # 1. Atualiza a lógica individual de cada inimigo (movimento, ataque, etc.)
         self.inimigos.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
         
