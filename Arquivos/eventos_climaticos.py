@@ -1,5 +1,3 @@
-# Arquivo: eventos_climaticos.py (Atualizado com HUD de status)
-
 import pygame
 import random
 import time
@@ -26,8 +24,8 @@ class GerenciadorDeEventos:
         self.e_noite = False
 
         # --- Configurações dos Efeitos Climáticos ---
-        self.particulas_chuva = []
-        self.particulas_neve = []
+        self.particulas_chuva = [] # <-- ALTERADO: Inicializado como lista vazia
+        self.particulas_neve = []  # <-- ALTERADO: Inicializado como lista vazia
         self.clima_atual = "limpo"
         self.tempo_troca_clima_seg = 15 # Aumentado para trocas menos frequentes
         self.ultimo_tempo_troca_clima = time.time()
@@ -35,6 +33,7 @@ class GerenciadorDeEventos:
         # --- Variáveis para Intensidade e Escurecimento ---
         self.intensidade_max_chuva = 1050
         self.intensidade_max_neve = 1000
+
         self.tempo_inicio_evento = 0
         self.duracao_intensificacao = 30
         
@@ -42,9 +41,32 @@ class GerenciadorDeEventos:
         self.max_alpha_clima = 100
         self.cor_escura_chuva = (20, 20, 30)
         self.cor_escura_neve = (60, 60, 75)
+        
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        # --- ADICIONADO: Configurações de Som ---
+        self.som_chuva = None
+        self.som_neve = None
+        self.canal_clima = pygame.mixer.Channel(1) # Usa o canal 1 para sons de clima
+        
+        try:
+            # <-- ALTERADO: Corrigido o caminho para "Eventos climaticos"
+            caminho_som_chuva = os.path.join(project_root, "Musica", "Eventos climaticos", "chuva.mp3")
+            self.som_chuva = pygame.mixer.Sound(caminho_som_chuva)
+            self.som_chuva.set_volume(0.4) # Ajuste o volume conforme necessário
+        except pygame.error:
+            print(f"AVISO: Arquivo de som de chuva não encontrado em '{caminho_som_chuva}'.")
+            
+        try:
+            # <-- ALTERADO: Corrigido o caminho para "Eventos climaticos"
+            caminho_som_neve = os.path.join(project_root, "Musica", "Eventos climaticos", "neve.mp3")
+            self.som_neve = pygame.mixer.Sound(caminho_som_neve)
+            self.som_neve.set_volume(0.5) # Ajuste o volume conforme necessário
+        except pygame.error:
+            print(f"AVISO: Arquivo de som de neve não encontrado em '{caminho_som_neve}'.")
+        # --- FIM DA ADIÇÃO ---
 
         # --- Configurações do novo HUD ---
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         fonte_path = os.path.join(project_root, "Fontes", "Retro Gaming.ttf")
         try:
             self.fonte_hud = pygame.font.Font(fonte_path, 28)
@@ -52,12 +74,9 @@ class GerenciadorDeEventos:
             print(f"AVISO: Fonte '{fonte_path}' não encontrada. Usando fonte padrão.")
             self.fonte_hud = pygame.font.Font(None, 32)
         
-        # <<< AQUI VOCÊ PODE GERENCIAR A POSIÇÃO DO HUD >>>
-        # Valores representam a distância a partir do canto superior direito.
-        self.hud_offset_x = 20  # Distância da borda direita
-        self.hud_offset_y = 90  # Distância da borda de cima
+        self.hud_offset_x = 20
+        self.hud_offset_y = 90
         
-        # Criação dos ícones de status
         self.icones = {
             "sol": self._criar_icone_sol(),
             "lua": self._criar_icone_lua(),
@@ -88,10 +107,10 @@ class GerenciadorDeEventos:
     def _criar_icone_neve(self):
         surf = pygame.Surface((32, 32), pygame.SRCALPHA)
         p_centro = (16, 16)
-        pygame.draw.line(surf, (200, 220, 255), (p_centro[0], p_centro[1]-12), (p_centro[0], p_centro[1]+12), 3) # Linha vertical
-        pygame.draw.line(surf, (200, 220, 255), (p_centro[0]-12, p_centro[1]), (p_centro[0]+12, p_centro[1]), 3) # Linha horizontal
-        pygame.draw.line(surf, (200, 220, 255), (p_centro[0]-8, p_centro[1]-8), (p_centro[0]+8, p_centro[1]+8), 3) # Diagonal 1
-        pygame.draw.line(surf, (200, 220, 255), (p_centro[0]-8, p_centro[1]+8), (p_centro[0]+8, p_centro[1]-8), 3) # Diagonal 2
+        pygame.draw.line(surf, (200, 220, 255), (p_centro[0], p_centro[1]-12), (p_centro[0], p_centro[1]+12), 3)
+        pygame.draw.line(surf, (200, 220, 255), (p_centro[0]-12, p_centro[1]), (p_centro[0]+12, p_centro[1]), 3)
+        pygame.draw.line(surf, (200, 220, 255), (p_centro[0]-8, p_centro[1]-8), (p_centro[0]+8, p_centro[1]+8), 3)
+        pygame.draw.line(surf, (200, 220, 255), (p_centro[0]-8, p_centro[1]+8), (p_centro[0]+8, p_centro[1]-8), 3)
         return surf
 
     def _criar_particula_chuva(self):
@@ -131,9 +150,21 @@ class GerenciadorDeEventos:
                 if probabilidade < 0.5: novo_clima = "chuva"
             else: # Verão
                 if probabilidade < 0.15: novo_clima = "chuva"
-            if novo_clima != self.clima_atual and novo_clima != "limpo":
+            
+            if novo_clima != self.clima_atual:
                 self.tempo_inicio_evento = time.time()
+                
+                # --- ADICIONADO: Controle de som do clima ---
+                self.canal_clima.fadeout(1500) # Para o som atual suavemente
+
+                if novo_clima == "chuva" and self.som_chuva:
+                    self.canal_clima.play(self.som_chuva, loops=-1, fade_ms=2000)
+                elif novo_clima == "neve" and self.som_neve:
+                    self.canal_clima.play(self.som_neve, loops=-1, fade_ms=2000)
+                # --- FIM DA ADIÇÃO ---
+
             self.clima_atual = novo_clima
+
 
     def atualizar_particulas(self):
         if self.clima_atual != "limpo":
@@ -155,17 +186,24 @@ class GerenciadorDeEventos:
             if self.particulas_chuva: self.particulas_chuva.pop(0)
             if self.particulas_neve: self.particulas_neve.pop(0)
 
+        # Laço para atualizar partículas de chuva
         for particula in self.particulas_chuva:
-            particula["rect"].y += particula["velocidade"]
-            if particula["rect"].top > self.altura_tela:
-                particula["rect"].bottom = 0
-                particula["rect"].x = random.randint(0, self.largura_tela)
+            # Verifica se 'particula' é um dicionário antes de tentar acessar 'rect'
+            if isinstance(particula, dict):
+                particula["rect"].y += particula["velocidade"]
+                if particula["rect"].top > self.altura_tela:
+                    particula["rect"].bottom = 0
+                    particula["rect"].x = random.randint(0, self.largura_tela)
+
+        # Laço para atualizar partículas de neve
         for particula in self.particulas_neve:
-            particula["y"] += particula["vy"]
-            particula["x"] += particula["vx"]
-            if particula["y"] > self.altura_tela:
-                particula["y"] = random.randint(-50, -10)
-                particula["x"] = random.randint(0, self.largura_tela)
+            # Verifica se 'particula' é um dicionário antes de acessar suas chaves
+            if isinstance(particula, dict):
+                particula["y"] += particula["vy"]
+                particula["x"] += particula["vx"]
+                if particula["y"] > self.altura_tela:
+                    particula["y"] = random.randint(-50, -10)
+                    particula["x"] = random.randint(0, self.largura_tela)
 
     def desenhar(self, tela):
         """
@@ -180,16 +218,21 @@ class GerenciadorDeEventos:
             cor_atual = self.cor_escura_chuva if self.clima_atual == 'chuva' else self.cor_escura_neve
             sobreposicao_clima.fill((*cor_atual, self.alpha_clima))
             tela.blit(sobreposicao_clima, (0,0))
+
+        # Laço para desenhar partículas de chuva
         for particula in self.particulas_chuva:
-            pygame.draw.rect(tela, particula["cor"], particula["rect"])
+            if isinstance(particula, dict):
+                pygame.draw.rect(tela, particula["cor"], particula["rect"])
+
+        # Laço para desenhar partículas de neve
         for particula in self.particulas_neve:
-            pygame.draw.circle(tela, particula["cor"], (int(particula["x"]), int(particula["y"])), particula["raio"])
+            if isinstance(particula, dict):
+                pygame.draw.circle(tela, particula["cor"], (int(particula["x"]), int(particula["y"])), particula["raio"])
 
         self.desenhar_hud_status(tela)
 
     def desenhar_hud_status(self, tela):
         """Desenha o ícone de status e o contador de tempo com um fundo e borda."""
-        # Seleciona o ícone correto
         if self.clima_atual == "chuva":
             icone_atual = self.icones["chuva"]
         elif self.clima_atual == "neve":
@@ -199,39 +242,31 @@ class GerenciadorDeEventos:
         else:
             icone_atual = self.icones["sol"]
         
-        # Obtém o tempo restante da estação
         tempo_restante_str = "00:00"
         if hasattr(self.estacoes, 'get_tempo_restante_formatado'):
             tempo_restante_str = self.estacoes.get_tempo_restante_formatado()
         
-        # Renderiza o texto do tempo
         texto_surface = self.fonte_hud.render(tempo_restante_str, True, (255, 255, 255))
         texto_rect = texto_surface.get_rect()
 
-        # --- Lógica do Fundo com Borda ---
         padding = 5
         espacamento = 10
         largura_hud = icone_atual.get_width() + espacamento + texto_rect.width + padding * 2
         altura_hud = max(icone_atual.get_height(), texto_rect.height) + padding * 2
         
-        # Cria a superfície para o HUD
         hud_surf = pygame.Surface((largura_hud, altura_hud), pygame.SRCALPHA)
         
-        # Desenha o fundo e a borda
-        fundo_color = (20, 20, 30, 180) # Cinza escuro semi-transparente
-        borda_color = (200, 200, 220, 200) # Borda clara
+        fundo_color = (20, 20, 30, 180)
+        borda_color = (200, 200, 220, 200)
         pygame.draw.rect(hud_surf, fundo_color, hud_surf.get_rect(), border_radius=5)
         pygame.draw.rect(hud_surf, borda_color, hud_surf.get_rect(), width=2, border_radius=5)
         
-        # Desenha o ícone na superfície do HUD
         pos_icone_y = (altura_hud - icone_atual.get_height()) // 2
         hud_surf.blit(icone_atual, (padding, pos_icone_y))
         
-        # Desenha o texto na superfície do HUD
         pos_texto_y = (altura_hud - texto_rect.height) // 2
         hud_surf.blit(texto_surface, (padding + icone_atual.get_width() + espacamento, pos_texto_y))
         
-        # Posiciona e desenha o HUD completo na tela principal
         pos_final_x = self.largura_tela - self.hud_offset_x - largura_hud
         pos_final_y = self.hud_offset_y
         tela.blit(hud_surf, (pos_final_x, pos_final_y))
@@ -240,6 +275,10 @@ class GerenciadorDeEventos:
         """
         Interrompe forçadamente qualquer evento climático (chuva ou neve).
         """
+        # --- ADICIONADO: Parada suave do som ---
+        if self.canal_clima.get_busy():
+            self.canal_clima.fadeout(1000) # Para o som em 1 segundo
+        
         if self.clima_atual != "limpo":
             print(f"INFO: Interrompendo evento climático '{self.clima_atual}' para a luta de chefe.")
         
