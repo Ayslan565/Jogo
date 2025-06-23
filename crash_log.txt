@@ -1,0 +1,8 @@
+Um erro fatal ocorreu:
+Traceback (most recent call last):
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 505, in <module>
+    main()
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 473, in main
+    loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'loja' has no attribute 'run_shop_scene'

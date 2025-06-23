@@ -57,7 +57,7 @@ class Player(pygame.sprite.Sprite):
         if self.velocidade <= 0: # Garante velocidade positiva
             self.velocidade = 1.0 
         
-        # --- ADICIONADO PARA EFEITOS DE COGUMELO ---
+        # --- ADICIONADO PARA EFEITOS DE COGUMELO E POÇÕES ---
         self.velocidade_original = self.velocidade
         self.tempo_fim_efeito_lentidao = 0
         self.tempo_fim_efeito_rapidez = 0
@@ -238,10 +238,51 @@ class Player(pygame.sprite.Sprite):
             
             if not self.esta_vivo():
                 print("DEBUG(Player): Jogador morreu.")
+    
+    # --- NOVO MÉTODO PARA CURA ---
+    def receber_cura(self, valor_cura):
+        """Aplica cura ao jogador, limitado à vida máxima."""
+        if self.vida is not None and hasattr(self.vida, 'curar'):
+            self.vida.curar(valor_cura)
+            print(f"DEBUG(Player): Jogador curado em {valor_cura} pontos. Vida atual: {self.vida.vida_atual}")
+        else:
+            print("ALERTA(Player.receber_cura): Objeto Vida ou método 'curar' não disponível.")
+    
+    # --- NOVO MÉTODO PARA GERENCIAR EFEITOS DE ITENS (COGUMELOS) ---
+    def aplicar_efeito_cogumelo(self, tipo_efeito, duracao, magnitude):
+        """Aplica o efeito de um cogumelo coletado (cura, lentidão, rapidez)."""
+        agora = time.time()
+        
+        if tipo_efeito == 'cura':
+            self.receber_cura(magnitude)  # Magnitude é o valor da cura
+        
+        elif tipo_efeito == 'lentidao':
+            self.velocidade = self.velocidade_original * (1 - magnitude)
+            self.tempo_fim_efeito_lentidao = agora + duracao
+            self.tempo_fim_efeito_rapidez = 0 # Anula efeito de rapidez
+            print(f"DEBUG(Player): Efeito de lentidão aplicado. Nova velocidade: {self.velocidade:.2f}")
+
+        elif tipo_efeito == 'rapidez':
+            self.velocidade = self.velocidade_original * (1 + magnitude)
+            self.tempo_fim_efeito_rapidez = agora + duracao
+            self.tempo_fim_efeito_lentidao = 0 # Anula efeito de lentidão
+            print(f"DEBUG(Player): Efeito de rapidez aplicado. Nova velocidade: {self.velocidade:.2f}")
 
     def update(self, dt_ms=None, teclas_pressionadas=None):
         agora_ticks = pygame.time.get_ticks()
         agora_time = time.time()
+
+        # --- LÓGICA ATUALIZADA PARA GERENCIAR EFEITOS TEMPORÁRIOS ---
+        if self.tempo_fim_efeito_lentidao > 0 and agora_time >= self.tempo_fim_efeito_lentidao:
+            self.velocidade = self.velocidade_original
+            self.tempo_fim_efeito_lentidao = 0
+            print("DEBUG(Player): Efeito de lentidão terminou.")
+            
+        if self.tempo_fim_efeito_rapidez > 0 and agora_time >= self.tempo_fim_efeito_rapidez:
+            self.velocidade = self.velocidade_original
+            self.tempo_fim_efeito_rapidez = 0
+            print("DEBUG(Player): Efeito de rapidez terminou.")
+        # --- FIM DA ATUALIZAÇÃO ---
 
         if self.is_invencivel_piscando:
             if agora_ticks >= self.tempo_para_proximo_pisca_dano:

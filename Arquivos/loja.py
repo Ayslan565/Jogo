@@ -1,18 +1,18 @@
-# Arquivo: loja_modulo.py
+# Arquivo: loja.py
 import pygame
 import time
 import random
 import os
-
+from pocao import *
 # --- IMPORTAÇÃO ÚNICA DAS CLASSES DE ARMAS ---
 try:
-    from importacoes import * # CORRIGIDO: Importa de 'importacoes.py'
+    from importacoes import *
     print("DEBUG(loja_modulo): Classes de armas e outros módulos importados de importacoes.py")
 except ImportError as e:
     print(f"ERRO CRÍTICO(loja_modulo): Não foi possível importar de importacoes.py. Verifique o arquivo e o caminho. Erro: {e}")
     # Definir todas as classes de armas como None para evitar NameError mais tarde
     AdagaFogo = EspadaCaida = EspadaFogoAzul = EspadaLua = EspadaPenitencia = None
-    EspadaSacraCerulea = EspadaSacraDasBrasas = LâminaDoCeuCinti = None
+    EspadaSacraCerulea = EspadaSacraDasBrasas = LaminaDoCeuCintilante = None
     MachadoBarbaro = MachadoCeruleo = MachadoDaDescidaSanta = MachadoDoFogoAbrasador = None
     MachadoMarfim = MachadoMacabro = None
     Cajado = None 
@@ -149,7 +149,7 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor_img=(600, 4
             "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/E1.png", 
             "Sprites/Armas/Espadas/Espada Sacra Caida/Espada Sacra Caida E1.png", 
             "Sprites/Armas/Espadas/Espada Sacra da Lua/E1.png", 
-            "Sprites\Armas\Espadas\Lâmina do Ceu Cintilante\E1.png" 
+            "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E1.png"
         ]
         espadas_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in espadas_paths_rel]
         full_espadas_list = (espadas_imgs_loaded + [placeholder_img_item]*7)[:7] 
@@ -176,7 +176,8 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor_img=(600, 4
         full_cajados_list = (cajados_imgs_loaded + [placeholder_img_item]*3)[:3]
         imagem_Cajado_1, imagem_Cajado_2, imagem_Cajado_3 = full_cajados_list
 
-        pocoes_paths_rel = ["Sprites/Pocao/Pocao.png"] 
+        # --- CORRIGIDO: Caminho para o ícone da poção ---
+        pocoes_paths_rel = ["Sprites\Pocao\Pocao.png"] 
         pocoes_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in pocoes_paths_rel]
         imagem_Pocao_Cura = pocoes_imgs_loaded[0] if len(pocoes_imgs_loaded) > 0 else placeholder_img_item
 
@@ -292,42 +293,36 @@ class Loja:
             self.scroll_y = max(self.scroll_y, max_scroll_y_negativo)
             self.scroll_y = min(self.scroll_y, 0)
 
+    # --- MÉTODO DE COMPRA ATUALIZADO E COMPLETADO ---
     def comprar_item(self, jogador):
+        """
+        Processa a tentativa de compra de um item selecionado.
+        A lógica de validação e adição ao inventário é delegada ao objeto 'jogador'.
+        """
         if not self.itens or not (0 <= self.selecionado < len(self.itens)):
             return None, False, "Nenhum item selecionado!"
-        if not hasattr(jogador, 'dinheiro') or \
-           not hasattr(jogador, 'adicionar_item_inventario') or \
-           not hasattr(jogador, 'SHOP_ITEM_TO_WEAPON_CLASS'): 
-            print("DEBUG(Loja comprar_item): Jogador inválido ou sem SHOP_ITEM_TO_WEAPON_CLASS.")
-            return None, False, "Erro de configuração do jogador!"
         
-        item_a_comprar = self.itens[self.selecionado]
-        nome_item_loja = item_a_comprar.get("nome")
-        if not nome_item_loja:
-            return None, False, "Erro: Item da loja sem nome."
+        if not hasattr(jogador, 'dinheiro') or not hasattr(jogador, 'adicionar_item_inventario'): 
+            print("DEBUG(Loja.comprar_item): Objeto jogador é inválido ou não possui os métodos necessários.")
+            return None, False, "Erro interno do jogador!"
 
-        weapon_class_from_player_map = jogador.SHOP_ITEM_TO_WEAPON_CLASS.get(nome_item_loja)
-        if weapon_class_from_player_map is None: 
-            mensagem_erro = f"Item '{nome_item_loja}' não configurado no Player.SHOP_ITEM_TO_WEAPON_CLASS!"
-            print(f"AVISO(Loja): {mensagem_erro}")
-            return None, False, mensagem_erro
-        
-        try:
-            if jogador.dinheiro >= item_a_comprar["preco"]:
-                print(f"DEBUG(Loja comprar_item): Tentando chamar jogador.adicionar_item_inventario para '{nome_item_loja}'")
-                if jogador.adicionar_item_inventario(item_a_comprar): 
-                    jogador.dinheiro -= item_a_comprar["preco"]
-                    return item_a_comprar, True, f"Comprou: {item_a_comprar['nome']}! Aurums: {jogador.dinheiro}g"
-                else:
-                    return None, False, "Inventário cheio ou item não pôde ser adicionado!" 
-            else:
-                return None, False, "Dinheiro insuficiente!"
-        except KeyError as e: 
-            print(f"DEBUG(Loja comprar_item): KeyError - {e} no item {item_a_comprar}")
+        item_a_comprar = self.itens[self.selecionado]
+        preco_item = item_a_comprar.get("preco")
+        nome_item = item_a_comprar.get("nome")
+
+        if preco_item is None or nome_item is None:
+            print(f"DEBUG(Loja.comprar_item): Dados do item inválidos: {item_a_comprar}")
             return None, False, "Erro nos dados do item."
-        except Exception as e: 
-            print(f"DEBUG(Loja comprar_item): Exceção inesperada ao tentar comprar '{nome_item_loja}': {e}")
-            return None, False, f"Erro inesperado na compra: {e}"
+
+        if jogador.dinheiro >= preco_item:
+            if jogador.adicionar_item_inventario(item_a_comprar): 
+                jogador.dinheiro -= preco_item
+                return item_a_comprar, True, f"Comprou: {nome_item}! Aurums: {jogador.dinheiro}g"
+            else:
+                # A classe Player agora retorna False se o inventário estiver cheio, etc.
+                return None, False, "Inventário cheio ou item já possuído!"
+        else:
+            return None, False, "Dinheiro insuficiente!"
 
     def selecionar_item_por_posicao(self, mouse_pos, area_desenho_rect_externa):
         if not self.itens: return -1
@@ -461,28 +456,29 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
     carregar_recursos_loja(tamanho_item=(80,80), tamanho_vendedor_img=tamanho_vendedor_para_carregar)
 
     itens_data_global["Cajados"] = [
-        {"nome": "Cajado da Fixacao Ametista", "preco": 200, "imagem": imagem_Cajado_1, "descricao": "Se não souber usa-lo não compre, uma arma extremamente poderosa mas incontrolável para aqueles que não possuem experiência"},
-        {"nome": "Cajado Da santa Natureza", "preco": 300, "imagem": imagem_Cajado_2, "descricao": "Uma arma única rara e que causa medo a todos os monstros da floresta. Esse cajado parece simples mas é feito com a madeira de uma árvore almadiçoada. A natureza estará sempre ao seu lado quando você estiver usando ele."},
-        {"nome": "Livro dos impuros", "preco": 450, "imagem": imagem_Cajado_3, "descricao": "Contém conhecimento proibido, pode ser que ele te ensine a dominar alguma arte mística, ou pode ser que ele te enlouqueça até a MORTE."},
+        {"nome": "Cajado da Fixacao Ametista", "preco": 200, "imagem": imagem_Cajado_1, "descricao": "Se não souber usa-lo não compre, uma arma extremamente poderosa mas incontrolável para aqueles que não possuem experiência", "tipo": "Arma"},
+        {"nome": "Cajado Da santa Natureza", "preco": 300, "imagem": imagem_Cajado_2, "descricao": "Uma arma única rara e que causa medo a todos os monstros da floresta. Esse cajado parece simples mas é feito com a madeira de uma árvore almadiçoada. A natureza estará sempre ao seu lado quando você estiver usando ele.", "tipo": "Arma"},
+        {"nome": "Livro dos impuros", "preco": 450, "imagem": imagem_Cajado_3, "descricao": "Contém conhecimento proibido, pode ser que ele te ensine a dominar alguma arte mística, ou pode ser que ele te enlouqueça até a MORTE.", "tipo": "Arma"},
     ]
     itens_data_global["Espadas"] = [
-        {"nome": "Adaga do Fogo Contudente", "preco": 100, "imagem": imagem_Espada_1, "descricao": "Uma lâmina pequena, mas perigosa, sua ponta ao penetrar inimigos causa uma queimadura"},
-        {"nome": "Espada de Fogo azul Sacra Cerulea", "preco": 150, "imagem": imagem_Espada_2, "descricao": "Lâmina de aço cintilante com punho dourado e uma gema safira-azul, forjada sob o calor das estrelas e abençoada com sabedoria celestia. Ela é Leal para os justos e forte para os destemidos."},
-        {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço."},
-        {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Forjada sob a fúria de um Buraco Negro. Sua gema âmbar concede intuição aguçada para antecipar inimigos, sendo ideal para quem valoriza agilidade e estratégia, movendo-se como uma sombra para atacar com precisão."},
-        {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares, encantada com o poder de uma estrela, ela guiará seus caminhos e voce jamais vai ficar na escuridão"},
-        {"nome": "Lâmina do Céu Cintilante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. "}
+        {"nome": "Adaga do Fogo Contudente", "preco": 100, "imagem": imagem_Espada_1, "descricao": "Uma lâmina pequena, mas perigosa, sua ponta ao penetrar inimigos causa uma queimadura", "tipo": "Arma"},
+        {"nome": "Espada de Fogo azul Sacra Cerulea", "preco": 150, "imagem": imagem_Espada_2, "descricao": "Lâmina de aço cintilante com punho dourado e uma gema safira-azul, forjada sob o calor das estrelas e abençoada com sabedoria celestia. Ela é Leal para os justos e forte para os destemidos.", "tipo": "Arma"},
+        {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço.", "tipo": "Arma"},
+        {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Forjada sob a fúria de um Buraco Negro. Sua gema âmbar concede intuição aguçada para antecipar inimigos, sendo ideal para quem valoriza agilidade e estratégia, movendo-se como uma sombra para atacar com precisão.", "tipo": "Arma"},
+        {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares, encantada com o poder de uma estrela, ela guiará seus caminhos e voce jamais vai ficar na escuridão", "tipo": "Arma"},
+        {"nome": "Lâmina do Céu Cintilante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. ", "tipo": "Arma"}
     ]
     itens_data_global["Machados"] = [
-        {"nome": "Machado Bárbaro Cravejado", "preco": 120, "imagem": imagem_Machado_1, "descricao": "Bruto e eficaz para golpes pesados. Seu material é tão resistente que ele nunca te deixará na mão."},
-        {"nome": "Machado Cerúleo da Estrela Cadente", "preco": 250, "imagem": imagem_Machado_2, "descricao": "Forjado com metal celestial, as forças do universo estarão com você para te ajudar no que precisar."},
-        {"nome": "Machado da Descida Santa", "preco": 300, "imagem": imagem_Machado_3, "descricao": "Abençoado para purificar o mal, feito com o doce som da arpa de anjos, promete lealdade e confiança ao portador."},
-        {"nome": "Machado do Fogo Abrasador", "preco": 400, "imagem": imagem_Machado_4, "descricao": "Feito com as cinzas de fenix, uma arma poderosa feita com a morte de inimigos e que assusta qualquer inimigo que a vê. "},
-        {"nome": "Machado do Marfim Resplendor", "preco": 550, "imagem": imagem_Machado_5, "descricao": "Belo e mortal, para aqueles que gostam de exibir suas forças e belezas aos inimigos. Feito com preciosas pedras de esmeralda que ficam reluentes ao segura-lo ."},
-        {"nome": "Machado Macabro da Gula Infinita", "preco": 700, "imagem": imagem_Machado_6, "descricao": "Uma arma para quem tem fome de sangue e sede de justiça, uma fabricação sombria que assusta qualquer um"},
+        {"nome": "Machado Bárbaro Cravejado", "preco": 120, "imagem": imagem_Machado_1, "descricao": "Bruto e eficaz para golpes pesados. Seu material é tão resistente que ele nunca te deixará na mão.", "tipo": "Arma"},
+        {"nome": "Machado Cerúleo da Estrela Cadente", "preco": 250, "imagem": imagem_Machado_2, "descricao": "Forjado com metal celestial, as forças do universo estarão com você para te ajudar no que precisar.", "tipo": "Arma"},
+        {"nome": "Machado da Descida Santa", "preco": 300, "imagem": imagem_Machado_3, "descricao": "Abençoado para purificar o mal, feito com o doce som da arpa de anjos, promete lealdade e confiança ao portador.", "tipo": "Arma"},
+        {"nome": "Machado do Fogo Abrasador", "preco": 400, "imagem": imagem_Machado_4, "descricao": "Feito com as cinzas de fenix, uma arma poderosa feita com a morte de inimigos e que assusta qualquer inimigo que a vê. ", "tipo": "Arma"},
+        {"nome": "Machado do Marfim Resplendor", "preco": 550, "imagem": imagem_Machado_5, "descricao": "Belo e mortal, para aqueles que gostam de exibir suas forças e belezas aos inimigos. Feito com preciosas pedras de esmeralda que ficam reluentes ao segura-lo .", "tipo": "Arma"},
+        {"nome": "Machado Macabro da Gula Infinita", "preco": 700, "imagem": imagem_Machado_6, "descricao": "Uma arma para quem tem fome de sangue e sede de justiça, uma fabricação sombria que assusta qualquer um", "tipo": "Arma"},
     ]
+    # --- ATUALIZADO: Adicionada a chave "tipo" para a poção ---
     itens_data_global["Poções"] = [ 
-        {"nome": "Poção de Cura", "preco": 50, "imagem": imagem_Pocao_Cura, "descricao": "Restaura uma pequena quantidade de vida quando você mais precisar."},
+        {"nome": "Poção de Cura", "preco": 50, "imagem": imagem_Pocao_Cura, "descricao": "Restaura uma pequena quantidade de vida quando você mais precisar.", "tipo": "Consumível"},
     ]
 
     fonte_loja = None; tamanho_fonte_loja = 24 # Tamanho base da fonte

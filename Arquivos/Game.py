@@ -27,8 +27,8 @@ except ImportError:
 
 try:
     from importacoes import *
+    import loja as loja_core # ADICIONADO: Importação explícita da loja
     from inventario_barra import BarraInventario
-    ### ADICIONADO PARA COGUMELOS ###
     from cogumelo import Cogumelo
     from gerador_cogumelo import GeradorCogumelos
     from eventos_climaticos import GerenciadorDeEventos
@@ -41,10 +41,10 @@ except ImportError as e:
     print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
     traceback.print_exc() # Imprime o rastreamento completo do erro
     # Define fallbacks para evitar crashes imediatos
-    Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, loja_core, Vida, ItemInventario, GerenciadorMoedas = (None,) * 15
+    Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, Vida, ItemInventario, GerenciadorMoedas = (None,) * 14
+    loja_core = None # ADICIONADO: Fallback para loja_core
     AdagaFogo = None
     BarraInventario = None
-    ### ADICIONADO PARA COGUMELOS ###
     Cogumelo = None
     GeradorCogumelos = None
     GerenciadorDeEventos = None
@@ -76,7 +76,6 @@ game_is_running_flag = True
 jogo_pausado_para_inventario = False
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
-### ADICIONADO PARA COGUMELOS ###
 gerador_cogumelos = None
 gerador_xp = None
 gerenciador_eventos = None
@@ -143,8 +142,6 @@ def inicializar_jogo(largura_tela, altura_tela):
     musica_gameplay_atual_path = None
     musica_gameplay_atual_pos_ms = 0
 
-    ### ADICIONADO PARA COGUMELOS ###
-    # Instancia o gerador de cogumelos
     if GeradorCogumelos:
         gerador_cogumelos = GeradorCogumelos()
     else:
@@ -191,8 +188,6 @@ def gerar_elementos_ao_redor_do_jogador(jogador_obj, gramas_lista, arvores_lista
                 if shop_elements:
                     shop_elements.spawn_shop_if_possible(jogador_obj, estacoes_obj, blocos_ja_gerados_set)
                 
-                ### ADICIONADO PARA COGUMELOS ###
-                # Chama o gerador de cogumelos para tentar criar um cogumelo no novo bloco
                 if gerador_cogumelos_obj:
                     gerador_cogumelos_obj.tentar_gerar_cogumelo(jogador_obj.rect, blocos_ja_gerados_set)
 
@@ -256,8 +251,6 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
             sprites_do_mundo.append(jogador_obj)
         if gerenciador_inimigos_obj:
             sprites_do_mundo.extend(gerenciador_inimigos_obj.inimigos)
-        ### ADICIONADO PARA COGUMELOS ###
-        # Adiciona os cogumelos à lista de sprites para serem desenhados
         if gerador_cogumelos_obj and hasattr(gerador_cogumelos_obj, 'cogumelos'):
             sprites_do_mundo.extend(gerador_cogumelos_obj.cogumelos)
         
@@ -407,8 +400,6 @@ def main():
                     teclas = pygame.key.get_pressed()
                     jogador.update(dt_ms, teclas)
 
-                    # --- CORREÇÃO APLICADA AQUI ---
-                    # Adiciona uma verificação para garantir que 'est' não é None
                     sinal_estacoes = None
                     if est:
                         sinal_estacoes = est.atualizar_ciclo_estacoes()
@@ -449,11 +440,7 @@ def main():
                         if gerenciador_inimigos:
                             gerenciador_inimigos.process_spawn_requests(jogador, dt_ms)
 
-                        ### ADICIONADO PARA COGUMELOS ###
-                        # Atualiza o gerador de cogumelos a cada frame
                         if gerador_cogumelos:
-                            # A geração é chamada dentro de 'gerar_elementos_ao_redor_do_jogador'
-                            # e também aqui para garantir a geração aleatória contínua.
                             gerador_cogumelos.tentar_gerar_cogumelo(jogador.rect, blocos_gerados)
                             gerador_cogumelos.update(jogador, cam_x, cam_y, dt_ms)
                         
@@ -470,6 +457,7 @@ def main():
                             shop_rect = shop_elements.get_current_shop_rect()
                             if shop_rect and jogador.rect_colisao.colliderect(shop_rect):
                                 if mixer_initialized: pygame.mixer.music.pause()
+                                # A chamada para a loja
                                 loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
                                 if mixer_initialized: pygame.mixer.music.unpause()
                                 shop_elements.reset_shop_spawn()
