@@ -1,4 +1,3 @@
-# Jogo/Arquivos/Armas/EspadaPenitencia.py
 import pygame
 import os
 # Garante que a classe base 'Weapon' seja importada
@@ -14,45 +13,52 @@ class EspadaPenitencia(Weapon):
         self.level = 1.0
         self.price = 200 # Preço base para a loja
 
-        # --- DADOS DE PROGRESSÃO POR NÍVEL ---
+        # --- DADOS DE PROGRESSÃO POR NÍVEL (COM VELOCIDADE DE ANIMAÇÃO DOBRADA) ---
         self._stats_by_level = {
             1.0: {
                 "damage": 22.0, "range": 100.0, "cooldown": 1.1, "name_suffix": "",
                 "hitbox_dim": (120, 40),  # Hitbox horizontal
-                "hitbox_off": (80, 10),     # Posicionada à frente do jogador
+                "hitbox_off": (80, 10),    # Posicionada à frente do jogador
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT1/AT1-base0.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT1/AT1-base1.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT1/AT1-base2.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT1/AT1-base3.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT 0.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT1.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT2.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT3.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT4.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT5.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT6.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT7.png"
                 ],
-                "animation_speed": 80, "animation_display_scale": 1.5,
-                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/E1.png",
+                # CORREÇÃO: Velocidade alterada de 150 para 75
+                "animation_speed": 610, "animation_display_scale": 0.50,
+                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E1.png",
                 "description": "Forjada com a essência de pesadelos. Ouça os sussurros."
             },
             2.0: {
                 "damage": 30.0, "range": 105.0, "cooldown": 1.0, "name_suffix": "Atormentada",
                 "hitbox_dim": (130, 45), "hitbox_off": (80, 10),
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT2/AT2-base0.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT2/AT2-base1.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT2/AT2-base2.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT2/AT2-base3.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT 0.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT1.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT2.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT3.png"
                 ],
-                "animation_speed": 75, "animation_display_scale": 1.55,
-                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/E2.png"
+                # CORREÇÃO: Velocidade alterada de 150 para 75
+                "animation_speed": 610, "animation_display_scale": 0.50,
+                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E2.png"
             },
             3.0: {
                 "damage": 40.0, "range": 110.0, "cooldown": 0.9, "name_suffix": "Onisciente",
                 "hitbox_dim": (140, 50), "hitbox_off": (80, 5),
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT3/AT3-base0.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT3/AT3-base1.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT3/AT3-base2.png",
-                    "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/Ataque/AT3/AT3-base3.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT 0.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT1.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT2.png",
+                    "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT3.png"
                 ],
-                "animation_speed": 70, "animation_display_scale": 1.6,
-                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/E3.png"
+                # CORREÇÃO: Velocidade alterada de 150 para 75
+                "animation_speed": 610, "animation_display_scale": 0.50,
+                "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E3.png"
             }
         }
         
@@ -76,10 +82,10 @@ class EspadaPenitencia(Weapon):
 
         self.attack_animation_sprites = []
         self.attack_animation_paths = []
-        self.attack_animation_speed = 100
-        self.current_attack_animation_frame = 0
+        self.attack_animation_speed = 900
+        self.current_attack_animation_frame = 10
         self.last_attack_animation_update = 0
-        self.animation_display_scale_factor = 1.0
+        self.animation_display_scale_factor = 4.0
 
         self._apply_level_stats()
 
@@ -165,4 +171,4 @@ class EspadaPenitencia(Weapon):
     def get_current_attack_animation_sprite(self):
         if self.attack_animation_sprites and 0 <= self.current_attack_animation_frame < len(self.attack_animation_sprites):
             return self.attack_animation_sprites[self.current_attack_animation_frame]
-        return None
+        return None 

@@ -26,7 +26,7 @@ class EspadaSacraDasBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv1/BrasasFrame2.png",
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv1/BrasasFrame3.png"
                 ],
-                "animation_speed": 100, "animation_display_scale": 1.6,
+                "animation_speed": 100, "animation_display_scale": 0.25,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB1.png",
                 "description": "Uma espada antiga que pulsa com o calor de brasas sagradas."
             },
@@ -40,7 +40,7 @@ class EspadaSacraDasBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv1/BrasasFrame2.png",
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv1/BrasasFrame3.png"
                 ],
-                "animation_speed": 95, "animation_display_scale": 1.6,
+                "animation_speed": 95, "animation_display_scale": 0.25,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB1.png"
             },
             2.0: {
@@ -54,7 +54,7 @@ class EspadaSacraDasBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv2/IncandescenteFrame3.png",
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv2/IncandescenteFrame4.png"
                 ],
-                "animation_speed": 90, "animation_display_scale": 1.65,
+                "animation_speed": 90, "animation_display_scale": 0.25,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB2.png"
             },
             2.5: {
@@ -68,7 +68,7 @@ class EspadaSacraDasBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv2/IncandescenteFrame3.png",
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv2/IncandescenteFrame4.png"
                 ],
-                "animation_speed": 85, "animation_display_scale": 1.65,
+                "animation_speed": 85, "animation_display_scale": 0.25,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB2.png"
             },
             3.0: {
@@ -83,7 +83,7 @@ class EspadaSacraDasBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv3/SolarFrame4.png",
                     "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Ataque/Nv3/SolarFrame5.png"
                 ],
-                "animation_speed": 80, "animation_display_scale": 1.7,
+                "animation_speed": 80, "animation_display_scale": 0.25,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB3.png"
             }
         }

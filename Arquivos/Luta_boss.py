@@ -82,11 +82,11 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
     # Aumenta a velocidade do jogador para a luta
     if hasattr(jogador, 'velocidade'):
         _velocidade_original_jogador = jogador.velocidade
-        jogador.velocidade *= 1.25 
+        jogador.velocidade *= 3.25 
         print(f"DEBUG(Luta_boss): Velocidade do jogador aumentada para {jogador.velocidade}")
 
     # Define a arena circular
-    _arena_raio = min(largura_tela, altura_tela) * 0.45
+    _arena_raio = min(largura_tela, altura_tela) * 0.95
     _arena_centro = (jogador.x, jogador.y)
     
     # Carrega a textura da arena baseada na estação

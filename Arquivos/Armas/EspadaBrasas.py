@@ -17,7 +17,7 @@ class EspadaBrasas(Weapon):
         self._stats_by_level = {
             1.0: {
                 "damage": 28.0, "range": 75.0, "cooldown": 0.75, "name_suffix": "",
-                "hitbox_dim": (125, 50), # Hitbox horizontal
+                "hitbox_dim": (300, 50), # Hitbox horizontal
                 "hitbox_off": (80, 15),   # Posicionada à frente
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaDeBrasas/Efeitos/ImpactoFogo.png",
                 "effect_scale_base": 1.1,
@@ -27,13 +27,13 @@ class EspadaBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaDeBrasas/Ataque/Nv1/Swing_2.png",
                     "Sprites/Armas/Espadas/EspadaDeBrasas/Ataque/Nv1/Swing_3.png"
                 ],
-                "animation_speed": 85, "animation_display_scale": 1.6,
+                "animation_speed": 85, "animation_display_scale": 0.25,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaDeBrasas/Icone_EB1.png",
                 "description": "Uma lâmina forjada no fogo eterno, que queima ao toque."
             },
             2.0: {
                 "damage": 40.0, "range": 85.0, "cooldown": 0.7, "name_suffix": "Incandescente",
-                "hitbox_dim": (135, 55), "hitbox_off": (85, 10),
+                "hitbox_dim": (300, 50), "hitbox_off": (85, 10),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaDeBrasas/Efeitos/ImpactoFogo.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [ 
@@ -42,12 +42,12 @@ class EspadaBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaDeBrasas/Ataque/Nv2/Swing_2.png",
                     "Sprites/Armas/Espadas/EspadaDeBrasas/Ataque/Nv2/Swing_3.png"
                 ],
-                "animation_speed": 75, "animation_display_scale": 1.65,
+                "animation_speed": 75, "animation_display_scale": 0.255,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaDeBrasas/Icone_EB2.png"
             },
             3.0: {
                 "damage": 55.0, "range": 95.0, "cooldown": 0.6, "name_suffix": "da Fênix",
-                "hitbox_dim": (145, 60), "hitbox_off": (90, 5),
+                "hitbox_dim": (300, 50), "hitbox_off": (90, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaDeBrasas/Efeitos/ImpactoFogoNv2.png",
                 "effect_scale_base": 1.3,
                 "animation_sprites": [
@@ -57,7 +57,7 @@ class EspadaBrasas(Weapon):
                     "Sprites/Armas/Espadas/EspadaDeBrasas/Ataque/Nv3/Swing_3.png",
                     "Sprites/Armas/Espadas/EspadaDeBrasas/Ataque/Nv3/Swing_4.png"
                 ],
-                "animation_speed": 65, "animation_display_scale": 1.7,
+                "animation_speed": 65, "animation_display_scale": 0.25,
                 "ui_icon": "Sprites/Armas/Espadas/EspadaDeBrasas/Icone_EB3.png"
             }
         }
@@ -154,7 +154,7 @@ class EspadaBrasas(Weapon):
             if hasattr(super(), '_load_ui_icon'): super()._load_ui_icon()
 
         new_animation_paths = stats.get("animation_sprites")
-        new_animation_display_scale = stats.get("animation_display_scale", 1.0)
+        new_animation_display_scale = stats.get("animation_display_scale", 0.25)
         if new_animation_paths:
             if (new_animation_paths != self.attack_animation_paths or
                 new_animation_display_scale != self.animation_display_scale_factor or

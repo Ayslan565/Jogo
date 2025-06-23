@@ -15,7 +15,7 @@ class MachadoDaDescidaSanta(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 20.0, "range": 90.0, "cooldown": 2.0, "name_suffix": "",
-                "hitbox_dim": (85, 95), "hitbox_off": (0, 0),
+                "hitbox_dim": (300, 300), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -25,14 +25,14 @@ class MachadoDaDescidaSanta(MachadoBase):
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base3.png",
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base4.png",
                 ],
-                "animation_speed": 110, "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg",
+                "animation_speed": 110, "animation_display_scale": 0.25,
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E1.png",
                 "description": "Abençoado para purificar o mal.", "rarity": "Raro",
                 "weapon_type": "Machado de Duas Mãos", "element": "Sagrado"
             },
             1.5: {
                 "damage": 25.0, "range": 95.0, "cooldown": 1.9, "name_suffix": "+1",
-                "hitbox_dim": (90, 100), "hitbox_off": (0, 0),
+                "hitbox_dim": (300, 300), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -42,12 +42,12 @@ class MachadoDaDescidaSanta(MachadoBase):
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base3.png",
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT1/AT1-base4.png",
                 ],
-                "animation_speed": 105, "animation_display_scale": 1.15,
-                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E1.jpg"
+                "animation_speed": 105, "animation_display_scale": 0.25,
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E1.png"
             },
             2.0: {
                 "damage": 32.0, "range": 105.0, "cooldown": 1.7, "name_suffix": "Purificador",
-                "hitbox_dim": (95, 105), "hitbox_off": (0, 0),
+                "hitbox_dim": (300, 300), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -58,13 +58,13 @@ class MachadoDaDescidaSanta(MachadoBase):
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 100, "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.jpg"
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.png"
             },
             2.5: {
                 "damage": 38.0, "range": 110.0, "cooldown": 1.6, "name_suffix": "Purificador +1",
-                "hitbox_dim": (100, 110), "hitbox_off": (0, 0),
+                "hitbox_dim": (1300, 300), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png",
-                "effect_scale_base": 1.15,
+                "effect_scale_base": 0.25,
                 "animation_sprites": [
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base0.png",
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base1.png",
@@ -73,11 +73,11 @@ class MachadoDaDescidaSanta(MachadoBase):
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 95, "animation_display_scale": 1.2,
-                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.jpg"
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.png"
             },
             3.0: {
                 "damage": 45.0, "range": 125.0, "cooldown": 1.4, "name_suffix": "Divino",
-                "hitbox_dim": (105, 115), "hitbox_off": (0, 0),
+                "hitbox_dim": (1300, 300), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv3.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
@@ -88,7 +88,7 @@ class MachadoDaDescidaSanta(MachadoBase):
                     "Sprites/Armas/Machados/Machado da Descida Santa/Ataque/AT3/AT3-base4.png",
                 ],
                 "animation_speed": 90, "animation_display_scale": 1.25,
-                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E3.jpg"
+                "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E3.png"
             }
         }
         
@@ -115,7 +115,7 @@ class MachadoDaDescidaSanta(MachadoBase):
         self.attack_animation_speed = 110
         self.current_attack_animation_frame = 0
         self.last_attack_animation_update = 0
-        self.animation_display_scale_factor = 1.15
+        self.animation_display_scale_factor = 0.25
 
         self._apply_level_stats()
 

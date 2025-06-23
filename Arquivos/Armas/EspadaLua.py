@@ -13,22 +13,25 @@ class EspadaLua(Weapon):
         self.level = 1.0
         self.price = 450 # Preço base para a loja
 
-        # --- DADOS DE PROGRESSÃO POR NÍVEL ---
+        # --- DADOS DE PROGRESSÃO POR NÍVEL (COM CAMINHOS CORRIGIDOS) ---
         self._stats_by_level = {
             1.0: {
                 "damage": 45.0, "range": 115.0, "cooldown": 1.2, "name_suffix": "(Azul com Roxo)",
                 "hitbox_dim": (140, 50),  # Hitbox horizontal
-                "hitbox_off": (90, 15),     # Posicionada à frente
+                "hitbox_off": (90, 15),    # Posicionada à frente
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv1.png",
                 "effect_scale_base": 1.0,
+                # CORRIGIDO: Nomes dos arquivos de animação ajustados para corresponder à imagem
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base0.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base1.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base2.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base3.png"
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E0.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E1.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E2.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E3.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E4.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E5.png"
                 ],
-                "animation_speed": 85, "animation_display_scale": 1.6,
-                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra do Lua/E1.jpg",
+                "animation_speed": 85, "animation_display_scale": 1.6, # Escala ajustada
+                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E1.png",
                 "description": "Uma espada imbuída com o poder místico da lua, brilhando em tons de azul e roxo."
             },
             1.5: {
@@ -37,27 +40,30 @@ class EspadaLua(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base0.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base1.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base2.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT1/AT1-base3.png"
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E0.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E1.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E2.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E3.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E4.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT1/E5.png"
                 ],
                 "animation_speed": 82, "animation_display_scale": 1.6,
-                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra do Lua/E1.jpg" 
+                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E1.png" 
             },
             2.0: {
                 "damage": 62.0, "range": 130.0, "cooldown": 1.0, "name_suffix": "Crescente (Azul e Lilás)",
                 "hitbox_dim": (150, 55), "hitbox_off": (95, 10),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv2.png",
                 "effect_scale_base": 1.15,
+                # Assumindo que os arquivos em AT2 seguem o mesmo padrão E0, E1...
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base0.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base1.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base2.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base3.png"
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E0.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E1.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E2.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E3.png"
                 ],
                 "animation_speed": 80, "animation_display_scale": 1.65,
-                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra do Lua/E2.jpg"
+                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E2.png"
             },
             2.5: {
                 "damage": 68.0, "range": 135.0, "cooldown": 0.95, "name_suffix": "Crescente (Azul e Lilás) +1",
@@ -65,28 +71,29 @@ class EspadaLua(Weapon):
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv2.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base0.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base1.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base2.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT2/AT2-base3.png"
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E0.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E1.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E2.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT2/E3.png"
                 ],
                 "animation_speed": 78, "animation_display_scale": 1.65,
-                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra do Lua/E2.jpg"
+                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E2.png"
             },
             3.0: {
                 "damage": 85.0, "range": 150.0, "cooldown": 0.8, "name_suffix": "Plena (Índigo e Violeta)",
                 "hitbox_dim": (160, 60), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv3.png",
                 "effect_scale_base": 1.25,
+                 # Assumindo que os arquivos em AT3 seguem o mesmo padrão E0, E1...
                 "animation_sprites": [
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT3/AT3-base0.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT3/AT3-base1.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT3/AT3-base2.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT3/AT3-base3.png",
-                    "Sprites/Armas/Espadas/Espada Sacra do Lua/Ataque/AT3/AT3-base4.png"
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT3/E0.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT3/E1.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT3/E2.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT3/E3.png",
+                    "Sprites/Armas/Espadas/Espada Sacra da Lua/Ataque/AT3/E4.png"
                 ],
                 "animation_speed": 75, "animation_display_scale": 1.7,
-                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra do Lua/E3.jpg"
+                "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E3.png"
             }
         }
         

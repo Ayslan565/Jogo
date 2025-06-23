@@ -80,7 +80,7 @@ except ImportError:
     print("  (-) AVISO: EspadaSacraDasBrasas não encontrada.")
 
 try:
-    from Armas.LaminaCeuCinti import LaminaDoCeuCentilhante
+    from Armas.LaminaCeuCinti import LaminaDoCeuCintilante
     print("  (+) LaminaDoCeuCentilhante importada.")
 except ImportError:
     LaminaDoCeuCentilhante = None

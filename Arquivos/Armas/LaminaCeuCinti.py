@@ -1,68 +1,68 @@
-# Jogo/Arquivos/Armas/LaminaCeuCinti.py
 import pygame
 import os
 # Assume que weapon.py está no mesmo diretório 'Armas' ou em um local acessível via Python path
 from .weapon import Weapon
 
-class LâminaDoCeuCentilhante(Weapon):
+class LaminaDoCeuCintilante(Weapon):
     """
-    Representa a Lâmina do Ceu Centilhante, uma arma com níveis de evolução
+    Representa a Lâmina do Céu Cintilante, uma arma com níveis de evolução
     e sua própria animação de ataque.
     """
     def __init__(self):
-        self._base_name = "Lâmina do Ceu Centilhante"
+        # --- NOME CORRIGIDO PARA CONSISTÊNCIA ---
+        self._base_name = "Lâmina do Céu Cintilante"
         self.level = 1.0 # Nível inicial
 
-        # --- As estatísticas de cada nível são definidas aqui ---
+        # --- CAMINHOS DOS ARQUIVOS CORRIGIDOS ---
         self._stats_by_level = {
             1.0: {
                 "damage": 38.0, "range": 80.0, "cooldown": 0.7, "name_suffix": "",
-                "hitbox_dim": (75, 90),
-                "hitbox_off": (45, 0),
-                "effect_sprite_base": "Sprites/Armas/Espadas/LâminaDoCeuCentilhante/Efeitos/ImpactoEstelarNv1.png",
+                "hitbox_dim": (400, 100),
+                "hitbox_off": (100, 0),
+                "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv1.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT1//AT1-base0.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT1//AT1-base1.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT1//AT1-base2.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT1//AT1-base3.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT1//AT1-base4.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT1/AT1-base0.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT1/AT1-base1.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT1/AT1-base2.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT1/AT1-base3.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 70,
-                "animation_display_scale": 1.15,
-                "ui_icon": "Sprites//Armas//Espadas//Lâmina do Ceu Centilhante//E1.jpg"
+                "animation_display_scale": 0.25,
+                "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E1.png" # CORRIGIDO: .jpg para .png
             },
             2.0: {
                 "damage": 52.0, "range": 90.0, "cooldown": 0.65, "name_suffix": "Meteórica",
-                "hitbox_dim": (85, 100), "hitbox_off": (50, 0),
-                "effect_sprite_base": "Sprites/Armas/Espadas/LâminaDoCeuCentilhante/Efeitos/ImpactoEstelarNv2.png",
-                "effect_scale_base": 1.25,
+                "hitbox_dim": (400, 100), "hitbox_off": (100, 0),
+                "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv2.png",
+                "effect_scale_base": 0.25,
                 "animation_sprites": [
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT2//AT2-base0.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT2//AT2-base1.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT2//AT2-base2.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT2//AT2-base3.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT2//AT2-base4.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT2/AT2-base0.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT2/AT2-base1.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT2/AT2-base2.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT2/AT2-base3.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 60,
-                "animation_display_scale": 1.25,
-                "ui_icon": "Sprites//Armas//Espadas//Lâmina do Ceu Centilhante//E2.jpg"
+                "animation_display_scale": 0.25,
+                "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E2.png" # CORRIGIDO: .jpg para .png
             },
             3.0: {
                 "damage": 75.0, "range": 105.0, "cooldown": 0.55, "name_suffix": "da Supernova",
-                "hitbox_dim": (95, 110), "hitbox_off": (55, 0),
-                "effect_sprite_base": "Sprites/Armas/Espadas/LâminaDoCeuCentilhante/Efeitos/ImpactoEstelarNv3.png",
+                "hitbox_dim": (400, 100), "hitbox_off": (100, 0),
+                "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv3.png",
                 "effect_scale_base": 1.4,
                 "animation_sprites": [
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT3//AT3-base0.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT3//AT3-base1.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT3//AT3-base2.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT3//AT3-base3.png",
-                    "Sprites//Armas//Espadas//LâminaDoCeuCentilhante//Ataque//AT3//AT3-base4.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT3/AT3-base0.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT3/AT3-base1.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT3/AT3-base2.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT3/AT3-base3.png",
+                    "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT3/AT3-base4.png",
                 ],
                 "animation_speed": 50,
                 "animation_display_scale": 1.35,
-                "ui_icon": "Sprites//Armas//Espadas//Lâmina do Ceu Centilhante//E3.jpg"
+                "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E3.jpg" # Mantido como .jpg conforme a imagem
             }
         }
 
@@ -101,7 +101,7 @@ class LâminaDoCeuCentilhante(Weapon):
         if level_to_check in self._stats_by_level:
             return self._stats_by_level[level_to_check]
         else:
-            print(f"WARN(LâminaDoCeuCentilhante): Nível {level_to_check} não encontrado. Usando fallback para o primeiro nível.")
+            print(f"WARN(Lamina DoCeuCintilante): Nível {level_to_check} não encontrado. Usando fallback para o primeiro nível.")
             first_level_key = next(iter(self._stats_by_level))
             return self._stats_by_level[first_level_key]
 
@@ -109,7 +109,7 @@ class LâminaDoCeuCentilhante(Weapon):
         sprites_carregados = []
         
         if not caminhos:
-            print("DEBUG(LâminaDoCeuCentilhante): A lista de caminhos para os sprites de animação está vazia.")
+            print("DEBUG(Lamina DoCeuCintilante): A lista de caminhos para os sprites de animação está vazia.")
             self.attack_animation_sprites = []
             return
 
@@ -119,22 +119,22 @@ class LâminaDoCeuCentilhante(Weapon):
             path_corrigido = path_relativo.replace("\\", os.sep).replace("//", os.sep)
             full_path = path_corrigido
             
-            print(f"DEBUG(LâminaDoCeuCentilhante): Tentando carregar sprite: '{full_path}'")
+            print(f"DEBUG(Lamina DoCeuCintilante): Tentando carregar sprite: '{full_path}'")
 
             try:
                 if os.path.exists(full_path):
-                    print(f"SUCCESS(LâminaDoCeuCentilhante): Ficheiro encontrado! '{full_path}'")
+                    print(f"SUCCESS(Lamina DoCeuCintilante): Ficheiro encontrado! '{full_path}'")
                     imagem_original = pygame.image.load(full_path).convert_alpha()
                     novo_w = int(imagem_original.get_width() * escala_animacao)
                     novo_h = int(imagem_original.get_height() * escala_animacao)
                     imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
                     sprites_carregados.append(imagem)
                 else:
-                    print(f"!!! WARN(LâminaDoCeuCentilhante): CAMINHO NÃO EXISTE: '{full_path}'. A criar placeholder.")
+                    print(f"!!! WARN(Lamina DoCeuCintilante): CAMINHO NÃO EXISTE: '{full_path}'. A criar placeholder.")
                     placeholder = pygame.Surface((int(50*escala_animacao), int(50*escala_animacao)), pygame.SRCALPHA); placeholder.fill((173, 216, 230, 150)) # Azul claro
                     sprites_carregados.append(placeholder)
             except pygame.error as e:
-                print(f"!!! ERROR(LâminaDoCeuCentilhante): Erro ao carregar imagem em '{full_path}': {e}. A criar placeholder.")
+                print(f"!!! ERROR(Lamina DoCeuCintilante): Erro ao carregar imagem em '{full_path}': {e}. A criar placeholder.")
                 placeholder = pygame.Surface((int(50*escala_animacao), int(50*escala_animacao)), pygame.SRCALPHA); placeholder.fill((255,0,0,150))
                 sprites_carregados.append(placeholder)
         
@@ -161,12 +161,12 @@ class LâminaDoCeuCentilhante(Weapon):
             self.level = target_level
             self._apply_level_stats()
         else:
-            print(f"WARN(LâminaDoCeuCentilhante): Nível {target_level} inválido. Níveis disponíveis: {list(self._stats_by_level.keys())}")
+            print(f"WARN(Lamina DoCeuCintilante): Nível {target_level} inválido. Níveis disponíveis: {list(self._stats_by_level.keys())}")
 
     def _apply_level_stats(self):
         stats = self._get_stats_for_level_internal(self.level)
         if not stats:
-            print(f"ERROR(LâminaDoCeuCentilhante): Falha crítica ao obter stats para Nível {self.level} de '{self.name}'.")
+            print(f"ERROR(Lamina DoCeuCintilante): Falha crítica ao obter stats para Nível {self.level} de '{self.name}'.")
             return
 
         self.damage = stats["damage"]

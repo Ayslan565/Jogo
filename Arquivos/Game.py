@@ -29,7 +29,7 @@ try:
     from importacoes import *
     from inventario_barra import BarraInventario
     from cogumelo import Cogumelo
-    from gerrador_cogumelo import GeradorCogumelos
+    from gerador_cogumelo import GeradorCogumelos
     from eventos_climaticos import GerenciadorDeEventos
     from Luta_boss import *
     from Luta_boss import resetar_estado_luta_boss

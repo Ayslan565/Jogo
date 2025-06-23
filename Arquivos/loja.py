@@ -12,7 +12,7 @@ except ImportError as e:
     print(f"ERRO CRÍTICO(loja_modulo): Não foi possível importar de importacoes.py. Verifique o arquivo e o caminho. Erro: {e}")
     # Definir todas as classes de armas como None para evitar NameError mais tarde
     AdagaFogo = EspadaCaida = EspadaFogoAzul = EspadaLua = EspadaPenitencia = None
-    EspadaSacraCerulea = EspadaSacraDasBrasas = LâminaDoCeuCentilhante = None
+    EspadaSacraCerulea = EspadaSacraDasBrasas = LâminaDoCeuCinti = None
     MachadoBarbaro = MachadoCeruleo = MachadoDaDescidaSanta = MachadoDoFogoAbrasador = None
     MachadoMarfim = MachadoMacabro = None
     Cajado = None 
@@ -66,7 +66,7 @@ def tocar_musica_aleatoria(diretorio_musica_base):
     if not musicas_validas:
         print("DEBUG(Loja Modulo): Nenhuma música encontrada.")
         return
-    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.set_volume(1.5)
     random.shuffle(musicas_validas)
     if musicas_validas:
         try:
@@ -147,9 +147,9 @@ def carregar_recursos_loja(tamanho_item=(100, 100), tamanho_vendedor_img=(600, 4
             "Sprites/Armas/Espadas/Adaga do Fogo Contudente/Adaga E-1.png", 
             "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png", 
             "Sprites/Armas/Espadas/Espada do Olhar Da Penitencia/E1.png", 
-            "Sprites\Armas\Espadas\Espada Sacra Caida\Espada Sacra Caida E1.png", 
-            "Sprites/Armas/Espadas/Espada Sacra do Lua/E1.png", 
-            "Sprites/Armas/Espadas/Lâmina do Ceu Centilhante/E1.png" 
+            "Sprites/Armas/Espadas/Espada Sacra Caida/Espada Sacra Caida E1.png", 
+            "Sprites/Armas/Espadas/Espada Sacra da Lua/E1.png", 
+            "Sprites\Armas\Espadas\Lâmina do Ceu Cintilante\E1.png" 
         ]
         espadas_imgs_loaded = [load_and_scale_image(p, tamanho_item, placeholder_img_item) for p in espadas_paths_rel]
         full_espadas_list = (espadas_imgs_loaded + [placeholder_img_item]*7)[:7] 
@@ -471,7 +471,7 @@ def run_shop_scene(tela_surface, jogador_obj, largura_inicial, altura_inicial):
         {"nome": "Espada do Olhar Da Penitencia", "preco": 200, "imagem": imagem_Espada_3, "descricao": "Forjada nas profundezas do vazio com essência de pesadelos e almas perdidas. Os antigos portadores alegam ouvir vozes ver espíritos qquando seguravam a espada. Sua lamina vermelha escura e a guarda-mão em formato de chifres exalam malevolência, enquanto um olho no punho absorve a essência dos inimigos para empoderar o portador. É uma arma para quem busca dominação, mas exige um alto preço."},
         {"nome": "Espada Sacra Caida", "preco": 300, "imagem": imagem_Espada_4, "descricao": "Forjada sob a fúria de um Buraco Negro. Sua gema âmbar concede intuição aguçada para antecipar inimigos, sendo ideal para quem valoriza agilidade e estratégia, movendo-se como uma sombra para atacar com precisão."},
         {"nome": "Espada Sacra do Lua", "preco": 450, "imagem": imagem_Espada_5, "descricao": "Espada forjada com rochas lunares, encantada com o poder de uma estrela, ela guiará seus caminhos e voce jamais vai ficar na escuridão"},
-        {"nome": "Lâmina do Céu Centilhante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. "}
+        {"nome": "Lâmina do Céu Cintilante", "preco": 600, "imagem": imagem_Espada_6, "descricao": "Uma chuva de meteoros estava caindo sob este pequeno mundo, os detritos restantes foram forjados junto com o calor de estrelas, gerando uma espada única. "}
     ]
     itens_data_global["Machados"] = [
         {"nome": "Machado Bárbaro Cravejado", "preco": 120, "imagem": imagem_Machado_1, "descricao": "Bruto e eficaz para golpes pesados. Seu material é tão resistente que ele nunca te deixará na mão."},

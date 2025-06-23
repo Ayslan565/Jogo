@@ -17,8 +17,8 @@ class EspadaCaida(Weapon):
         self._stats_by_level = {
             1.0: {
                 "damage": 35.0, "range": 90.0, "cooldown": 0.9, "name_suffix": "",
-                "hitbox_dim": (140, 50), # Hitbox horizontal
-                "hitbox_off": (90, 15),    # Posicionada à frente
+                "hitbox_dim": (300, 50), # Hitbox horizontal
+                "hitbox_off": (100, 5),    # Posicionada à frente
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoSombrio.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
@@ -34,7 +34,7 @@ class EspadaCaida(Weapon):
             },
             2.0: {
                 "damage": 50.0, "range": 95.0, "cooldown": 0.8, "name_suffix": "Corrompida",
-                "hitbox_dim": (150, 55), "hitbox_off": (95, 10),
+                "hitbox_dim": (300, 50), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoSombrio.png",
                 "effect_scale_base": 1.3,
                 "animation_sprites": [ 
@@ -49,7 +49,7 @@ class EspadaCaida(Weapon):
             },
             3.0: {
                 "damage": 70.0, "range": 105.0, "cooldown": 0.7, "name_suffix": "do Abismo",
-                "hitbox_dim": (160, 60), "hitbox_off": (100, 5),
+                "hitbox_dim": (300, 50), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoAbissal.png",
                 "effect_scale_base": 1.4,
                 "animation_sprites": [

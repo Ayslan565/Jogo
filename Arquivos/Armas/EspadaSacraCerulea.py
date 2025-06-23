@@ -1,69 +1,64 @@
 import pygame
 import os
-# Importa a classe base 'Weapon'
 from .weapon import Weapon
 
 class EspadaSacraCerulea(Weapon):
     """
-    Representa a Espada Sacra Cerúlea, uma arma com níveis de evolução,
-    ataque horizontal e progressão de stats.
+    Representa a Espada Sacra Cerúlea. A escala da animação é controlada
+    por um único valor em cada nível.
     """
     def __init__(self):
-        # --- NOME CORRIGIDO ---
         self._base_name = "Espada Sacra Cerúlea"
         self.level = 1.0
-        self.price = 150 # Preço base para a loja
+        self.price = 150
 
-        # --- DADOS DE PROGRESSÃO POR NÍVEL ---
         self._stats_by_level = {
             1.0: {
-                "damage": 25.0, "range": 100.0, "cooldown": 1.2, "name_suffix": "",
-                "hitbox_dim": (125, 45),  # Hitbox horizontal
-                "hitbox_off": (85, 10),     # Posicionada à frente
-                "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraCerulea/Efeitos/ImpactoNv1.png",
-                "effect_scale_base": 1.0,
+                "damage": 10.0, "range": 100.0, "cooldown": 1.2, "name_suffix": "",
+                "hitbox_dim": (300, 300),
+                "hitbox_off": (300, 50),
+                "animation_speed": 90,
+                "animation_display_scale": 0.15, # <- CONTROLE A ESCALA DO NÍVEL 1 AQUI
+                "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png",
+                "description": "Lâmina de aço cintilante com punho dourado e uma gema safira-azul.",
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base0.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base1.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base3.png",
-                ],
-                "animation_speed": 90, "animation_display_scale": 1.5,
-                "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png",
-                "description": "Lâmina de aço cintilante com punho dourado e uma gema safira-azul."
+                ]
             },
             2.0: {
                 "damage": 35.0, "range": 105.0, "cooldown": 1.1, "name_suffix": " Desperta",
-                "hitbox_dim": (135, 50), "hitbox_off": (85, 10),
-                "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraCerulea/Efeitos/ImpactoNv2.png",
-                "effect_scale_base": 1.1,
+                "hitbox_dim": (300, 300),
+                "hitbox_off": (85, 10),
+                "animation_speed": 85,
+                "animation_display_scale": 0.20, # <- CONTROLE A ESCALA DO NÍVEL 2 AQUI
+                "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E2.png",
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base0.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base1.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base3.png",
-                ],
-                "animation_speed": 85, "animation_display_scale": 1.55,
-                "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E2.png"
+                ]
             },
             3.0: {
                 "damage": 48.0, "range": 110.0, "cooldown": 1.0, "name_suffix": " Celestial",
-                "hitbox_dim": (145, 55), "hitbox_off": (90, 5),
-                "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraCerulea/Efeitos/ImpactoNv3.png",
-                "effect_scale_base": 1.2,
+                "hitbox_dim": (300, 300),
+                "hitbox_off": (90, 5),
+                "animation_speed": 80,
+                "animation_display_scale": 0.25, # <- CONTROLE A ESCALA DO NÍVEL 3 AQUI
+                "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E3.png",
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT3/AT3-base0.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT3/AT3-base1.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT3/AT3-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT3/AT3-base3.png",
-                ],
-                "animation_speed": 80, "animation_display_scale": 1.6,
-                "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E3.png"
+                ]
             }
         }
         
-        initial_stats = self._get_stats_for_level_internal(self.level, for_super_init=True)
-
+        initial_stats = self._get_stats_for_level_internal(1.0)
         super().__init__(
             name=self._base_name,
             damage=initial_stats.get("damage"),
@@ -75,68 +70,12 @@ class EspadaSacraCerulea(Weapon):
             rarity="Lendária",
             weapon_type="Espada Longa",
             element="Fogo Azul",
-            attack_effect_sprite_path=initial_stats.get("effect_sprite_base"),
-            attack_effect_scale=initial_stats.get("effect_scale_base"),
             ui_icon_path=initial_stats.get("ui_icon")
         )
-
-        self.attack_animation_sprites = []
-        self.attack_animation_paths = []
-        self.attack_animation_speed = 100
-        self.current_attack_animation_frame = 0
-        self.last_attack_animation_update = 0
-        self.animation_display_scale_factor = 1.0
-
         self._apply_level_stats()
 
-    def _get_stats_for_level_internal(self, level_to_check, for_super_init=False):
-        stats_dict = self._stats_by_level
-        if for_super_init:
-            return stats_dict.get(1.0, {})
-        return stats_dict.get(level_to_check, stats_dict.get(1.0))
-
-    def _load_weapon_attack_animation_sprites(self, caminhos, escala_animacao=1.0):
-        sprites_carregados = []
-        if not caminhos:
-            self.attack_animation_sprites = []
-            return
-        for path_relativo in caminhos:
-            path_corrigido = path_relativo.replace("\\", os.sep).replace("/", os.sep)
-            full_path = path_corrigido
-            try:
-                if os.path.exists(full_path):
-                    imagem_original = pygame.image.load(full_path).convert_alpha()
-                    novo_w = int(imagem_original.get_width() * escala_animacao)
-                    novo_h = int(imagem_original.get_height() * escala_animacao)
-                    if novo_w > 0 and novo_h > 0:
-                        imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
-                        sprites_carregados.append(imagem)
-                else:
-                    print(f"WARN(EspadaSacraCerulea): Sprite de animação não encontrado '{full_path}'.")
-                    placeholder = pygame.Surface((32, 32), pygame.SRCALPHA); placeholder.fill((0, 191, 255, 100))
-                    sprites_carregados.append(placeholder)
-            except pygame.error as e:
-                print(f"ERROR(EspadaSacraCerulea): Erro ao carregar sprite '{full_path}': {e}.")
-                placeholder = pygame.Surface((32, 32), pygame.SRCALPHA); placeholder.fill((255, 0, 0, 150))
-                sprites_carregados.append(placeholder)
-        self.attack_animation_sprites = sprites_carregados
-        self.current_attack_animation_frame = 0
-
-    def start_attack_animation(self):
-        self.current_attack_animation_frame = 0
-        self.last_attack_animation_update = pygame.time.get_ticks()
-
-    def update_animation(self, current_ticks):
-        if not self.attack_animation_sprites: return
-        if current_ticks - self.last_attack_animation_update > self.attack_animation_speed:
-            self.last_attack_animation_update = current_ticks
-            if self.attack_animation_sprites:
-                self.current_attack_animation_frame = (self.current_attack_animation_frame + 1) % len(self.attack_animation_sprites)
-
-    def evolve(self, target_level: float):
-        if target_level in self._stats_by_level:
-            self.level = target_level
-            self._apply_level_stats()
+    def _get_stats_for_level_internal(self, level_to_check):
+        return self._stats_by_level.get(level_to_check, self._stats_by_level.get(1.0))
 
     def _apply_level_stats(self):
         stats = self._get_stats_for_level_internal(self.level)
@@ -145,29 +84,24 @@ class EspadaSacraCerulea(Weapon):
         self.damage = stats.get("damage", self.damage)
         self.attack_range = stats.get("range", self.attack_range)
         self.cooldown = stats.get("cooldown", self.cooldown)
+        self.attack_animation_speed = stats.get("animation_speed", self.attack_animation_speed)
         if "hitbox_dim" in stats: self.hitbox_width, self.hitbox_height = stats["hitbox_dim"]
         if "hitbox_off" in stats: self.hitbox_offset_x, self.hitbox_offset_y = stats["hitbox_off"]
-        self.description = stats.get("description", self.description)
-
-        new_ui_icon_path = stats.get("ui_icon")
-        if new_ui_icon_path and new_ui_icon_path != self.ui_icon_path:
-            self.ui_icon_path = new_ui_icon_path
-            if hasattr(super(), '_load_ui_icon'): super()._load_ui_icon()
 
         new_animation_paths = stats.get("animation_sprites")
-        new_animation_display_scale = stats.get("animation_display_scale", 1.0)
-        if new_animation_paths:
-            if (new_animation_paths != self.attack_animation_paths or
-                new_animation_display_scale != self.animation_display_scale_factor or
-                not self.attack_animation_sprites):
-                self.attack_animation_paths = new_animation_paths
-                self.animation_display_scale_factor = new_animation_display_scale
-                self._load_weapon_attack_animation_sprites(self.attack_animation_paths, self.animation_display_scale_factor)
+        new_scale = stats.get("animation_display_scale", 1.0)
+        
+        # Recarrega os sprites se os caminhos ou a escala mudarem
+        if new_animation_paths and (new_animation_paths != self.attack_animation_paths or new_scale != self.animation_display_scale_factor):
+            self.attack_animation_paths = new_animation_paths
+            self.animation_display_scale_factor = new_scale
+            self._load_weapon_attack_animation_sprites(self.attack_animation_paths, self.animation_display_scale_factor)
 
-        self.attack_animation_speed = stats.get("animation_speed", self.attack_animation_speed)
         self.name = f"{self._base_name} {stats.get('name_suffix', '')}".strip()
-
-    def get_current_attack_animation_sprite(self):
-        if self.attack_animation_sprites and 0 <= self.current_attack_animation_frame < len(self.attack_animation_sprites):
-            return self.attack_animation_sprites[self.current_attack_animation_frame]
-        return None
+        
+    def update_animation(self, current_ticks):
+        if not self.attack_animation_sprites: return
+        if current_ticks - self.last_attack_animation_update > self.attack_animation_speed:
+            self.last_attack_animation_update = current_ticks
+            if self.attack_animation_sprites:
+                self.current_attack_animation_frame = (self.current_attack_animation_frame + 1) % len(self.attack_animation_sprites)

@@ -173,3 +173,38 @@ class Weapon:
             return self.attack_animation_sprites[self.current_attack_animation_frame]
         return None  # Ou um sprite placeholder se preferir
 
+    # --- NOVO MÉTODO ADICIONADO ---
+    def _load_from_individual_configs(self, configs):
+        """
+        Carrega sprites de animação a partir de uma lista de configurações individuais.
+        Cada configuração é um dicionário com 'path' e 'scale'.
+        """
+        print(f"DEBUG({self.__class__.__name__}): Carregando sprites com configurações individuais.")
+        sprites_carregados = []
+        project_root = self._get_project_root()
+
+        for config in configs:
+            path_relativo = config.get("path")
+            escala_individual = config.get("scale", 1.0) # Usa 1.0 como padrão se 'scale' não for encontrado
+
+            if not path_relativo:
+                continue
+            
+            full_path = os.path.join(project_root, path_relativo.replace("\\", os.sep).replace("/", os.sep))
+            try:
+                if os.path.exists(full_path):
+                    imagem_original = pygame.image.load(full_path).convert_alpha()
+                    novo_w = int(imagem_original.get_width() * escala_individual)
+                    novo_h = int(imagem_original.get_height() * escala_individual)
+                    if novo_w > 0 and novo_h > 0:
+                        imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
+                        sprites_carregados.append(imagem)
+                    else:
+                        print(f"WARN({self.__class__.__name__}): Dimensões inválidas para sprite '{full_path}' após escala.")
+                else:
+                    print(f"WARN({self.__class__.__name__}): Caminho de sprite não existe: '{full_path}'")
+            except pygame.error as e:
+                print(f"ERROR({self.__class__.__name__}): Erro ao carregar sprite '{full_path}': {e}")
+        
+        self.attack_animation_sprites = sprites_carregados
+        self.current_attack_animation_frame = 0

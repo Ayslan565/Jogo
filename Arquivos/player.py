@@ -22,7 +22,7 @@ SHOP_ITEM_TO_WEAPON_CLASS_MAP = {
     "Espada Sacra do Lua": EspadaLua,
     
     # CORREÇÃO APLICADA AQUI: Adicionado o acento em "Céu" para corresponder ao nome na loja.
-    "Lâmina do Céu Centilhante": LaminaDoCeuCentilhante,
+    "Lâmina do Céu Cintilante": LaminaDoCeuCintilante,
     
     "Machado Bárbaro Cravejado": MachadoBarbaro,
     "Machado Cerúleo da Estrela Cadente": MachadoCeruleo,

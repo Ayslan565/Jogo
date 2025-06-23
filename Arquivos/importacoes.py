@@ -153,8 +153,8 @@ except ImportError: EspadaSacraDasBrasas = None
 try: from .Armas.EspadaSacraCerulea import EspadaSacraCerulea
 except ImportError: EspadaSacraCerulea = None
 
-try: from .Armas.LaminaCeuCinti import LaminaDoCeuCentilhante
-except ImportError: LaminaDoCeuCentilhante = None
+try: from .Armas.LaminaCeuCinti import LaminaDoCeuCintilante
+except ImportError: LaminaDoCeuCintilante = None
 
 try: from .Armas.MachadoBase import MachadoBase
 except ImportError: MachadoBase = None
