@@ -16,8 +16,8 @@ class EspadaCaida(Weapon):
         # --- DADOS DE PROGRESSÃO POR NÍVEL ---
         self._stats_by_level = {
             1.0: {
-                "damage": 35.0, "range": 90.0, "cooldown": 0.9, "name_suffix": "",
-                "hitbox_dim": (130, 50), # Hitbox horizontal
+                "damage": 26.0, "range": 90.0, "cooldown": 0.9, "name_suffix": "",
+                "hitbox_dim": (100, 45), # Hitbox horizontal
                 "hitbox_off": (490, 95),    # Posicionada à frente
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoSombrio.png",
                 "effect_scale_base": 1.2,
@@ -33,8 +33,8 @@ class EspadaCaida(Weapon):
                 "description": "Relíquia de um herói esquecido, agora maculada por uma energia sombria."
             },
             2.0: {
-                "damage": 50.0, "range": 95.0, "cooldown": 0.8, "name_suffix": "Corrompida",
-                "hitbox_dim": (495, 100), "hitbox_off": (95, 5),
+                "damage": 30.0, "range": 95.0, "cooldown": 0.8, "name_suffix": "Corrompida",
+                "hitbox_dim": (105, 50), "hitbox_off": (95, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoSombrio.png",
                 "effect_scale_base": 1.3,
                 "animation_sprites": [ 
@@ -48,8 +48,8 @@ class EspadaCaida(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Espada Sacra Caida/Espada Sacra Caida E2.png"
             },
             3.0: {
-                "damage": 70.0, "range": 105.0, "cooldown": 0.7, "name_suffix": "do Abismo",
-                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
+                "damage": 34.0, "range": 105.0, "cooldown": 0.7, "name_suffix": "do Abismo",
+                "hitbox_dim": (110, 55), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoAbissal.png",
                 "effect_scale_base": 1.4,
                 "animation_sprites": [

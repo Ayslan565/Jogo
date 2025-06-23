@@ -16,8 +16,8 @@ class LaminaDoCeuCintilante(Weapon):
         # --- CAMINHOS DOS ARQUIVOS CORRIGIDOS ---
         self._stats_by_level = {
             1.0: {
-                "damage": 38.0, "range": 80.0, "cooldown": 0.7, "name_suffix": "",
-                "hitbox_dim": (490, 105),
+                "damage": 28.0, "range": 80.0, "cooldown": 0.7, "name_suffix": "",
+                "hitbox_dim": (100 , 45),
                 "hitbox_off": (90, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv1.png",
                 "effect_scale_base": 1.1,
@@ -33,8 +33,8 @@ class LaminaDoCeuCintilante(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E1.png" # CORRIGIDO: .jpg para .png
             },
             2.0: {
-                "damage": 52.0, "range": 90.0, "cooldown": 0.65, "name_suffix": "Meteórica",
-                "hitbox_dim": (495, 105), "hitbox_off": (95 , 5),
+                "damage": 30.0, "range": 90.0, "cooldown": 0.65, "name_suffix": "Meteórica",
+                "hitbox_dim": (105 , 50), "hitbox_off": (95 , 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv2.png",
                 "effect_scale_base": 0.25,
                 "animation_sprites": [
@@ -49,8 +49,8 @@ class LaminaDoCeuCintilante(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E2.png" # CORRIGIDO: .jpg para .png
             },
             3.0: {
-                "damage": 75.0, "range": 105.0, "cooldown": 0.55, "name_suffix": "da Supernova",
-                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
+                "damage": 33.0, "range": 105.0, "cooldown": 0.55, "name_suffix": "da Supernova",
+                "hitbox_dim": (110 , 55), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv3.png",
                 "effect_scale_base": 1.4,
                 "animation_sprites": [

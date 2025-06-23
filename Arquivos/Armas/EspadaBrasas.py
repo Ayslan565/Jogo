@@ -16,8 +16,8 @@ class EspadaBrasas(Weapon):
         # --- DADOS DE PROGRESSÃO POR NÍVEL ---
         self._stats_by_level = {
             1.0: {
-                "damage": 28.0, "range": 75.0, "cooldown": 0.75, "name_suffix": "",
-                "hitbox_dim": (490, 95), # Hitbox horizontal
+                "damage": 26.0, "range": 75.0, "cooldown": 0.75, "name_suffix": "",
+                "hitbox_dim": (100 , 45), # Hitbox horizontal
                 "hitbox_off": (90, 5),   # Posicionada à frente
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaDeBrasas/Efeitos/ImpactoFogo.png",
                 "effect_scale_base": 1.1,
@@ -32,8 +32,8 @@ class EspadaBrasas(Weapon):
                 "description": "Uma lâmina forjada no fogo eterno, que queima ao toque."
             },
             2.0: {
-                "damage": 40.0, "range": 85.0, "cooldown": 0.7, "name_suffix": "Incandescente",
-                "hitbox_dim": (495, 100), "hitbox_off": (95, 5),
+                "damage": 31.0, "range": 85.0, "cooldown": 0.7, "name_suffix": "Incandescente",
+                "hitbox_dim": (105, 50), "hitbox_off": (95, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaDeBrasas/Efeitos/ImpactoFogo.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [ 
@@ -46,8 +46,8 @@ class EspadaBrasas(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/EspadaDeBrasas/Icone_EB2.png"
             },
             3.0: {
-                "damage": 55.0, "range": 95.0, "cooldown": 0.6, "name_suffix": "da Fênix",
-                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
+                "damage": 34.0, "range": 95.0, "cooldown": 0.6, "name_suffix": "da Fênix",
+                "hitbox_dim": (110, 55), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaDeBrasas/Efeitos/ImpactoFogoNv2.png",
                 "effect_scale_base": 1.3,
                 "animation_sprites": [

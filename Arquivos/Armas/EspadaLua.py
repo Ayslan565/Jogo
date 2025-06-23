@@ -16,8 +16,8 @@ class EspadaLua(Weapon):
         # --- DADOS DE PROGRESSÃO POR NÍVEL (COM CAMINHOS CORRIGIDOS) ---
         self._stats_by_level = {
             1.0: {
-                "damage": 45.0, "range": 115.0, "cooldown": 1.2, "name_suffix": "(Azul com Roxo)",
-                "hitbox_dim": (480, 85),  # Hitbox horizontal
+                "damage": 26.0, "range": 115.0, "cooldown": 1.2, "name_suffix": "(Azul com Roxo)",
+                "hitbox_dim": (90 , 35),  # Hitbox horizontal
                 "hitbox_off": (80, 5),    # Posicionada à frente
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv1.png",
                 "effect_scale_base": 1.0,
@@ -35,8 +35,8 @@ class EspadaLua(Weapon):
                 "description": "Uma espada imbuída com o poder místico da lua, brilhando em tons de azul e roxo."
             },
             1.5: {
-                "damage": 50.0, "range": 120.0, "cooldown": 1.15, "name_suffix": "(Azul com Roxo) +1",
-                "hitbox_dim": (485, 90), "hitbox_off": (85, 5),
+                "damage": 29.0, "range": 120.0, "cooldown": 1.15, "name_suffix": "(Azul com Roxo) +1",
+                "hitbox_dim": (95 , 40), "hitbox_off": (85, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -51,8 +51,8 @@ class EspadaLua(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E1.png" 
             },
             2.0: {
-                "damage": 62.0, "range": 130.0, "cooldown": 1.0, "name_suffix": "Crescente (Azul e Lilás)",
-                "hitbox_dim": (490, 95), "hitbox_off": (90, 5),
+                "damage": 36.0, "range": 130.0, "cooldown": 1.0, "name_suffix": "Crescente (Azul e Lilás)",
+                "hitbox_dim": (100 , 45), "hitbox_off": (90, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv2.png",
                 "effect_scale_base": 1.15,
                 # Assumindo que os arquivos em AT2 seguem o mesmo padrão E0, E1...
@@ -66,8 +66,8 @@ class EspadaLua(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E2.png"
             },
             2.5: {
-                "damage": 68.0, "range": 135.0, "cooldown": 0.95, "name_suffix": "Crescente (Azul e Lilás) +1",
-                "hitbox_dim": (495, 100), "hitbox_off": (95, 5),
+                "damage": 39.0, "range": 135.0, "cooldown": 0.95, "name_suffix": "Crescente (Azul e Lilás) +1",
+                "hitbox_dim": (105 , 50), "hitbox_off": (95, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv2.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
@@ -80,8 +80,8 @@ class EspadaLua(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Espada Sacra da Lua/E2.png"
             },
             3.0: {
-                "damage": 85.0, "range": 150.0, "cooldown": 0.8, "name_suffix": "Plena (Índigo e Violeta)",
-                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
+                "damage": 42.0, "range": 150.0, "cooldown": 0.8, "name_suffix": "Plena (Índigo e Violeta)",
+                "hitbox_dim": (110 , 55), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaLua/Efeitos/ImpactoLunarNv3.png",
                 "effect_scale_base": 1.25,
                  # Assumindo que os arquivos em AT3 seguem o mesmo padrão E0, E1...

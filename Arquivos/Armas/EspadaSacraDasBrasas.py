@@ -16,8 +16,8 @@ class EspadaSacraDasBrasas(Weapon):
         # --- DADOS DE PROGRESSÃO POR NÍVEL ---
         self._stats_by_level = {
             1.0: {
-                "damage": 30.0, "range": 100.0, "cooldown": 1.5, "name_suffix": "",
-                "hitbox_dim": (480, 85),  # Hitbox horizontal
+                "damage": 28.0, "range": 100.0, "cooldown": 1.5, "name_suffix": "",
+                "hitbox_dim": (90 , 35),  # Hitbox horizontal
                 "hitbox_off": (80, 5),     # Posicionada à frente do jogador
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Efeitos/ImpactoBrasasNv1.png",
                 "effect_scale_base": 1.0,
@@ -31,8 +31,8 @@ class EspadaSacraDasBrasas(Weapon):
                 "description": "Uma espada antiga que pulsa com o calor de brasas sagradas."
             },
             1.5: {
-                "damage": 35.0, "range": 105.0, "cooldown": 1.4, "name_suffix": "+1",
-                "hitbox_dim": (485, 90), "hitbox_off": (85, 0),
+                "damage": 29.0, "range": 105.0, "cooldown": 1.4, "name_suffix": "+1",
+                "hitbox_dim": (95 , 40), "hitbox_off": (85, 0),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Efeitos/ImpactoBrasasNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -44,8 +44,8 @@ class EspadaSacraDasBrasas(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB1.png"
             },
             2.0: {
-                "damage": 45.0, "range": 115.0, "cooldown": 1.2, "name_suffix": "Incandescente",
-                "hitbox_dim": (490, 95), "hitbox_off": (90, 0),
+                "damage": 32.0, "range": 115.0, "cooldown": 1.2, "name_suffix": "Incandescente",
+                "hitbox_dim": (100 , 45), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Efeitos/ImpactoBrasasNv2.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -58,8 +58,8 @@ class EspadaSacraDasBrasas(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB2.png"
             },
             2.5: {
-                "damage": 50.0, "range": 120.0, "cooldown": 1.1, "name_suffix": "Incandescente +1",
-                "hitbox_dim": (495, 100), "hitbox_off": (95, 0),
+                "damage": 38.0, "range": 120.0, "cooldown": 1.1, "name_suffix": "Incandescente +1",
+                "hitbox_dim": (105 , 50), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Efeitos/ImpactoBrasasNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -72,8 +72,8 @@ class EspadaSacraDasBrasas(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Icone_ESB2.png"
             },
             3.0: {
-                "damage": 65.0, "range": 130.0, "cooldown": 0.9, "name_suffix": "Solar",
-                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
+                "damage": 41.0, "range": 130.0, "cooldown": 0.9, "name_suffix": "Solar",
+                "hitbox_dim": (110 , 55), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Efeitos/ImpactoBrasasNv3.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [

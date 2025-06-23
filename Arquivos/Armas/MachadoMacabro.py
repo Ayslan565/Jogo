@@ -16,7 +16,7 @@ class MachadoMacabro(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 40.0, "range": 80.0, "cooldown": 2.0, "name_suffix": "",
-                "hitbox_dim": (120, 500), "hitbox_off": (90, 0),
+                "hitbox_dim": (35, 90), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -33,7 +33,7 @@ class MachadoMacabro(MachadoBase):
             },
             1.5: {
                 "damage": 45.0, "range": 85.0, "cooldown": 1.9, "name_suffix": "+1",
-                "hitbox_dim": (125, 550), "hitbox_off": (95, 0),
+                "hitbox_dim": (40, 95), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -48,7 +48,7 @@ class MachadoMacabro(MachadoBase):
             },
             2.0: {
                 "damage": 55.0, "range": 95.0, "cooldown": 1.7, "name_suffix": "Insaciável",
-                "hitbox_dim": (130, 600), "hitbox_off": (100, 0),
+                "hitbox_dim": (45, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png", 
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -63,7 +63,7 @@ class MachadoMacabro(MachadoBase):
             },
             2.5: {
                 "damage": 60.0, "range": 100.0, "cooldown": 1.6, "name_suffix": "Insaciável +1",
-                "hitbox_dim": (135, 650), "hitbox_off": (105, 0),
+                "hitbox_dim": (50, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -79,7 +79,7 @@ class MachadoMacabro(MachadoBase):
             },
             3.0: {
                 "damage": 75.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Devorador de Mundos",
-                "hitbox_dim": (140, 700), "hitbox_off": (110, 0),
+                "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv3.png", 
                 "effect_scale_base": 0.25,
                 "animation_sprites": [

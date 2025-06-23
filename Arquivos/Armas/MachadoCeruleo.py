@@ -15,8 +15,8 @@ class MachadoCeruleo(MachadoBase):
         # --- DADOS DOS NÍVEIS (ATUALIZADOS CONFORME SOLICITADO) ---
         self._stats_by_level = {
             1.0: {
-                "damage": 35.0, "range": 90.0, "cooldown": 1.6, "name_suffix": "",
-                "hitbox_dim": (120, 500),  # Hitbox ALTA para ataque vertical
+                "damage": 15.0, "range": 90.0, "cooldown": 1.6, "name_suffix": "",
+                "hitbox_dim": (35, 90),  # Hitbox ALTA para ataque vertical
                 "hitbox_off": (90, 0),    # Posicionado à FRENTE do jogador
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv1.png",
                 "effect_scale_base": 1.0,
@@ -28,12 +28,12 @@ class MachadoCeruleo(MachadoBase):
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 110,   # Velocidade do ataque (mais baixo = mais rápido)
-                "animation_display_scale": 0.2, # Tamanho visual do sprite
+                "animation_display_scale": 0.15, # Tamanho visual do sprite
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png",
             },
             1.5: {
                 "damage": 45.0, "range": 95.0, "cooldown": 1.5, "name_suffix": "+1",
-                "hitbox_dim": (125, 550), "hitbox_off": (95, 0),
+                "hitbox_dim": (40, 95), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -43,12 +43,12 @@ class MachadoCeruleo(MachadoBase):
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base3.png",
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT1/AT1-base4.png",
                 ],
-                "animation_speed": 105, "animation_display_scale": 0.2,
+                "animation_speed": 105, "animation_display_scale": 0.15,
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png"
             },
             2.0: {
                 "damage": 60.0, "range": 105.0, "cooldown": 1.3, "name_suffix": "da Constelação",
-                "hitbox_dim": (130, 600), "hitbox_off": (100, 0),
+                "hitbox_dim": (45, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv2.png", 
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -58,12 +58,12 @@ class MachadoCeruleo(MachadoBase):
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base3.png",
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base4.png",
                 ],
-                "animation_speed": 100, "animation_display_scale": 0.2,
+                "animation_speed": 100, "animation_display_scale": 0.15,
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E2.png" 
             },
             2.5: {
                 "damage": 75.0, "range": 110.0, "cooldown": 1.2, "name_suffix": "da Constelação +1",
-                "hitbox_dim": (135, 650), "hitbox_off": (105, 0),
+                "hitbox_dim": (50, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -73,12 +73,12 @@ class MachadoCeruleo(MachadoBase):
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base3.png",
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT2/AT2-base4.png",
                 ],
-                "animation_speed": 95, "animation_display_scale": 0.2,
+                "animation_speed": 95, "animation_display_scale": 0.15,
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E2.png"
             },
             3.0: {
                 "damage": 95.0, "range": 125.0, "cooldown": 1.0, "name_suffix": "Celestial",
-                "hitbox_dim": (140, 700), "hitbox_off": (110, 0),
+                "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv3.png", 
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
@@ -88,7 +88,7 @@ class MachadoCeruleo(MachadoBase):
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT3/AT3-base3.png",
                     "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Ataque/AT3/AT3-base4.png",
                 ],
-                "animation_speed": 90, "animation_display_scale": 0.2,
+                "animation_speed": 90, "animation_display_scale": 0.15,
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E3.png"
             }
         }

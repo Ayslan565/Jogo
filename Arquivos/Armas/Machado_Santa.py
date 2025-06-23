@@ -15,7 +15,7 @@ class MachadoDaDescidaSanta(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 20.0, "range": 90.0, "cooldown": 2.0, "name_suffix": "",
-                "hitbox_dim": (90, 90), "hitbox_off": (90 , 0),
+                "hitbox_dim": (35, 90), "hitbox_off": (90 , 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -32,7 +32,7 @@ class MachadoDaDescidaSanta(MachadoBase):
             },
             1.5: {
                 "damage": 25.0, "range": 95.0, "cooldown": 1.9, "name_suffix": "+1",
-                "hitbox_dim": (95, 95), "hitbox_off": (95 , 0),
+                "hitbox_dim": (40, 95), "hitbox_off": (95 , 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -47,7 +47,7 @@ class MachadoDaDescidaSanta(MachadoBase):
             },
             2.0: {
                 "damage": 32.0, "range": 105.0, "cooldown": 1.7, "name_suffix": "Purificador",
-                "hitbox_dim": (100, 100), "hitbox_off": (100, 0),
+                "hitbox_dim": (45, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -62,7 +62,7 @@ class MachadoDaDescidaSanta(MachadoBase):
             },
             2.5: {
                 "damage": 38.0, "range": 110.0, "cooldown": 1.6, "name_suffix": "Purificador +1",
-                "hitbox_dim": (105, 105), "hitbox_off": (105, 0),
+                "hitbox_dim": (50, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png",
                 "effect_scale_base": 0.25,
                 "animation_sprites": [
@@ -77,7 +77,7 @@ class MachadoDaDescidaSanta(MachadoBase):
             },
             3.0: {
                 "damage": 45.0, "range": 125.0, "cooldown": 1.4, "name_suffix": "Divino",
-                "hitbox_dim": (110, 110), "hitbox_off": (110, 0),
+                "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv3.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [

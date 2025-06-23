@@ -16,7 +16,7 @@ class MachadoMarfim(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 48.0, "range": 95.0, "cooldown": 1.8, "name_suffix": "",
-                "hitbox_dim": (90, 90), "hitbox_off": (90, 0),
+                "hitbox_dim": (35, 90), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -33,7 +33,7 @@ class MachadoMarfim(MachadoBase):
             },
             1.5: {
                 "damage": 53.0, "range": 100.0, "cooldown": 1.7, "name_suffix": "+1",
-                "hitbox_dim": (95, 95), "hitbox_off": (95, 0),
+                "hitbox_dim": (40, 95), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -48,7 +48,7 @@ class MachadoMarfim(MachadoBase):
             },
             2.0: {
                 "damage": 65.0, "range": 110.0, "cooldown": 1.5, "name_suffix": "Iluminado",
-                "hitbox_dim": (100, 100), "hitbox_off": (100, 0),
+                "hitbox_dim": (45, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv2.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -63,7 +63,7 @@ class MachadoMarfim(MachadoBase):
             },
             2.5: {
                 "damage": 70.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Iluminado +1",
-                "hitbox_dim": (105, 105), "hitbox_off": (105, 0),
+                "hitbox_dim": (50, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -78,7 +78,7 @@ class MachadoMarfim(MachadoBase):
             },
             3.0: {
                 "damage": 85.0, "range": 130.0, "cooldown": 1.2, "name_suffix": "Divino",
-                "hitbox_dim": (110, 110), "hitbox_off": (110, 0),
+                "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv3.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [

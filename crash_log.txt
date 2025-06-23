@@ -1,0 +1,12 @@
+Um erro fatal ocorreu:
+Traceback (most recent call last):
+  File "c:\Users\cmace\OneDrive\Documentos\GitHub\Jogo\Arquivos\Game.py", line 491, in <module>
+    main()
+    ~~~~^^
+  File "c:\Users\cmace\OneDrive\Documentos\GitHub\Jogo\Arquivos\Game.py", line 348, in main
+    if menu_obj: menu_obj.parar_musica()
+                 ~~~~~~~~~~~~~~~~~~~~~^^
+  File "c:\Users\cmace\OneDrive\Documentos\GitHub\Jogo\Arquivos\Menu.py", line 194, in parar_musica
+    pygame.mixer.music.stop()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+pygame.error: mixer not initialized
