@@ -1,5 +1,3 @@
-# Arquivo: Jogo/Arquivos/XP_Orb.py
-
 import pygame
 import math
 import random
@@ -7,14 +5,15 @@ import random
 class XPOrb(pygame.sprite.Sprite):
     """
     Classe base para uma orbe de XP que pode ser coletada pelo jogador.
-    Define a animação de pulsação e o tempo de vida.
+    Define a animação de pulsação, o tempo de vida e uma sombra para melhor visibilidade.
     """
     def __init__(self, x, y, xp_value, cor_nucleo, cor_brilho, raio):
         super().__init__()
 
         self.xp_value = xp_value
         self.raio = raio
-        self.tamanho_sprite = (raio * 2.5, raio * 2.5) # Área total para o brilho
+        # Aumentamos um pouco a área do sprite para garantir que a sombra não seja cortada
+        self.tamanho_sprite = (raio * 3, raio * 3)
         
         # Atributos para o efeito de pulsação
         self.cor_nucleo = cor_nucleo
@@ -32,7 +31,7 @@ class XPOrb(pygame.sprite.Sprite):
 
     def _desenhar_brilho(self):
         """
-        Desenha a orbe com um efeito de brilho pulsante.
+        Desenha a orbe com um efeito de brilho pulsante e uma sombra para contraste.
         """
         self.image.fill((0, 0, 0, 0)) # Limpa a superfície
         
@@ -44,7 +43,22 @@ class XPOrb(pygame.sprite.Sprite):
         
         centro_surf = (self.tamanho_sprite[0] // 2, self.tamanho_sprite[1] // 2)
 
-        # Desenha o brilho externo
+        # --- NOVO: Desenha a sombra projetada ---
+        # A sombra é escura, semitransparente e ligeiramente deslocada
+        cor_sombra = (0, 0, 0, 90) 
+        offset_sombra = self.raio * 0.15 # O deslocamento aumenta com o tamanho do orbe
+        pos_sombra = (centro_surf[0] + offset_sombra, centro_surf[1] + offset_sombra)
+        
+        # A sombra também pulsa junto com o brilho para um efeito mais coeso
+        pygame.draw.circle(
+            self.image,
+            cor_sombra,
+            pos_sombra,
+            int(raio_brilho_atual)
+        )
+        # --- FIM DA ADIÇÃO DA SOMBRA ---
+
+        # Desenha o brilho externo (agora sobre a sombra)
         pygame.draw.circle(
             self.image,
             (*self.cor_brilho, int(alpha_brilho)),
@@ -76,7 +90,7 @@ class XPOrb(pygame.sprite.Sprite):
         surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
 
 
-# --- Classes Específicas para cada tipo de Orbe ---
+# --- Classes Específicas para cada tipo de Orbe (com cores ajustadas) ---
 
 class XPOrbPequeno(XPOrb):
     """Orbe de 10 XP (Comum). Cor: Amarela."""
@@ -84,7 +98,8 @@ class XPOrbPequeno(XPOrb):
         super().__init__(
             x=x, y=y, 
             xp_value=10, 
-            cor_nucleo=(255, 255, 150), 
+            # Cor do núcleo mais vibrante para melhor contraste
+            cor_nucleo=(255, 255, 0), 
             cor_brilho=(200, 180, 50), 
             raio=6
         )
@@ -95,7 +110,8 @@ class XPOrbMedio(XPOrb):
         super().__init__(
             x=x, y=y, 
             xp_value=25, 
-            cor_nucleo=(180, 220, 255), 
+            # Cor do núcleo mais saturada
+            cor_nucleo=(100, 180, 255), 
             cor_brilho=(50, 120, 200), 
             raio=8
         )
@@ -106,7 +122,8 @@ class XPOrbGrande(XPOrb):
         super().__init__(
             x=x, y=y, 
             xp_value=35, 
-            cor_nucleo=(240, 200, 255), 
+            # Cor do núcleo mais intensa
+            cor_nucleo=(220, 160, 255), 
             cor_brilho=(160, 80, 200), 
             raio=10
         )
