@@ -15,7 +15,7 @@ class MachadoMacabro(MachadoBase):
         # --- DADOS DOS NÍVEIS ---
         self._stats_by_level = {
             1.0: {
-                "damage": 40.0, "range": 80.0, "cooldown": 2.0, "name_suffix": "",
+                "damage": 15.0, "range": 80.0, "cooldown": 2.0, "name_suffix": "",
                 "hitbox_dim": (35, 90), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png",
                 "effect_scale_base": 1.0,
@@ -32,7 +32,7 @@ class MachadoMacabro(MachadoBase):
                 "rarity": "Mítica", "weapon_type": "Machado de Gula", "element": "Sombra"
             },
             1.5: {
-                "damage": 45.0, "range": 85.0, "cooldown": 1.9, "name_suffix": "+1",
+                "damage": 20.0, "range": 85.0, "cooldown": 1.9, "name_suffix": "+1",
                 "hitbox_dim": (40, 95), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png",
                 "effect_scale_base": 1.05,
@@ -47,7 +47,7 @@ class MachadoMacabro(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png"
             },
             2.0: {
-                "damage": 55.0, "range": 95.0, "cooldown": 1.7, "name_suffix": "Insaciável",
+                "damage": 23.0, "range": 95.0, "cooldown": 1.7, "name_suffix": "Insaciável",
                 "hitbox_dim": (45, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png", 
                 "effect_scale_base": 1.1,
@@ -62,7 +62,7 @@ class MachadoMacabro(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-2.png" 
             },
             2.5: {
-                "damage": 60.0, "range": 100.0, "cooldown": 1.6, "name_suffix": "Insaciável +1",
+                "damage": 25.0, "range": 100.0, "cooldown": 1.6, "name_suffix": "Insaciável +1",
                 "hitbox_dim": (50, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png",
                 "effect_scale_base": 1.15,
@@ -78,7 +78,7 @@ class MachadoMacabro(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-2.png"
             },
             3.0: {
-                "damage": 75.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Devorador de Mundos",
+                "damage": 27.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Devorador de Mundos",
                 "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv3.png", 
                 "effect_scale_base": 0.25,

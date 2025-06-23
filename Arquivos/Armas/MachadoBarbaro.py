@@ -17,7 +17,7 @@ class MachadoBarbaro(MachadoBase):
         # Caminhos completos como strings, sem loops.
         self._stats_by_level = {
             1.0: {
-                "damage": 15.0, "range": 85.0, "cooldown": 2.2, "name_suffix": "",
+                "damage": 19.0, "range": 85.0, "cooldown": 2.2, "name_suffix": "",
                 "hitbox_dim": (45, 90), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv1.png",
                 "effect_scale_base": 1.0,
@@ -47,7 +47,7 @@ class MachadoBarbaro(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-1.png"
             },
             2.0: {
-                "damage": 25.0, "range": 100.0, "cooldown": 1.9, "name_suffix": "Reforçado",
+                "damage": 23.0, "range": 100.0, "cooldown": 1.9, "name_suffix": "Reforçado",
                 "hitbox_dim": (50, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv2.png",
                 "effect_scale_base": 1.1,
@@ -62,7 +62,7 @@ class MachadoBarbaro(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-2.png"
             },
             2.5: {
-                "damage": 30.0, "range": 105.0, "cooldown": 1.8, "name_suffix": "Reforçado +1",
+                "damage": 25.0, "range": 105.0, "cooldown": 1.8, "name_suffix": "Reforçado +1",
                 "hitbox_dim": (52, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv2.png",
                 "effect_scale_base": 1.1,
@@ -77,7 +77,7 @@ class MachadoBarbaro(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Bárbaro Cravejado/Machado E-2.png"
             },
             3.0: {
-                "damage": 35.0, "range": 120.0, "cooldown": 1.6, "name_suffix": "Brutal",
+                "damage": 27.0, "range": 120.0, "cooldown": 1.6, "name_suffix": "Brutal",
                 "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoBarbaro/Efeitos/ImpactoBrutoNv3.png",
                 "effect_scale_base": 0.50,

@@ -16,7 +16,7 @@ class EspadaPenitencia(Weapon):
         # --- DADOS DE PROGRESSÃO POR NÍVEL (COM VELOCIDADE DE ANIMAÇÃO DOBRADA) ---
         self._stats_by_level = {
             1.0: {
-                "damage": 30.0, "range": 100.0, "cooldown": 1.1, "name_suffix": "",
+                "damage": 31.0, "range": 100.0, "cooldown": 1.1, "name_suffix": "",
                 "hitbox_dim": (100 , 45),  # Hitbox horizontal
                 "hitbox_off": (90, 5),    # Posicionada à frente do jogador
                 "animation_sprites": [
@@ -35,7 +35,7 @@ class EspadaPenitencia(Weapon):
                 "description": "Forjada com a essência de pesadelos. Ouça os sussurros."
             },
             2.0: {
-                "damage": 32.0, "range": 105.0, "cooldown": 1.0, "name_suffix": "Atormentada",
+                "damage": 33.0, "range": 105.0, "cooldown": 1.0, "name_suffix": "Atormentada",
                 "hitbox_dim": (105 , 50), "hitbox_off": (95, 5),
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT 0.png",
@@ -48,7 +48,7 @@ class EspadaPenitencia(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E2.png"
             },
             3.0: {
-                "damage": 35.0, "range": 110.0, "cooldown": 0.9, "name_suffix": "Onisciente",
+                "damage": 34.0, "range": 110.0, "cooldown": 0.9, "name_suffix": "Onisciente",
                 "hitbox_dim": (110 , 55), "hitbox_off": (100, 5),
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT 0.png",

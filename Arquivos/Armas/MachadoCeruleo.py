@@ -15,7 +15,7 @@ class MachadoCeruleo(MachadoBase):
         # --- DADOS DOS NÍVEIS (ATUALIZADOS CONFORME SOLICITADO) ---
         self._stats_by_level = {
             1.0: {
-                "damage": 15.0, "range": 90.0, "cooldown": 1.6, "name_suffix": "",
+                "damage": 13.0, "range": 90.0, "cooldown": 1.6, "name_suffix": "",
                 "hitbox_dim": (35, 90),  # Hitbox ALTA para ataque vertical
                 "hitbox_off": (90, 0),    # Posicionado à FRENTE do jogador
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv1.png",
@@ -32,7 +32,7 @@ class MachadoCeruleo(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png",
             },
             1.5: {
-                "damage": 45.0, "range": 95.0, "cooldown": 1.5, "name_suffix": "+1",
+                "damage": 16.0, "range": 95.0, "cooldown": 1.5, "name_suffix": "+1",
                 "hitbox_dim": (40, 95), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv1.png",
                 "effect_scale_base": 1.05,
@@ -47,7 +47,7 @@ class MachadoCeruleo(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E1.png"
             },
             2.0: {
-                "damage": 60.0, "range": 105.0, "cooldown": 1.3, "name_suffix": "da Constelação",
+                "damage": 20.0, "range": 105.0, "cooldown": 1.3, "name_suffix": "da Constelação",
                 "hitbox_dim": (45, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv2.png", 
                 "effect_scale_base": 1.1,
@@ -62,7 +62,7 @@ class MachadoCeruleo(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E2.png" 
             },
             2.5: {
-                "damage": 75.0, "range": 110.0, "cooldown": 1.2, "name_suffix": "da Constelação +1",
+                "damage": 25.0, "range": 110.0, "cooldown": 1.2, "name_suffix": "da Constelação +1",
                 "hitbox_dim": (50, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv2.png",
                 "effect_scale_base": 1.15,
@@ -77,7 +77,7 @@ class MachadoCeruleo(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado Cerúleo da Estrela Cadente/Machado dos Impuros -E2.png"
             },
             3.0: {
-                "damage": 95.0, "range": 125.0, "cooldown": 1.0, "name_suffix": "Celestial",
+                "damage": 29.0, "range": 125.0, "cooldown": 1.0, "name_suffix": "Celestial",
                 "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoCeruleo/Efeitos/ImpactoEstelarNv3.png", 
                 "effect_scale_base": 1.2,

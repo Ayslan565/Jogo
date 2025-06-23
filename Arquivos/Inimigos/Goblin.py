@@ -25,7 +25,7 @@ except ImportError as e:
             self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150
             self.hit_flash_color = (255, 255, 255, 128)
             self.contact_cooldown = 1000; self.last_contact_time = 0
-            self.sprites = [self.image]; self.sprite_index = 0;
+            self.sprites = [self.image]; self.sprite_index = 0
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
             self.x = float(x); self.y = float(y)
             self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa

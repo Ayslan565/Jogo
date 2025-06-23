@@ -14,7 +14,7 @@ class MachadoDaDescidaSanta(MachadoBase):
 
         self._stats_by_level = {
             1.0: {
-                "damage": 20.0, "range": 90.0, "cooldown": 2.0, "name_suffix": "",
+                "damage": 24.0, "range": 90.0, "cooldown": 2.0, "name_suffix": "",
                 "hitbox_dim": (35, 90), "hitbox_off": (90 , 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv1.png",
                 "effect_scale_base": 1.0,
@@ -46,7 +46,7 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E1.png"
             },
             2.0: {
-                "damage": 32.0, "range": 105.0, "cooldown": 1.7, "name_suffix": "Purificador",
+                "damage": 26.0, "range": 105.0, "cooldown": 1.7, "name_suffix": "Purificador",
                 "hitbox_dim": (45, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png",
                 "effect_scale_base": 1.1,
@@ -61,7 +61,7 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.png"
             },
             2.5: {
-                "damage": 38.0, "range": 110.0, "cooldown": 1.6, "name_suffix": "Purificador +1",
+                "damage": 27.0, "range": 110.0, "cooldown": 1.6, "name_suffix": "Purificador +1",
                 "hitbox_dim": (50, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv2.png",
                 "effect_scale_base": 0.25,
@@ -76,7 +76,7 @@ class MachadoDaDescidaSanta(MachadoBase):
                 "ui_icon": "Sprites/Armas/Machados/Machado da Descida Santa/E2.png"
             },
             3.0: {
-                "damage": 45.0, "range": 125.0, "cooldown": 1.4, "name_suffix": "Divino",
+                "damage": 29.0, "range": 125.0, "cooldown": 1.4, "name_suffix": "Divino",
                 "hitbox_dim": (55, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDaDescidaSanta/Efeitos/ImpactoSagradoNv3.png",
                 "effect_scale_base": 1.2,

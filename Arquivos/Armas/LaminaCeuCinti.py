@@ -33,7 +33,7 @@ class LaminaDoCeuCintilante(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E1.png" # CORRIGIDO: .jpg para .png
             },
             2.0: {
-                "damage": 30.0, "range": 90.0, "cooldown": 0.65, "name_suffix": "Meteórica",
+                "damage": 32.0, "range": 90.0, "cooldown": 0.65, "name_suffix": "Meteórica",
                 "hitbox_dim": (105 , 50), "hitbox_off": (95 , 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv2.png",
                 "effect_scale_base": 0.25,
@@ -49,7 +49,7 @@ class LaminaDoCeuCintilante(Weapon):
                 "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E2.png" # CORRIGIDO: .jpg para .png
             },
             3.0: {
-                "damage": 33.0, "range": 105.0, "cooldown": 0.55, "name_suffix": "da Supernova",
+                "damage": 37.0, "range": 105.0, "cooldown": 0.55, "name_suffix": "da Supernova",
                 "hitbox_dim": (110 , 55), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv3.png",
                 "effect_scale_base": 1.4,
