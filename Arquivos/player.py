@@ -45,7 +45,7 @@ class Player(pygame.sprite.Sprite):
     Classe que representa o jogador no jogo.
     Gerencia movimento, animações, vida, a arma equipada, e invencibilidade temporária.
     """
-    def __init__(self, velocidade=5, vida_maxima=150):
+    def __init__(self, velocidade=15, vida_maxima=150):
         super().__init__()
 
         # Posição inicial aleatória (ajuste para posição definida se necessário)

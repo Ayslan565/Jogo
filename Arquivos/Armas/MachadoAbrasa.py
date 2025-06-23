@@ -17,7 +17,7 @@ class MachadoDoFogoAbrasador(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 28.0, "range": 100.0, "cooldown": 2.1, "name_suffix": "",
-                "hitbox_dim": (100, 100), "hitbox_off": (100, 0),
+                "hitbox_dim": (100, 100), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -32,7 +32,7 @@ class MachadoDoFogoAbrasador(MachadoBase):
             },
             1.5: {
                 "damage": 34.0, "range": 100.0, "cooldown": 2.0, "name_suffix": "+1",
-                "hitbox_dim": (95, 105), "hitbox_off": (0, 0),
+                "hitbox_dim": (95, 105), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -47,7 +47,7 @@ class MachadoDoFogoAbrasador(MachadoBase):
             },
             2.0: {
                 "damage": 42.0, "range": 110.0, "cooldown": 1.8, "name_suffix": "Infernal",
-                "hitbox_dim": (100, 110), "hitbox_off": (0, 0),
+                "hitbox_dim": (100, 110), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv2.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -62,7 +62,7 @@ class MachadoDoFogoAbrasador(MachadoBase):
             },
             2.5: {
                 "damage": 50.0, "range": 115.0, "cooldown": 1.7, "name_suffix": "Infernal +1",
-                "hitbox_dim": (105, 115), "hitbox_off": (0, 0),
+                "hitbox_dim": (105, 115), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -77,7 +77,7 @@ class MachadoDoFogoAbrasador(MachadoBase):
             },
             3.0: {
                 "damage": 60.0, "range": 130.0, "cooldown": 1.5, "name_suffix": "Cataclísmico",
-                "hitbox_dim": (110, 120), "hitbox_off": (0, 0),
+                "hitbox_dim": (110, 120), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoDoFogoAbrasador/Efeitos/ImpactoChamaNv3.png",
                 "effect_scale_base": 0.20,
                 "animation_sprites": [

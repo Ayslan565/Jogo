@@ -16,7 +16,7 @@ class MachadoMarfim(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 48.0, "range": 95.0, "cooldown": 1.8, "name_suffix": "",
-                "hitbox_dim": (90, 90), "hitbox_off": (0, 0),
+                "hitbox_dim": (90, 90), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -26,14 +26,14 @@ class MachadoMarfim(MachadoBase):
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base3.png",
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base4.png",
                 ],
-                "animation_speed": 100, "animation_display_scale": 1.15,
+                "animation_speed": 100, "animation_display_scale": 0.28,
                 "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E1.png",
                 "description": "Um machado elegante feito de marfim polido, que brilha com uma luz suave.",
                 "rarity": "Épica", "weapon_type": "Machado Nobre", "element": "Luz"
             },
             1.5: {
                 "damage": 53.0, "range": 100.0, "cooldown": 1.7, "name_suffix": "+1",
-                "hitbox_dim": (95, 95), "hitbox_off": (0, 0),
+                "hitbox_dim": (95, 95), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -43,12 +43,12 @@ class MachadoMarfim(MachadoBase):
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base3.png",
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT1/AT1-base4.png",
                 ],
-                "animation_speed": 95, "animation_display_scale": 1.15,
+                "animation_speed": 95, "animation_display_scale": 0.28,
                 "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E1.png"
             },
             2.0: {
                 "damage": 65.0, "range": 110.0, "cooldown": 1.5, "name_suffix": "Iluminado",
-                "hitbox_dim": (100, 100), "hitbox_off": (0, 0),
+                "hitbox_dim": (100, 100), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv2.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -58,12 +58,12 @@ class MachadoMarfim(MachadoBase):
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base3.png",
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base4.png",
                 ],
-                "animation_speed": 90, "animation_display_scale": 1.2,
+                "animation_speed": 90, "animation_display_scale": 0.28,
                 "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E2.png"
             },
             2.5: {
                 "damage": 70.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Iluminado +1",
-                "hitbox_dim": (105, 105), "hitbox_off": (0, 0),
+                "hitbox_dim": (105, 105), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -73,12 +73,12 @@ class MachadoMarfim(MachadoBase):
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base3.png",
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT2/AT2-base4.png",
                 ],
-                "animation_speed": 85, "animation_display_scale": 1.2,
+                "animation_speed": 85, "animation_display_scale": 0.28,
                 "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E2.png"
             },
             3.0: {
                 "damage": 85.0, "range": 130.0, "cooldown": 1.2, "name_suffix": "Divino",
-                "hitbox_dim": (110, 110), "hitbox_off": (0, 0),
+                "hitbox_dim": (110, 110), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMarfim/Efeitos/ImpactoLuzNv3.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
@@ -88,7 +88,7 @@ class MachadoMarfim(MachadoBase):
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT3/AT3-base3.png",
                     "Sprites/Armas/Machados/Machado do Marfim Resplendor/Ataque/AT3/AT3-base4.png",
                 ],
-                "animation_speed": 80, "animation_display_scale": 1.25,
+                "animation_speed": 80, "animation_display_scale": 0.28,
                 "ui_icon": "Sprites/Armas/Machados/Machado do Marfim Resplendor/E3.png"
             }
         }

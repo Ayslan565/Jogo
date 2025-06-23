@@ -17,8 +17,8 @@ class LaminaDoCeuCintilante(Weapon):
         self._stats_by_level = {
             1.0: {
                 "damage": 38.0, "range": 80.0, "cooldown": 0.7, "name_suffix": "",
-                "hitbox_dim": (400, 100),
-                "hitbox_off": (100, 0),
+                "hitbox_dim": (490, 105),
+                "hitbox_off": (90, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv1.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -29,12 +29,12 @@ class LaminaDoCeuCintilante(Weapon):
                     "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT1/AT1-base4.png",
                 ],
                 "animation_speed": 70,
-                "animation_display_scale": 0.25,
+                "animation_display_scale": 0.15,
                 "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E1.png" # CORRIGIDO: .jpg para .png
             },
             2.0: {
                 "damage": 52.0, "range": 90.0, "cooldown": 0.65, "name_suffix": "Meteórica",
-                "hitbox_dim": (400, 100), "hitbox_off": (100, 0),
+                "hitbox_dim": (495, 105), "hitbox_off": (95 , 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv2.png",
                 "effect_scale_base": 0.25,
                 "animation_sprites": [
@@ -45,12 +45,12 @@ class LaminaDoCeuCintilante(Weapon):
                     "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT2/AT2-base4.png",
                 ],
                 "animation_speed": 60,
-                "animation_display_scale": 0.25,
+                "animation_display_scale": 0.15,
                 "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E2.png" # CORRIGIDO: .jpg para .png
             },
             3.0: {
                 "damage": 75.0, "range": 105.0, "cooldown": 0.55, "name_suffix": "da Supernova",
-                "hitbox_dim": (400, 100), "hitbox_off": (100, 0),
+                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Efeitos/ImpactoEstelarNv3.png",
                 "effect_scale_base": 1.4,
                 "animation_sprites": [
@@ -61,7 +61,7 @@ class LaminaDoCeuCintilante(Weapon):
                     "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/Ataque/AT3/AT3-base4.png",
                 ],
                 "animation_speed": 50,
-                "animation_display_scale": 1.35,
+                "animation_display_scale": 0.15,
                 "ui_icon": "Sprites/Armas/Espadas/Lâmina do Ceu Cintilante/E3.jpg" # Mantido como .jpg conforme a imagem
             }
         }

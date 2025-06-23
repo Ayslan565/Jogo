@@ -17,8 +17,8 @@ class EspadaPenitencia(Weapon):
         self._stats_by_level = {
             1.0: {
                 "damage": 22.0, "range": 100.0, "cooldown": 1.1, "name_suffix": "",
-                "hitbox_dim": (120, 40),  # Hitbox horizontal
-                "hitbox_off": (80, 10),    # Posicionada à frente do jogador
+                "hitbox_dim": (490, 95),  # Hitbox horizontal
+                "hitbox_off": (90, 5),    # Posicionada à frente do jogador
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT 0.png",
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT1.png",
@@ -30,13 +30,13 @@ class EspadaPenitencia(Weapon):
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT1/AT7.png"
                 ],
                 # CORREÇÃO: Velocidade alterada de 150 para 75
-                "animation_speed": 610, "animation_display_scale": 0.50,
+                "animation_speed": 50, "animation_display_scale": 0.50,
                 "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E1.png",
                 "description": "Forjada com a essência de pesadelos. Ouça os sussurros."
             },
             2.0: {
                 "damage": 30.0, "range": 105.0, "cooldown": 1.0, "name_suffix": "Atormentada",
-                "hitbox_dim": (130, 45), "hitbox_off": (80, 10),
+                "hitbox_dim": (495, 100), "hitbox_off": (95, 5),
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT 0.png",
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT1.png",
@@ -44,12 +44,12 @@ class EspadaPenitencia(Weapon):
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT2/AT3.png"
                 ],
                 # CORREÇÃO: Velocidade alterada de 150 para 75
-                "animation_speed": 610, "animation_display_scale": 0.50,
+                "animation_speed": 50, "animation_display_scale": 0.50,
                 "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E2.png"
             },
             3.0: {
                 "damage": 40.0, "range": 110.0, "cooldown": 0.9, "name_suffix": "Onisciente",
-                "hitbox_dim": (140, 50), "hitbox_off": (80, 5),
+                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
                 "animation_sprites": [
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT 0.png",
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT1.png",
@@ -57,7 +57,7 @@ class EspadaPenitencia(Weapon):
                     "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/Ataque/AT3/AT3.png"
                 ],
                 # CORREÇÃO: Velocidade alterada de 150 para 75
-                "animation_speed": 610, "animation_display_scale": 0.50,
+                "animation_speed": 50, "animation_display_scale": 0.50,
                 "ui_icon": "Sprites/Armas/Espadas/Espada do Olhar da Penitencia/E3.png"
             }
         }

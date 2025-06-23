@@ -16,7 +16,7 @@ class MachadoMacabro(MachadoBase):
         self._stats_by_level = {
             1.0: {
                 "damage": 40.0, "range": 80.0, "cooldown": 2.0, "name_suffix": "",
-                "hitbox_dim": (85, 85), "hitbox_off": (0, 0),
+                "hitbox_dim": (120, 500), "hitbox_off": (90, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -26,14 +26,14 @@ class MachadoMacabro(MachadoBase):
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base3.png",
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base4.png",
                 ],
-                "animation_speed": 115, "animation_display_scale": 0.25,
+                "animation_speed": 115, "animation_display_scale": 0.2,
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png",
                 "description": "Um machado grotesco que parece faminto, com runas que pulsam com uma luz sinistra.",
                 "rarity": "Mítica", "weapon_type": "Machado de Gula", "element": "Sombra"
             },
             1.5: {
                 "damage": 45.0, "range": 85.0, "cooldown": 1.9, "name_suffix": "+1",
-                "hitbox_dim": (90, 90), "hitbox_off": (0, 0),
+                "hitbox_dim": (125, 550), "hitbox_off": (95, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -43,12 +43,12 @@ class MachadoMacabro(MachadoBase):
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base3.png",
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT1/AT1-base4.png",
                 ],
-                "animation_speed": 110, "animation_display_scale": 0.25,
+                "animation_speed": 110, "animation_display_scale": 0.2,
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-1.png"
             },
             2.0: {
                 "damage": 55.0, "range": 95.0, "cooldown": 1.7, "name_suffix": "Insaciável",
-                "hitbox_dim": (95, 95), "hitbox_off": (0, 0),
+                "hitbox_dim": (130, 600), "hitbox_off": (100, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png", 
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -58,12 +58,12 @@ class MachadoMacabro(MachadoBase):
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base3.png",
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base4.png",
                 ],
-                "animation_speed": 105, "animation_display_scale": 0.255,
+                "animation_speed": 105, "animation_display_scale": 0.2,
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-2.png" 
             },
             2.5: {
                 "damage": 60.0, "range": 100.0, "cooldown": 1.6, "name_suffix": "Insaciável +1",
-                "hitbox_dim": (100, 100), "hitbox_off": (0, 0),
+                "hitbox_dim": (135, 650), "hitbox_off": (105, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -74,12 +74,12 @@ class MachadoMacabro(MachadoBase):
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base3.png",
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT2/AT2-base4.png",
                 ],
-                "animation_speed": 100, "animation_display_scale": 0.255,
+                "animation_speed": 100, "animation_display_scale": 0.2,
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-2.png"
             },
             3.0: {
                 "damage": 75.0, "range": 115.0, "cooldown": 1.4, "name_suffix": "Devorador de Mundos",
-                "hitbox_dim": (105, 105), "hitbox_off": (0, 0),
+                "hitbox_dim": (140, 700), "hitbox_off": (110, 0),
                 "effect_sprite_base": "Sprites/Armas/Machados/MachadoMacabro/Efeitos/ImpactoVorazNv3.png", 
                 "effect_scale_base": 0.25,
                 "animation_sprites": [
@@ -89,7 +89,7 @@ class MachadoMacabro(MachadoBase):
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT3/AT3-base3.png",
                     "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/Ataque/AT3/AT3-base4.png",
                 ],
-                "animation_speed": 95, "animation_display_scale": 0.25,
+                "animation_speed": 95, "animation_display_scale": 0.20,
                 "ui_icon": "Sprites/Armas/Machados/Machado Macabro da Gula Infinita/E-3.png"
             }
         }

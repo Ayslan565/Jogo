@@ -17,8 +17,8 @@ class EspadaFogoAzul(Weapon):
         self._stats_by_level = {
             1.0: {
                 "damage": 42.0, "range": 110.0, "cooldown": 1.3, "name_suffix": "",
-                "hitbox_dim": (130, 50), # Hitbox horizontal
-                "hitbox_off": (90, 15),    # Posicionada à frente do jogador
+                "hitbox_dim": (480, 85), # Hitbox horizontal
+                "hitbox_off": (80, 5),    # Posicionada à frente do jogador
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaFogoAzul/Efeitos/ImpactoAzulNv1.png",
                 "effect_scale_base": 1.0,
                 "animation_sprites": [
@@ -27,13 +27,13 @@ class EspadaFogoAzul(Weapon):
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base3.png",
                 ],
-                "animation_speed": 90, "animation_display_scale": 1.6,
+                "animation_speed": 90, "animation_display_scale": 0.3,
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png",
                 "description": "Uma lâmina elegante que arde com uma chama azul mística."
             },
             1.5: {
                 "damage": 48.0, "range": 115.0, "cooldown": 1.25, "name_suffix": "+1",
-                "hitbox_dim": (135, 50), "hitbox_off": (90, 15),
+                "hitbox_dim": (485, 90), "hitbox_off": (85, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaFogoAzul/Efeitos/ImpactoAzulNv1.png",
                 "effect_scale_base": 1.05,
                 "animation_sprites": [
@@ -42,12 +42,12 @@ class EspadaFogoAzul(Weapon):
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT1/AT1-base3.png",
                 ],
-                "animation_speed": 85, "animation_display_scale": 1.6,
+                "animation_speed": 85, "animation_display_scale": 0.3,
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png"
             },
             2.0: {
                 "damage": 60.0, "range": 120.0, "cooldown": 1.1, "name_suffix": " Cerúlea",
-                "hitbox_dim": (140, 55), "hitbox_off": (95, 10),
+                "hitbox_dim": (490, 95), "hitbox_off": (90, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaFogoAzul/Efeitos/ImpactoAzulNv2.png",
                 "effect_scale_base": 1.1,
                 "animation_sprites": [
@@ -56,12 +56,12 @@ class EspadaFogoAzul(Weapon):
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base3.png",
                 ],
-                "animation_speed": 80, "animation_display_scale": 1.65,
+                "animation_speed": 80, "animation_display_scale": 0.3,
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E2.png"
             },
             2.5: {
                 "damage": 65.0, "range": 125.0, "cooldown": 1.05, "name_suffix": " Cerúlea +1",
-                "hitbox_dim": (145, 55), "hitbox_off": (95, 10),
+                "hitbox_dim": (495, 100), "hitbox_off": (95, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaFogoAzul/Efeitos/ImpactoAzulNv2.png",
                 "effect_scale_base": 1.15,
                 "animation_sprites": [
@@ -70,12 +70,12 @@ class EspadaFogoAzul(Weapon):
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT2/AT2-base3.png",
                 ],
-                "animation_speed": 75, "animation_display_scale": 1.65,
+                "animation_speed": 75, "animation_display_scale": 0.3,
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E2.png"
             },
             3.0: {
                 "damage": 80.0, "range": 135.0, "cooldown": 0.9, "name_suffix": " Sacra Cerúlea",
-                "hitbox_dim": (150, 60), "hitbox_off": (100, 5),
+                "hitbox_dim": (500, 105), "hitbox_off": (100, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaFogoAzul/Efeitos/ImpactoAzulNv3.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
@@ -84,7 +84,7 @@ class EspadaFogoAzul(Weapon):
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT3/AT3-base2.png",
                     "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Ataque/AT3/AT3-base3.png",
                 ],
-                "animation_speed": 70, "animation_display_scale": 1.7,
+                "animation_speed": 70, "animation_display_scale": 0.3,
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E3.png"
             }
         }

@@ -15,8 +15,8 @@ class EspadaSacraCerulea(Weapon):
         self._stats_by_level = {
             1.0: {
                 "damage": 10.0, "range": 100.0, "cooldown": 1.2, "name_suffix": "",
-                "hitbox_dim": (300, 300),
-                "hitbox_off": (300, 50),
+                "hitbox_dim": (490, 85),
+                "hitbox_off": (90, 5),
                 "animation_speed": 90,
                 "animation_display_scale": 0.15, # <- CONTROLE A ESCALA DO NÍVEL 1 AQUI
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E1.png",
@@ -30,8 +30,8 @@ class EspadaSacraCerulea(Weapon):
             },
             2.0: {
                 "damage": 35.0, "range": 105.0, "cooldown": 1.1, "name_suffix": " Desperta",
-                "hitbox_dim": (300, 300),
-                "hitbox_off": (85, 10),
+                "hitbox_dim": (495, 90),
+                "hitbox_off": (95, 5),
                 "animation_speed": 85,
                 "animation_display_scale": 0.20, # <- CONTROLE A ESCALA DO NÍVEL 2 AQUI
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E2.png",
@@ -44,8 +44,8 @@ class EspadaSacraCerulea(Weapon):
             },
             3.0: {
                 "damage": 48.0, "range": 110.0, "cooldown": 1.0, "name_suffix": " Celestial",
-                "hitbox_dim": (300, 300),
-                "hitbox_off": (90, 5),
+                "hitbox_dim": (500, 105),
+                "hitbox_off": (100, 5),
                 "animation_speed": 80,
                 "animation_display_scale": 0.25, # <- CONTROLE A ESCALA DO NÍVEL 3 AQUI
                 "ui_icon": "Sprites/Armas/Espadas/Espada de Fogo azul Sacra Cerulea/Espada Dos Deuses Caidos -E3.png",
