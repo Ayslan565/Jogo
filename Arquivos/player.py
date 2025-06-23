@@ -5,6 +5,7 @@ import os
 import time
 from importacoes_Player import * # Assume que este arquivo importa Vida e Weapon, e as classes de armas
 from import_Loja import *
+from vida import *
 
 # A classe EspadaBrasas é importada mas não parece corresponder diretamente a um item na lista da loja fornecida.
 # Se "Espada Sacra Das Brasas" for um item da loja, adicione-o ao SHOP_ITEM_TO_WEAPON_CLASS_MAP.
