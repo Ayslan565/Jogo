@@ -91,7 +91,7 @@ class Espantalho(InimigoBase):
         vida_espantalho = 40 
         dano_contato_espantalho = 5 
         xp_espantalho = 20
-        self.moedas_drop = 11
+        self.moedas_drop = 1500 
 
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espantalho/Espantalho.png" 
 

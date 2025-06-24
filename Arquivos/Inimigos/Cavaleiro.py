@@ -106,8 +106,7 @@ class Cavaleiro(InimigoBase):
         vida_Cavaleiro = 50 
         dano_contato_Cavaleiro = 5 
         xp_Cavaleiro = 20
-        self.moedas_drop = 11
-
+        self.moedas_drop = 1500
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Cavaleiro/Cavaleiro.png" 
 
         super().__init__(

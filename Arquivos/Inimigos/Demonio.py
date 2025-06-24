@@ -95,7 +95,7 @@ class Demonio(InimigoBase):
                          dano_contato=10,
                          xp_value=75, 
                          sprite_path="Sprites/Inimigos/Demonio/A(1).png")
-        self.moedas_drop = 12
+        self.moedas_drop = 1500 
         
         self.sprites = Demonio.sprites_originais
         self.sprite_index = 0

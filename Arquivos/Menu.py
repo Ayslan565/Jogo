@@ -19,13 +19,13 @@ VERMELHO = (255, 0, 0)
 FONTE_RETRO_PATH = "Fontes/Retro Gaming.ttf"
 IMAGEM_FUNDO_MENU_PATH = "Sprites/Menu/Menu.png"
 MUSICAS_MENU = [
-    "Musica/Menu/Faixa 1.mp3",
-    "Musica/Menu/Faixa 2.mp3",
-    "Musica/Menu/Faixa 3.mp3",
-    "Musica/Menu/Faixa 4.mp3",
-    "Musica/Menu/Faixa 5.mp3",
-    "Musica/Menu/Faixa 6.mp3",
-    "Musica/Menu/Faixa 7.mp3",
+    os.path.join("Musica", "Menu", "Faixa 1.mp3"),
+    os.path.join("Musica", "Menu", "Faixa 2.mp3"),
+    os.path.join("Musica", "Menu", "Faixa 3.mp3"),
+    os.path.join("Musica", "Menu", "Faixa 4.mp3"),
+    os.path.join("Musica", "Menu", "Faixa 5.mp3"),
+    os.path.join("Musica", "Menu", "Faixa 6.mp3"),
+    os.path.join("Musica", "Menu", "Faixa 7.mp3"),
 ]
 
 class Menu:
