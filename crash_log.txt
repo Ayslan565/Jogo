@@ -1,15 +1,8 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 527, in <module>
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 556, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 346, in main
-    menu_obj = Menu(largura_tela, altura_tela) if Menu else None
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 118, in __init__
-    self.tocar_proxima_musica()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 292, in tocar_proxima_musica
-    self.atualizar_volumes()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 299, in atualizar_volumes
-    pygame.mixer.music.set_volume(self.music_volume)
-                                  ^^^^^^^^^^^^^^^^^
-AttributeError: 'Menu' object has no attribute 'music_volume'
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 335, in main
+    for arvore in arvores:
+                  ^^^^^^^
+UnboundLocalError: cannot access local variable 'arvores' where it is not associated with a value

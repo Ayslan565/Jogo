@@ -159,13 +159,11 @@ def inicializar_jogo(largura_tela, altura_tela):
         gerador_cogumelos = GeradorCogumelos()
     else:
         gerador_cogumelos = None
-        # print("ERRO (Game.py): Classe GeradorCogumelos não foi importada.")
 
     if GeradorXP:
         gerador_xp = GeradorXP()
     else:
         gerador_xp = None
-        # print("ERRO (Game.py): Classe GeradorXP não foi importada.")
 
     return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, \
            gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario, \
@@ -245,6 +243,20 @@ def verificar_colisao_orbes_xp(jogador_obj, gerador_xp_obj):
     for orbe in orbes_coletadas:
         jogador_obj.xp_manager.gain_xp(orbe.xp_value)
 
+# MODIFICAÇÃO: Função dedicada para atualizar as árvores
+def atualizar_todas_as_arvores(lista_de_arvores, nova_estacao_idx):
+    """
+    Função auxiliar que percorre a lista de árvores e comanda cada uma
+    a atualizar seu sprite para a nova estação.
+    """
+    if not lista_de_arvores:
+        return
+    print(f"COMANDO: Atualizando {len(lista_de_arvores)} árvores para o índice de estação {nova_estacao_idx}.")
+    for arvore in lista_de_arvores:
+        if hasattr(arvore, 'atualizar_sprite'):
+            arvore.atualizar_sprite(nova_estacao_idx)
+    print("Atualização das árvores concluída.")
+
 
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
                   gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui,
@@ -306,10 +318,6 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     if xp_manager:
         xp_manager.draw(janela_surf)
     
-    if gerenciador_de_moedas and jogador_obj:
-        largura_tela_atual = janela_surf.get_width()
-        gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, largura_tela_atual - 220, 20)
-    
     if not jogo_pausado_flag and barra_inventario_ui and jogador_obj:
         barra_inventario_ui.desenhar(janela_surf, jogador_obj)
 
@@ -328,7 +336,6 @@ def main():
         pygame.mixer.set_num_channels(32)
         mixer_initialized = True
     except pygame.error as e:
-        # print(f"AVISO (main): Falha ao inicializar pygame.mixer: {e}")
         pass
 
     try:
@@ -388,7 +395,6 @@ def main():
         
         if jogador is None: break
         if Luta_boss is None: 
-            # print("ERRO CRÍTICO: Módulo Luta_boss não foi carregado.")
             break
 
         if mixer_initialized: tocar_musica_jogo()
@@ -407,22 +413,17 @@ def main():
                     game_is_running_flag = False
                 
                 if event.type == pygame.KEYDOWN:
-                    # Lógica para PAUSAR/DESPAUSAR (ESC e TAB)
                     if event.key == pygame.K_ESCAPE:
                         if jogo_pausado and barra_inventario.visao_inventario_aberta:
-                            # Se o inventário estiver aberto, o ESC o fecha
                             barra_inventario.toggle_visao_inventario(jogador)
                             jogo_pausado = False
                             if mixer_initialized: pygame.mixer.music.unpause()
                         elif not jogo_pausado:
-                            # Se o jogo não estiver pausado, abre o menu de pausa
                             if mixer_initialized: pygame.mixer.music.pause()
                             action, music_vol, sfx_vol = pause_manager.show_menu()
                             
-                            # Atualiza volumes globais
                             game_music_volume, game_sfx_volume = music_vol, sfx_vol
                             
-                            # Lida com a ação de retorno do menu de pausa
                             if action == "main_menu":
                                 running_loop = False
                                 break 
@@ -430,7 +431,7 @@ def main():
                                 running_loop = False
                                 game_is_running_flag = False
                                 break
-                            else: # Inclui "resume_game" e qualquer outra ação que não seja sair
+                            else:
                                 if mixer_initialized:
                                     pygame.mixer.music.set_volume(game_music_volume)
                                     pygame.mixer.music.unpause()
@@ -443,7 +444,6 @@ def main():
                         elif not jogo_pausado and mixer_initialized:
                             pygame.mixer.music.unpause()
                 
-                # Passa eventos para a barra de inventário (drag and drop, etc.)
                 if barra_inventario and jogador:
                     barra_inventario.handle_input(event, jogador)
             
@@ -457,7 +457,6 @@ def main():
                 if hasattr(jogador, 'update_projectiles'):
                     jogador.update_projectiles()
                 
-                # Colisão de projéteis do jogador
                 if gerenciador_inimigos and jogador and hasattr(jogador, 'projeteis_ativos'):
                     for projetil in list(jogador.projeteis_ativos):
                         inimigos_atingidos = pygame.sprite.spritecollide(projetil, gerenciador_inimigos.inimigos, False)
@@ -487,8 +486,17 @@ def main():
 
                 if esta_luta_ativa():
                     sinal_luta = atualizar_luta(jogador, est, gerenciador_inimigos)
+                    
+                    # MODIFICAÇÃO: Lógica refatorada para atualizar as árvores
                     if sinal_luta == "FIM_DA_LUTA":
-                        if gerenciador_eventos: gerenciador_eventos.reativar_eventos_climatico()
+                        mudou_de_estacao = est.avancar_estacao_apos_chefe()
+                        if mudou_de_estacao:
+                            # Chama a função auxiliar para atualizar todas as árvores
+                            atualizar_todas_as_arvores(arvores, est.indice_estacao_atual)
+                        
+                        if gerenciador_eventos: 
+                            gerenciador_eventos.reativar_eventos_climaticos()
+
                     jogador.mover(teclas, [])
                     jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
                     verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
@@ -515,16 +523,15 @@ def main():
                         jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
                     verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
                     
-                    # Lógica para entrar na loja
                     if shop_elements and loja_core and teclas[pygame.K_e]:
                         shop_rect = shop_elements.get_current_shop_rect()
                         if shop_rect and jogador.rect_colisao.colliderect(shop_rect):
-                            jogo_pausado = True # PAUSA O JOGO
+                            jogo_pausado = True
                             if mixer_initialized: pygame.mixer.music.pause()
                             loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
                             if mixer_initialized: pygame.mixer.music.unpause()
                             shop_elements.reset_shop_spawn()
-                            jogo_pausado = False # DESPAUSA AO SAIR DA LOJA
+                            jogo_pausado = False
 
             # --- VERIFICAÇÕES FINAIS E DESENHO (RODAM MESMO SE PAUSADO) ---
             if not jogador.esta_vivo():
@@ -558,14 +565,11 @@ if __name__ == "__main__":
         main()
     except Exception:
         exc_text = traceback.format_exc()
-        # print(exc_text)
         if pygame.get_init():
             if 'gerenciador_inimigos' in locals() and gerenciador_inimigos:
                 gerenciador_inimigos.stop_threads()
             pygame.quit()
-        # Salva o log de erro em um arquivo para facilitar a depuração
         with open("crash_log.txt", "w") as f:
             f.write("Um erro fatal ocorreu:\n")
             f.write(exc_text)
-        # input("\nPressione Enter para sair após o erro fatal...")
-        sys.exit(1)
+        sys.exit

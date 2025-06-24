@@ -83,7 +83,7 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
     if hasattr(jogador, 'velocidade'):
         _velocidade_original_jogador = jogador.velocidade
         jogador.velocidade *= 5.25 
-        print(f"DEBUG(Luta_boss): Velocidade do jogador aumentada para {jogador.velocidade}")
+        #print(f"DEBUG(Luta_boss): Velocidade do jogador aumentada para {jogador.velocidade}")
 
     # Define a arena circular
     _arena_raio = min(largura_tela, altura_tela) * 0.95
@@ -150,7 +150,7 @@ def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
     # Restaura a velocidade original do jogador
     if hasattr(jogador, 'velocidade') and _velocidade_original_jogador is not None:
         jogador.velocidade = _velocidade_original_jogador
-        print(f"DEBUG(Luta_boss): Velocidade do jogador restaurada para {jogador.velocidade}")
+        #print(f"DEBUG(Luta_boss): Velocidade do jogador restaurada para {jogador.velocidade}")
         _velocidade_original_jogador = None
 
     # Reseta as variáveis de estado da luta
@@ -288,7 +288,7 @@ def resetar_estado_luta_boss():
     """Reseta todas as variáveis de estado do módulo para um novo jogo."""
     global _luta_ativa, _arena_centro, _arena_raio, _chefe_atual, _musica_normal_anterior_pos, _musica_normal_anterior_path, _arena_chao_textura, _jogador_em_luta, _velocidade_original_jogador
     
-    print("DEBUG(Luta_boss.py): Resetando estado da luta de chefe.")
+    #print("DEBUG(Luta_boss.py): Resetando estado da luta de chefe.")
     _luta_ativa = False
     _arena_centro = (0, 0)
     _arena_raio = 0
