@@ -102,7 +102,7 @@ class Urso(InimigoBase):
     def __init__(self, x, y, velocidade=1.3):
         Urso.carregar_recursos_urso()
 
-        vida_urso = 120
+        vida_urso = 60
         dano_contato_urso = 25
         xp_urso = 130
         self.moedas_drop = 18

@@ -103,7 +103,7 @@ class Cavaleiro(InimigoBase):
     def __init__(self, x, y, velocidade=1.3): 
         Cavaleiro.carregar_recursos_Cavaleiro()
 
-        vida_Cavaleiro = 85 
+        vida_Cavaleiro = 50 
         dano_contato_Cavaleiro = 5 
         xp_Cavaleiro = 20
         self.moedas_drop = 11

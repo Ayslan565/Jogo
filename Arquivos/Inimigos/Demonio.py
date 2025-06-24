@@ -90,7 +90,7 @@ class Demonio(InimigoBase):
 
         super().__init__(x, y,
                          Demonio.tamanho_sprite_definido[0], Demonio.tamanho_sprite_definido[1],
-                         vida_maxima=90, 
+                         vida_maxima=50, 
                          velocidade=velocidade, 
                          dano_contato=10,
                          xp_value=75, 

@@ -88,7 +88,7 @@ class Espantalho(InimigoBase):
     def __init__(self, x, y, velocidade=1.3): 
         Espantalho.carregar_recursos_espantalho()
 
-        vida_espantalho = 85 
+        vida_espantalho = 40 
         dano_contato_espantalho = 5 
         xp_espantalho = 20
         self.moedas_drop = 11

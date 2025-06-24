@@ -1,8 +1,11 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 505, in <module>
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 509, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 473, in main
-    loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
-    ^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: module 'loja' has no attribute 'run_shop_scene'
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 374, in main
+    barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
+                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 94, in inicializar_jogo
+    gerenciador_de_moedas = GerenciadorMoedas()
+                            ^^^^^^^^^^^^^^^^^^^
+TypeError: GerenciadorMoedas.__init__() missing 1 required positional argument: 'jogador_ref'

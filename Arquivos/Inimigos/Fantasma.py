@@ -158,7 +158,7 @@ class Fantasma(InimigoBase):
     def __init__(self, x, y, velocidade=1.7): # Velocidade um pouco maior para fantasma
         Fantasma.carregar_recursos_fantasma()
 
-        vida_fantasma = 80
+        vida_fantasma = 40
         dano_contato_fantasma = 4
         xp_fantasma = 25
         self.moedas_drop = 11 # Quantidade de moedas que o Fantasma dropa

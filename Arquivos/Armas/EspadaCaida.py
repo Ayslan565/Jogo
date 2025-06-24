@@ -18,7 +18,7 @@ class EspadaCaida(Weapon):
             1.0: {
                 "damage": 26.0, "range": 90.0, "cooldown": 0.9, "name_suffix": "",
                 "hitbox_dim": (100, 45), # Hitbox horizontal
-                "hitbox_off": (490, 95),    # Posicionada à frente
+                "hitbox_off": (90, 5),    # Posicionada à frente
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoSombrio.png",
                 "effect_scale_base": 1.2,
                 "animation_sprites": [
@@ -34,7 +34,7 @@ class EspadaCaida(Weapon):
             },
             2.0: {
                 "damage": 30.0, "range": 95.0, "cooldown": 0.8, "name_suffix": "Corrompida",
-                "hitbox_dim": (105, 50), "hitbox_off": (95, 5),
+                "hitbox_dim": (105, 50), "hitbox_off": (90, 5),
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaCaida/Efeitos/ImpactoSombrio.png",
                 "effect_scale_base": 1.3,
                 "animation_sprites": [ 

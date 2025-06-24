@@ -15,6 +15,7 @@ except ImportError as e:
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
             self.image.fill((150, 0, 150, 100))
             pygame.draw.rect(self.image, (200, 0, 200), self.image.get_rect(), 1)
+            vida_maxima = 250
             self.hp = vida_maxima
             self.max_hp = vida_maxima
             self.velocidade = velocidade
@@ -198,6 +199,7 @@ class Morte(InimigoBase):
         """
         Reduz a vida da Morte e lida com a reprodução de sons de dano/morte.
         """
+        
         vida_antes = self.hp
         super().receber_dano(dano, fonte_dano_rect)
         if not self.esta_vivo() and vida_antes > 0:

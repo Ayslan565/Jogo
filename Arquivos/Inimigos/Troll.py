@@ -99,7 +99,7 @@ class Troll(InimigoBase):
     def __init__(self, x, y, velocidade=1.0):
         Troll.carregar_recursos_troll()
 
-        vida_troll = 120
+        vida_troll = 80
         dano_contato_troll = 18
         xp_troll = 90
         self.moedas_drop = 18

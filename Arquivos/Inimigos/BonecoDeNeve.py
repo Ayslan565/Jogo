@@ -91,7 +91,7 @@ class BonecoDeNeve(InimigoBase):
     def __init__(self, x, y, velocidade=60):
         BonecoDeNeve.carregar_recursos()
 
-        vida_boneco = 70
+        vida_boneco = 40
         dano_contato_boneco = 7
         xp_boneco = 30
         self.moedas_drop = 10 

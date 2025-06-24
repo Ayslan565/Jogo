@@ -6,25 +6,28 @@ import time
 from importacoes_Player import * # Assume que este arquivo importa Vida e Weapon, e as classes de armas
 from import_Loja import *
 from vida import *
+from pocao import PocaoVida
 
-# A classe EspadaBrasas é importada mas não parece corresponder diretamente a um item na lista da loja fornecida.
-# Se "Espada Sacra Das Brasas" for um item da loja, adicione-o ao SHOP_ITEM_TO_WEAPON_CLASS_MAP.
+# --- Importação das classes de armas para mapeamento ---
 try: from Armas.EspadaBrasas import EspadaBrasas 
 except ImportError: EspadaBrasas = None
-
+try: from Armas.CajadoDaFixacaoAmetista import CajadoDaFixacaoAmetista
+except ImportError: CajadoDaFixacaoAmetista = None
+try: from Armas.CajadoDaSantaNatureza import CajadoDaSantaNatureza
+except ImportError: CajadoDaSantaNatureza = None
+try: from Armas.LivroDosImpuros import LivroDosImpuros
+except ImportError: LivroDosImpuros = None
+# Adicione outras importações de armas aqui conforme necessário
 
 # --- Mapeamento de nomes de itens da loja para classes de Armas ---
-# As chaves DEVEM CORRESPONDER EXATAMENTE aos nomes ("nome") dos itens em itens_data_global no loja_modulo.py
+# CORRIGIDO: As chaves agora correspondem exatamente aos nomes dos itens da loja
 SHOP_ITEM_TO_WEAPON_CLASS_MAP = {
     "Adaga do Fogo Contudente": AdagaFogo,
     "Espada de Fogo azul Sacra Cerulea": EspadaFogoAzul,
     "Espada do Olhar Da Penitencia": EspadaPenitencia,
     "Espada Sacra Caida": EspadaCaida,
     "Espada Sacra do Lua": EspadaLua,
-    
-    # CORREÇÃO APLICADA AQUI: Adicionado o acento em "Céu" para corresponder ao nome na loja.
     "Lâmina do Céu Cintilante": LaminaDoCeuCintilante,
-    
     "Machado Bárbaro Cravejado": MachadoBarbaro,
     "Machado Cerúleo da Estrela Cadente": MachadoCeruleo,
     "Machado da Descida Santa": MachadoDaDescidaSanta,
@@ -32,10 +35,10 @@ SHOP_ITEM_TO_WEAPON_CLASS_MAP = {
     "Machado do Marfim Resplendor": MachadoMarfim,
     "Machado Macabro da Gula Infinita": MachadoMacabro,
 
-    # Adicione aqui os mapeamentos para os cajados se eles forem armas compráveis
-    # Exemplo: "Cajado da Fixacao Ametista": CajadoDaFixacaoAmetista,
-    # "Cajado Da santa Natureza": CajadoDaSantaNatureza,
-    # "Livro dos impuros": LivroDosImpuros,
+    # --- CORREÇÃO APLICADA AQUI: Nomes ajustados para corresponder aos logs de erro ---
+    "Cajado da Fixacao Ametista": CajadoDaFixacaoAmetista,
+    "Cajado Da santa Natureza": CajadoDaSantaNatureza, # Mantido com 'D' maiúsculo como no seu código original
+    "Livro dos impuros": LivroDosImpuros,
 
     # Se "Espada Sacra Das Brasas" for um item da loja e usar a classe EspadaBrasas:
     # "Espada Sacra Das Brasas": EspadaBrasas, 
@@ -145,6 +148,8 @@ class Player(pygame.sprite.Sprite):
         self.intervalo_pisca_dano_ms = 80
         self.visivel_durante_pisca_dano = True
 
+        self.projeteis_ativos = pygame.sprite.Group()
+
     @property
     def dano(self) -> float:
         return self.current_weapon.damage if self.current_weapon else 0.0
@@ -239,40 +244,35 @@ class Player(pygame.sprite.Sprite):
             if not self.esta_vivo():
                 print("DEBUG(Player): Jogador morreu.")
     
-    # --- NOVO MÉTODO PARA CURA ---
     def receber_cura(self, valor_cura):
-        """Aplica cura ao jogador, limitado à vida máxima."""
         if self.vida is not None and hasattr(self.vida, 'curar'):
             self.vida.curar(valor_cura)
             print(f"DEBUG(Player): Jogador curado em {valor_cura} pontos. Vida atual: {self.vida.vida_atual}")
         else:
             print("ALERTA(Player.receber_cura): Objeto Vida ou método 'curar' não disponível.")
     
-    # --- NOVO MÉTODO PARA GERENCIAR EFEITOS DE ITENS (COGUMELOS) ---
     def aplicar_efeito_cogumelo(self, tipo_efeito, duracao, magnitude):
-        """Aplica o efeito de um cogumelo coletado (cura, lentidão, rapidez)."""
         agora = time.time()
         
         if tipo_efeito == 'cura':
-            self.receber_cura(magnitude)  # Magnitude é o valor da cura
+            self.receber_cura(magnitude)
         
         elif tipo_efeito == 'lentidao':
             self.velocidade = self.velocidade_original * (1 - magnitude)
             self.tempo_fim_efeito_lentidao = agora + duracao
-            self.tempo_fim_efeito_rapidez = 0 # Anula efeito de rapidez
+            self.tempo_fim_efeito_rapidez = 0
             print(f"DEBUG(Player): Efeito de lentidão aplicado. Nova velocidade: {self.velocidade:.2f}")
 
         elif tipo_efeito == 'rapidez':
             self.velocidade = self.velocidade_original * (1 + magnitude)
             self.tempo_fim_efeito_rapidez = agora + duracao
-            self.tempo_fim_efeito_lentidao = 0 # Anula efeito de lentidão
+            self.tempo_fim_efeito_lentidao = 0
             print(f"DEBUG(Player): Efeito de rapidez aplicado. Nova velocidade: {self.velocidade:.2f}")
 
     def update(self, dt_ms=None, teclas_pressionadas=None):
         agora_ticks = pygame.time.get_ticks()
         agora_time = time.time()
 
-        # --- LÓGICA ATUALIZADA PARA GERENCIAR EFEITOS TEMPORÁRIOS ---
         if self.tempo_fim_efeito_lentidao > 0 and agora_time >= self.tempo_fim_efeito_lentidao:
             self.velocidade = self.velocidade_original
             self.tempo_fim_efeito_lentidao = 0
@@ -282,7 +282,6 @@ class Player(pygame.sprite.Sprite):
             self.velocidade = self.velocidade_original
             self.tempo_fim_efeito_rapidez = 0
             print("DEBUG(Player): Efeito de rapidez terminou.")
-        # --- FIM DA ATUALIZAÇÃO ---
 
         if self.is_invencivel_piscando:
             if agora_ticks >= self.tempo_para_proximo_pisca_dano:
@@ -493,3 +492,4 @@ class Player(pygame.sprite.Sprite):
             self.xp_manager.gain_xp(xp_amount)
         else:
             print(f"ALERTA(Player): xp_manager não configurado. Não foi possível adicionar {xp_amount} de XP do chefe.")
+

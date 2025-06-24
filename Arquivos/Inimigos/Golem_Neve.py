@@ -29,7 +29,7 @@ except ImportError:
             self.sprite_index = 0
             self.intervalo_animacao = 200
             self.tempo_ultimo_update_animacao = pygame.time.get_ticks()
-            self.moedas_drop = 0
+            self.moedas_drop = 50
             self.x = float(x)
             self.y = float(y)
         def receber_dano(self, dano, fonte_dano_rect=None):
@@ -166,8 +166,8 @@ class Golem_Neve(InimigoBase):
     def __init__(self, x, y, velocidade=1):
         Golem_Neve.carregar_recursos_golem_neve()
 
-        vida_golem = 120
-        dano_contato_golem = 120
+        vida_golem = 250
+        dano_contato_golem = 50
         xp_golem = 600
         moedas_dropadas = 25
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Golem Neve/GN1.png"

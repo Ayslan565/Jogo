@@ -89,7 +89,7 @@ class Espirito_Das_Flores(InimigoBase):
     def __init__(self, x, y, velocidade=1.6):
         Espirito_Das_Flores.carregar_recursos_espirito()
 
-        vida_espirito = 75
+        vida_espirito = 40
         dano_contato_espirito = 6
         xp_espirito = 35
         self.moedas_drop = 10

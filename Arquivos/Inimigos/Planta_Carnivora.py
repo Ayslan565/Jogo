@@ -98,7 +98,7 @@ class Planta_Carnivora(InimigoBase):
     def __init__(self, x, y, velocidade=1):
         Planta_Carnivora.carregar_recursos_planta_carnivora()
 
-        vida_planta = 90
+        vida_planta = 40
         dano_contato_planta = 8
         xp_planta = 50
         self.moedas_drop = 15

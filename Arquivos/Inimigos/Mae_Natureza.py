@@ -128,7 +128,7 @@ class Mae_Natureza(InimigoBase):
         self.attack_duration = 1.2
         self.attack_timer = 0.0
         self.attack_damage_especifico = 30
-        self.attack_range = 180
+        self.attack_range = 100
         self.attack_cooldown = 4.5
         self.last_attack_time = pygame.time.get_ticks() - int(self.attack_cooldown * 1000)
         self.attack_hitbox_size = (Mae_Natureza.tamanho_sprite_definido[0] * 1.5, Mae_Natureza.tamanho_sprite_definido[1] * 1.5)

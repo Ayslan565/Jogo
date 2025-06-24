@@ -16,7 +16,7 @@ class EspadaFogoAzul(Weapon):
         # --- DADOS DE PROGRESSÃO POR NÍVEL ---
         self._stats_by_level = {
             1.0: {
-                "damage": 31.0, "range": 110.0, "cooldown": 1.3, "name_suffix": "",
+                "damage": 31.0, "range": 110.0, "cooldown": 0.9, "name_suffix": "",
                 "hitbox_dim": (90, 35), # Hitbox horizontal
                 "hitbox_off": (80, 5),    # Posicionada à frente do jogador
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaFogoAzul/Efeitos/ImpactoAzulNv1.png",

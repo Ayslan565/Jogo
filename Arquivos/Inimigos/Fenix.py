@@ -27,7 +27,7 @@ except ImportError as e:
             self.sprites = [self.image]; self.sprite_index = 0;
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
             self.x = float(x); self.y = float(y)
-            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
+            self.moedas_drop = 250 # Adicionado para compatibilidade, mesmo que a lógica seja externa
 
         def _carregar_sprite(self, path, tamanho):
             img = pygame.Surface(tamanho, pygame.SRCALPHA); img.fill((255,165,0, 128)); return img
@@ -89,7 +89,7 @@ class Fenix(InimigoBase):
     def __init__(self, x, y, velocidade=1.8):
         Fenix.carregar_recursos_fenix()
 
-        vida_fenix = 110
+        vida_fenix = 250
         dano_contato_fenix = 6
         xp_fenix = 70
         self.moedas_drop = 20

@@ -27,7 +27,7 @@ except ImportError:
 
 try:
     from importacoes import *
-    import loja as loja_core # ADICIONADO: Importação explícita da loja
+    import loja as loja_core 
     from inventario_barra import BarraInventario
     from cogumelo import Cogumelo
     from gerador_cogumelo import GeradorCogumelos
@@ -42,15 +42,15 @@ except ImportError as e:
     traceback.print_exc() # Imprime o rastreamento completo do erro
     # Define fallbacks para evitar crashes imediatos
     Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, Vida, ItemInventario, GerenciadorMoedas = (None,) * 14
-    loja_core = None # ADICIONADO: Fallback para loja_core
+    loja_core = None 
     AdagaFogo = None
     BarraInventario = None
     Cogumelo = None
     GeradorCogumelos = None
     GerenciadorDeEventos = None
     resetar_estado_luta_boss = None
-    XPOrb = None # Fallback
-    GeradorXP = None # Fallback
+    XPOrb = None 
+    GeradorXP = None
 
 
 # --- Constantes e Configurações Globais ---
@@ -98,11 +98,21 @@ def inicializar_jogo(largura_tela, altura_tela):
     jogador = Player(velocidade=5, vida_maxima=150)
     jogador.x = float(largura_tela // 2)
     jogador.y = float(altura_tela // 2)
+    jogador.gerenciador_moedas = gerenciador_de_moedas 
+    if GerenciadorMoedas:
+        # Passa a referência do jogador, que é necessária
+        gerenciador_de_moedas = GerenciadorMoedas(jogador_ref=jogador)
+    else:
+        gerenciador_de_moedas = None
 
     if XPManager:
         xp_manager = XPManager(player_ref=jogador, largura_tela=largura_tela, altura_tela=altura_tela)
         if hasattr(jogador, 'xp_manager'):
             jogador.xp_manager = xp_manager
+            # Adiciona uma referência ao jogo no xp_manager para acesso futuro
+            xp_manager.game_ref = {
+                'gerenciador_inimigos': None # Será definido após a criação
+            }
 
     estacoes = Estacoes(largura_tela, altura_tela) if Estacoes else None
     
@@ -122,6 +132,9 @@ def inicializar_jogo(largura_tela, altura_tela):
         )
         if jogador:
             gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
+        # Atualiza a referência no xp_manager após a criação do gerenciador de inimigos
+        if xp_manager:
+            xp_manager.game_ref['gerenciador_inimigos'] = gerenciador_inimigos
     
     timer_obj = Timer(largura_tela // 2 - 60, 25) if Timer else None
 
@@ -276,8 +289,9 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
     
     if gerenciador_inimigos_obj:
         gerenciador_inimigos_obj.desenhar_projeteis_inimigos(janela_surf, cam_x, cam_y)
-    if jogador_obj and hasattr(jogador_obj, 'arma_atual') and jogador_obj.arma_atual and hasattr(jogador_obj.arma_atual, 'desenhar_projeteis'):
-        jogador_obj.arma_atual.desenhar_projeteis(janela_surf, cam_x, cam_y)
+    
+    if jogador_obj and hasattr(jogador_obj, 'draw_projectiles'):
+        jogador_obj.draw_projectiles(janela_surf, cam_x, cam_y)
 
     if gerenciador_eventos_obj:
         gerenciador_eventos_obj.desenhar(janela_surf)
@@ -291,7 +305,8 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
         timer_ui_obj.desenhar(janela_surf, tempo_decorrido_seg)
     if xp_manager:
         xp_manager.draw(janela_surf)
-    if gerenciador_de_moedas:
+    
+    if gerenciador_de_moedas and jogador_obj:
         largura_tela_atual = janela_surf.get_width()
         gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, largura_tela_atual - 220, 20)
     
@@ -329,6 +344,9 @@ def main():
     while True:
         menu_obj = Menu(largura_tela, altura_tela) if Menu else None
         if not menu_obj: break
+
+        if hasattr(menu_obj, 'tocar_proxima_musica'):
+            menu_obj.tocar_proxima_musica()
 
         acao_menu = None
         while acao_menu not in ["jogar", "sair"]:
@@ -399,16 +417,34 @@ def main():
                 if not jogo_pausado_para_inventario:
                     teclas = pygame.key.get_pressed()
                     jogador.update(dt_ms, teclas)
+                    
+                    if hasattr(jogador, 'update_projectiles'):
+                        jogador.update_projectiles()
+                    
+                    # --- Lógica de colisão de projéteis do jogador ---
+                    if gerenciador_inimigos and jogador and hasattr(jogador, 'projeteis_ativos'):
+                        for projetil in list(jogador.projeteis_ativos):
+                            # Verifica colisão do projétil com o grupo de inimigos
+                            inimigos_atingidos = pygame.sprite.spritecollide(projetil, gerenciador_inimigos.inimigos, False)
+                            
+                            if inimigos_atingidos:
+                                inimigo = inimigos_atingidos[0] # Pega o primeiro inimigo atingido
+                                
+                                # Aplica dano ao inimigo
+                                if hasattr(inimigo, 'receber_dano'):
+                                    dano_do_projetil = getattr(projetil, 'dano', 0)
+                                    inimigo.receber_dano(dano_do_projetil)
+                                
+                                # O projétil é removido após atingir um inimigo.
+                                # A verificação de morte e recompensa agora é feita exclusivamente no GerenciadorDeInimigos.
+                                projetil.kill()
 
-                    sinal_estacoes = None
-                    if est:
-                        sinal_estacoes = est.atualizar_ciclo_estacoes()
+
+                    sinal_estacoes = est.atualizar_ciclo_estacoes() if est else None
                     
                     if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not esta_luta_ativa():
-                        if gerenciador_eventos:
-                            gerenciador_eventos.interromper_evento_climatico()
-                        if shop_elements:
-                            shop_elements.despawn_loja_imediatamente()
+                        if gerenciador_eventos: gerenciador_eventos.interromper_evento_climatico()
+                        if shop_elements: shop_elements.despawn_loja_imediatamente()
                         
                         iniciar_luta_chefe(
                             jogador=jogador, indice_estacao=est.indice_estacao_atual,
@@ -425,9 +461,8 @@ def main():
                     if esta_luta_ativa():
                         sinal_luta = atualizar_luta(jogador, est, gerenciador_inimigos)
                         if sinal_luta == "FIM_DA_LUTA":
-                            if gerenciador_eventos:
-                                gerenciador_eventos.reativar_eventos_climaticos()
-                        
+                            if gerenciador_eventos: gerenciador_eventos.reativar_eventos_climaticos()
+                    
                         jogador.mover(teclas, [])
                         jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
                         verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
@@ -457,7 +492,6 @@ def main():
                             shop_rect = shop_elements.get_current_shop_rect()
                             if shop_rect and jogador.rect_colisao.colliderect(shop_rect):
                                 if mixer_initialized: pygame.mixer.music.pause()
-                                # A chamada para a loja
                                 loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
                                 if mixer_initialized: pygame.mixer.music.unpause()
                                 shop_elements.reset_shop_spawn()
@@ -479,7 +513,6 @@ def main():
 
             if jogador_morreu and run_death_screen:
                 run_death_screen(janela, main, main, DEATH_SCREEN_BACKGROUND_IMAGE)
-                return
 
     if 'gerenciador_inimigos' in locals() and gerenciador_inimigos:
         gerenciador_inimigos.stop_threads()
@@ -498,6 +531,7 @@ if __name__ == "__main__":
             if 'gerenciador_inimigos' in locals() and gerenciador_inimigos:
                 gerenciador_inimigos.stop_threads()
             pygame.quit()
+        # Salva o log de erro em um arquivo para facilitar a depuração
         with open("crash_log.txt", "w") as f:
             f.write("Um erro fatal ocorreu:\n")
             f.write(exc_text)

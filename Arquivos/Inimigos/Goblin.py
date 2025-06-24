@@ -28,7 +28,7 @@ except ImportError as e:
             self.sprites = [self.image]; self.sprite_index = 0
             self.intervalo_animacao = 200; self.tempo_ultimo_update_animacao = 0
             self.x = float(x); self.y = float(y)
-            self.moedas_drop = 0 # Adicionado para compatibilidade, mesmo que a lógica seja externa
+            self.moedas_drop = 20 # Adicionado para compatibilidade, mesmo que a lógica seja externa
 
         def _carregar_sprite(self, path, tamanho):
             img = pygame.Surface(tamanho, pygame.SRCALPHA); img.fill((0,100,0, 128)); return img
@@ -95,10 +95,10 @@ class Goblin(InimigoBase):
     def __init__(self, x, y, velocidade=2.2):
         Goblin.carregar_recursos_goblin()
 
-        vida_goblin = 50
+        vida_goblin = 20
         dano_contato_goblin = 7
         xp_goblin = 18
-        self.moedas_drop = 5
+        self.moedas_drop = 10
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Goblin/goblin1.png"
 
         super().__init__(

@@ -78,8 +78,8 @@ class Maga(InimigoBase):
     def __init__(self, x, y, velocidade=70):
         Maga.carregar_recursos_maga()
 
-        vida_maga = 80
-        dano_contato_maga = 10
+        vida_maga = 10
+        dano_contato_maga = 2
         xp_maga = 90
         sprite_path_principal = "Sprites/Inimigos/Maga/C (1).png"
 

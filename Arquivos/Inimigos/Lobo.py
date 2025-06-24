@@ -118,7 +118,7 @@ class Lobo(InimigoBase):
         super().__init__(
             x, y,
             Lobo.tamanho_sprite_definido[0], Lobo.tamanho_sprite_definido[1],
-            vida_maxima=95,
+            vida_maxima=40,
             velocidade=velocidade,
             dano_contato=8,
             xp_value=45,

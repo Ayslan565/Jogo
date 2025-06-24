@@ -14,7 +14,7 @@ class EspadaSacraCerulea(Weapon):
 
         self._stats_by_level = {
             1.0: {
-                "damage": 25.0, "range": 100.0, "cooldown": 1.2, "name_suffix": "",
+                "damage": 25.0, "range": 100.0, "cooldown": 0.9, "name_suffix": "",
                 "hitbox_dim": (100 , 45),
                 "hitbox_off": (90, 5),
                 "animation_speed": 90,
@@ -29,7 +29,7 @@ class EspadaSacraCerulea(Weapon):
                 ]
             },
             2.0: {
-                "damage": 32.0, "range": 105.0, "cooldown": 1.1, "name_suffix": " Desperta",
+                "damage": 32.0, "range": 105.0, "cooldown": 0.9, "name_suffix": " Desperta",
                 "hitbox_dim": (105 , 50),
                 "hitbox_off": (95, 5),
                 "animation_speed": 85,
@@ -43,7 +43,7 @@ class EspadaSacraCerulea(Weapon):
                 ]
             },
             3.0: {
-                "damage": 36.0, "range": 110.0, "cooldown": 1.0, "name_suffix": " Celestial",
+                "damage": 36.0, "range": 110.0, "cooldown":0.9, "name_suffix": " Celestial",
                 "hitbox_dim": (110 , 55),
                 "hitbox_off": (100, 5),
                 "animation_speed": 80,

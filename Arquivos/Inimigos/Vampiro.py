@@ -15,6 +15,7 @@ except ImportError as e:
             self.rect = pygame.Rect(x, y, largura, altura)
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
             pygame.draw.rect(self.image, (100, 100, 100), (0, 0, largura, altura))
+            vida_maxima = 60
             self.hp = vida_maxima; self.max_hp = vida_maxima; self.velocidade = velocidade
             self.contact_damage = dano_contato; self.xp_value = xp_value
             self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150

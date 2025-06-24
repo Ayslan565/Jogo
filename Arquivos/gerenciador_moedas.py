@@ -16,6 +16,7 @@ class GerenciadorMoedas:
             tamanho_fonte (int, optional): Tamanho da fonte para exibir as moedas. Defaults to 28.
             cor_texto (tuple, optional): Cor do texto das moedas (R, G, B). Defaults to (255, 215, 0) (dourado).
         """
+        
         self.jogador_ref = jogador_ref
         self.cor_texto = cor_texto
         self.fonte = None
@@ -33,16 +34,19 @@ class GerenciadorMoedas:
             self.fonte = pygame.font.Font(None, tamanho_fonte) # Fallback final
 
     def adicionar_moedas(self, quantidade: int):
+        print(f"DEBUG: Jogador recebeu {quantidade} moedas. Total: {self.jogador_ref.dinheiro}")
+        
         """
         Adiciona uma quantidade de moedas ao jogador.
 
         Args:
             quantidade (int): A quantidade de moedas a ser adicionada.
         """
-        if hasattr(self.jogador_ref, 'dinheiro'):
+        if hasattr(self.jogador_ref, 'dinheiro' ):
             if quantidade > 0:
                 self.jogador_ref.dinheiro += quantidade
-                # print(f"DEBUG: Jogador recebeu {quantidade} moedas. Total: {self.jogador_ref.dinheiro}")
+       #         print(f"DEBUG: Jogador recebeu {quantidade} moedas. Total: {self.jogador_ref.dinheiro}")
+
         else:
             print("ERRO(GerenciadorMoedas): Objeto jogador não possui o atributo 'dinheiro'.")
 

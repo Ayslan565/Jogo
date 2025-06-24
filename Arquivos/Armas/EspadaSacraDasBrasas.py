@@ -16,7 +16,7 @@ class EspadaSacraDasBrasas(Weapon):
         # --- DADOS DE PROGRESSÃO POR NÍVEL ---
         self._stats_by_level = {
             1.0: {
-                "damage": 28.0, "range": 100.0, "cooldown": 1.5, "name_suffix": "",
+                "damage": 28.0, "range": 100.0, "cooldown": 0.9, "name_suffix": "",
                 "hitbox_dim": (90 , 35),  # Hitbox horizontal
                 "hitbox_off": (80, 5),     # Posicionada à frente do jogador
                 "effect_sprite_base": "Sprites/Armas/Espadas/EspadaSacraDasBrasas/Efeitos/ImpactoBrasasNv1.png",

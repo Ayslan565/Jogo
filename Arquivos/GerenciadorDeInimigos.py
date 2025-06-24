@@ -207,29 +207,22 @@ class GerenciadorDeInimigos:
 
     def _verificar_e_ativar_horda(self, jogador, vetor_movimento_jogador):
         """Verifica se as condições para uma horda são atendidas e a ativa."""
-        # 1. Verificar se a horda está em cooldown
         if time.time() - self.tempo_ultima_horda < self.cooldown_horda_s:
             return
-
-        # 2. Verificar se há inimigos na tela para calcular a distância
         if not self.inimigos:
             return
 
-        # 3. Calcular o ponto central dos inimigos
         soma_x, soma_y = 0, 0
         for inimigo in self.inimigos:
             soma_x += inimigo.rect.centerx
             soma_y += inimigo.rect.centery
         centro_massa_inimigos = pygame.math.Vector2(soma_x / len(self.inimigos), soma_y / len(self.inimigos))
 
-        # --- CORREÇÃO DO ERRO ---
-        # Converte o 'center' (tupla) do jogador para um Vetor2D antes de calcular a distância.
         posicao_jogador_vetor = pygame.math.Vector2(jogador.rect.center)
         distancia_jogador_horda = posicao_jogador_vetor.distance_to(centro_massa_inimigos)
 
-        # 5. Ativar se a distância for maior que o limite
         if distancia_jogador_horda > self.distancia_ativacao_horda:
-            self.tempo_ultima_horda = time.time()  # Ativa o cooldown
+            self.tempo_ultima_horda = time.time()
             direcao_normalizada = vetor_movimento_jogador.normalize()
             self._spawn_horda(jogador, direcao_normalizada)
     ### LÓGICA DA HORDA: FIM ###
@@ -264,28 +257,41 @@ class GerenciadorDeInimigos:
         """Atualiza a lógica dos inimigos, incluindo movimento, colisões e a nova lógica de horda."""
         ### LÓGICA DA HORDA: INÍCIO ###
         if self.ultima_posicao_jogador is not None and jogador is not None:
-            # Calcula o vetor de movimento do jogador desde o último frame
             vetor_movimento = pygame.math.Vector2(jogador.rect.center) - self.ultima_posicao_jogador
-            # Só verifica a horda se o jogador estiver se movendo
             if vetor_movimento.length() > 1:
                 self._verificar_e_ativar_horda(jogador, vetor_movimento)
         
-        # Atualiza a última posição do jogador para o próximo frame
         if jogador is not None:
             self.ultima_posicao_jogador = pygame.math.Vector2(jogador.rect.center)
         ### LÓGICA DA HORDA: FIM ###
         
-        # 1. Atualiza a lógica individual de cada inimigo (movimento, ataque, etc.)
         self.inimigos.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
-        
-        # 2. Resolve as colisões entre os inimigos para o efeito de horda
         self._resolver_colisoes_entre_inimigos()
         
-        # 3. Remove inimigos mortos e concede recompensas
+        # --- LÓGICA CENTRAL DE MORTE E RECOMPENSA ---
+        # Itera sobre uma cópia da lista de inimigos para permitir a remoção segura
         for inimigo in list(self.inimigos):
+            # Verifica se o inimigo foi derrotado (não está mais vivo)
             if not inimigo.esta_vivo():
-                if self.gerenciador_moedas and hasattr(inimigo, 'moedas_drop'): self.gerenciador_moedas.create_coins_from_enemy(inimigo)
-                if hasattr(jogador, 'xp_manager') and hasattr(inimigo, 'xp_value'): jogador.xp_manager.gain_xp(inimigo.xp_value)
+                
+                # --- Lógica de Recompensa de Moedas ---
+                # Verifica se o gerenciador de moedas existe e se o inimigo tem o atributo 'moedas_drop'
+                if self.gerenciador_moedas and hasattr(inimigo, 'moedas_drop'):
+                    # Adiciona as moedas ao jogador através do gerenciador
+                    self.gerenciador_moedas.adicionar_moedas(inimigo.moedas_drop)
+                    # **NOVO**: Print de depuração para confirmar a adição de moedas
+                    print(f"[DEBUG] Inimigo '{type(inimigo).__name__}' derrotado. Adicionando {inimigo.moedas_drop} moedas.")
+                else:
+                    # **NOVO**: Print de aviso se as moedas não puderem ser adicionadas
+                    if not self.gerenciador_moedas:
+                        print(f"[AVISO] Gerenciador de moedas não encontrado. Moedas não adicionadas.")
+                
+                # --- Lógica de Recompensa de XP ---
+                # Verifica se o jogador tem um gerenciador de XP e se o inimigo tem um valor de XP
+                if hasattr(jogador, 'xp_manager') and hasattr(inimigo, 'xp_value'): 
+                    jogador.xp_manager.gain_xp(inimigo.xp_value)
+                
+                # Remove o inimigo do jogo
                 inimigo.kill()
 
     def update_projeteis_inimigos(self, jogador, dt_ms):

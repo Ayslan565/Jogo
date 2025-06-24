@@ -83,11 +83,11 @@ class Weapon:
     def _load_attack_effect_sprite(self):
         """Carrega e prepara o sprite de efeito de ataque secundário (da classe base)."""
         if not self.attack_effect_sprite_path: return
-        try:
-            project_root = self._get_project_root()
-            full_path = os.path.join(project_root, self.attack_effect_sprite_path.replace("\\", os.sep))
 
-            if os.path.exists(full_path):
+        project_root = self._get_project_root()
+        full_path = os.path.join(project_root, self.attack_effect_sprite_path.replace("\\", os.sep))
+
+        if os.path.exists(full_path):
                 self.attack_effect_original_image = pygame.image.load(full_path).convert_alpha()
                 width = int(self.attack_effect_original_image.get_width() * self.attack_effect_scale)
                 height = int(self.attack_effect_original_image.get_height() * self.attack_effect_scale)
@@ -95,16 +95,12 @@ class Weapon:
                     self.attack_effect_image = pygame.transform.smoothscale(self.attack_effect_original_image, (width, height))
                 else:
                     self._create_placeholder_effect("Dimensões inválidas para efeito base após escala")
-            else:
-                print(f"DEBUG(Weapon): Sprite de efeito base NÃO ENCONTRADO: {full_path} para {self.name}")
+
                 self._create_placeholder_effect("Arquivo de efeito base não encontrado")
-        except Exception as e:
-            print(f"DEBUG(Weapon): Exceção ao carregar sprite de efeito base para {self.name}: {e}")
-            self._create_placeholder_effect(str(e))
 
     def _create_placeholder_effect(self, reason=""):
         """Cria um placeholder para o efeito de ataque secundário."""
-        print(f"DEBUG(Weapon): Usando placeholder para efeito de ataque base de {self.name}. Razão: {reason}")
+        #print(f"DEBUG(Weapon): Usando placeholder para efeito de ataque base de {self.name}. Razão: {reason}")
         # Pode ser None ou um pequeno sprite transparente para não desenhar nada se falhar
         self.attack_effect_image = pygame.Surface((1, 1), pygame.SRCALPHA)
         self.attack_effect_image.fill((0, 0, 0, 0))
@@ -125,23 +121,22 @@ class Weapon:
                         imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
                         sprites_carregados.append(imagem)
                     else:
-                        print(f"DEBUG({self.__class__.__name__}): Dimensões inválidas para sprite de animação {full_path}. Usando placeholder.")
+                        #print(f"DEBUG({self.__class__.__name__}): Dimensões inválidas para sprite de animação {full_path}. Usando placeholder.")
                         placeholder = pygame.Surface((int(50 * escala_animacao) if escala_animacao > 0 else 50, int(50 * escala_animacao) if escala_animacao > 0 else 50), pygame.SRCALPHA); placeholder.fill((255, 0, 255, 100))
                         sprites_carregados.append(placeholder)
                 else:
-                    print(f"DEBUG({self.__class__.__name__}): Sprite de animação de ataque não encontrado: {full_path}")
+                    #print(f"DEBUG({self.__class__.__name__}): Sprite de animação de ataque não encontrado: {full_path}")
                     placeholder = pygame.Surface((int(50 * escala_animacao) if escala_animacao > 0 else 50, int(50 * escala_animacao) if escala_animacao > 0 else 50), pygame.SRCALPHA); placeholder.fill((255, 0, 255, 100))
                     sprites_carregados.append(placeholder)
             except pygame.error as e:
-                print(f"DEBUG({self.__class__.__name__}): Erro ao carregar sprite de animação '{full_path}': {e}")
+                #print(f"DEBUG({self.__class__.__name__}): Erro ao carregar sprite de animação '{full_path}': {e}")
                 placeholder = pygame.Surface((int(50 * escala_animacao) if escala_animacao > 0 else 50, int(50 * escala_animacao) if escala_animacao > 0 else 50), pygame.SRCALPHA); placeholder.fill((255, 0, 255, 100))
                 sprites_carregados.append(placeholder)
 
         self.attack_animation_sprites = sprites_carregados
         self.current_attack_animation_frame = 0
         self._last_loaded_anim_scale = escala_animacao  # Guarda a escala usada para carregar
-        if not self.attack_animation_sprites:
-            print(f"DEBUG({self.__class__.__name__}): Nenhum sprite de animação de ataque carregado para {self.name}.")
+
 
     def __str__(self):
         return (f"{self.name} (Nv: {self.level}, Dano: {self.damage}, "
@@ -154,7 +149,6 @@ class Weapon:
         Método placeholder para evolução. Classes filhas devem sobrescrever.
         Normalmente, chamaria _apply_level_stats após mudar self.level.
         """
-        print(f"DEBUG(Weapon): Método 'evolve' chamado para {self.name} com target_level {target_level}.")
         self.level = target_level
         self._apply_level_stats()  # Garante que os stats sejam aplicados após a mudança de nível
 
@@ -164,7 +158,7 @@ class Weapon:
         Classes filhas DEVEM sobrescrever isso para definir como os stats,
         hitbox, sprites de animação, etc., mudam com self.level.
         """
-        print(f"DEBUG(Weapon): _apply_level_stats base chamado para {self.name} no nível {self.level}. Nenhuma alteração feita pela classe base.")
+        #print(f"DEBUG(Weapon): _apply_level_stats base chamado para {self.name} no nível {self.level}. Nenhuma alteração feita pela classe base.")
         pass  # Deve ser implementado por classes filhas
 
     def get_current_attack_animation_sprite(self):
@@ -179,7 +173,7 @@ class Weapon:
         Carrega sprites de animação a partir de uma lista de configurações individuais.
         Cada configuração é um dicionário com 'path' e 'scale'.
         """
-        print(f"DEBUG({self.__class__.__name__}): Carregando sprites com configurações individuais.")
+        #print(f"DEBUG({self.__class__.__name__}): Carregando sprites com configurações individuais.")
         sprites_carregados = []
         project_root = self._get_project_root()
 
@@ -191,8 +185,8 @@ class Weapon:
                 continue
             
             full_path = os.path.join(project_root, path_relativo.replace("\\", os.sep).replace("/", os.sep))
-            try:
-                if os.path.exists(full_path):
+
+            if os.path.exists(full_path):
                     imagem_original = pygame.image.load(full_path).convert_alpha()
                     novo_w = int(imagem_original.get_width() * escala_individual)
                     novo_h = int(imagem_original.get_height() * escala_individual)
@@ -200,11 +194,6 @@ class Weapon:
                         imagem = pygame.transform.smoothscale(imagem_original, (novo_w, novo_h))
                         sprites_carregados.append(imagem)
                     else:
-                        print(f"WARN({self.__class__.__name__}): Dimensões inválidas para sprite '{full_path}' após escala.")
-                else:
-                    print(f"WARN({self.__class__.__name__}): Caminho de sprite não existe: '{full_path}'")
-            except pygame.error as e:
-                print(f"ERROR({self.__class__.__name__}): Erro ao carregar sprite '{full_path}': {e}")
-        
-        self.attack_animation_sprites = sprites_carregados
-        self.current_attack_animation_frame = 0
+                        #print(f"WARN({self.__class__.__name__}): Dimensões inválidas para sprite '{full_path}' após escala.")
+                            self.attack_animation_sprites = sprites_carregados
+                            self.current_attack_animation_frame = 0
