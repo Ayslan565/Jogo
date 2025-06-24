@@ -1,15 +1,9 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 527, in <module>
+  File "c:\Users\cmace\OneDrive\Documentos\GitHub\Jogo\Arquivos\Game.py", line 558, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 346, in main
-    menu_obj = Menu(largura_tela, altura_tela) if Menu else None
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 118, in __init__
-    self.tocar_proxima_musica()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 292, in tocar_proxima_musica
-    self.atualizar_volumes()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 299, in atualizar_volumes
-    pygame.mixer.music.set_volume(self.music_volume)
-                                  ^^^^^^^^^^^^^^^^^
-AttributeError: 'Menu' object has no attribute 'music_volume'
+    ~~~~^^
+  File "c:\Users\cmace\OneDrive\Documentos\GitHub\Jogo\Arquivos\Game.py", line 491, in main
+    if gerenciador_eventos: gerenciador_eventos.reativar_eventos_climatico()
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GerenciadorDeEventos' object has no attribute 'reativar_eventos_climatico'. Did you mean: 'reativar_eventos_climaticos'?

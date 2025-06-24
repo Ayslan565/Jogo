@@ -2,7 +2,7 @@ import pygame
 import os
 import math # Importa o módulo math para calcular distâncias
 from .weapon import Weapon
-from .FolhaCortanteProjectile import FolhaCortanteProjectile
+from .FolhaCortanteProjectile import Projectile
 
 class CajadoDaSantaNatureza(Weapon):
     """
@@ -59,6 +59,6 @@ class CajadoDaSantaNatureza(Weapon):
             if inimigo_mais_proximo:
                 alvo_pos = inimigo_mais_proximo.rect.center
                 # Cria o projétil passando a posição do alvo
-                return FolhaCortanteProjectile(player.rect.centerx, player.rect.centery, alvo_pos[0], alvo_pos[1])
+                return Projectile(player.rect.centerx, player.rect.centery, alvo_pos[0], alvo_pos[1])
 
         return None
