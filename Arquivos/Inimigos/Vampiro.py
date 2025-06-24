@@ -1,4 +1,3 @@
-# Vampiro.py
 import pygame
 import random
 import math
@@ -7,15 +6,17 @@ import os
 
 # --- Importação da Classe Base Inimigo ---
 try:
+    # Importação relativa para a classe base Inimigo
     from .Inimigos import Inimigo as InimigoBase
 except ImportError as e:
+    # Fallback para a classe InimigoBase caso a importação falhe
+    print(f"AVISO (Vampiro.py): Não foi possível importar 'Inimigo' da base. Usando placeholder: {e}")
     class InimigoBase(pygame.sprite.Sprite):
         def __init__(self, x, y, largura, altura, vida_maxima, velocidade, dano_contato, xp_value, sprite_path):
             super().__init__()
             self.rect = pygame.Rect(x, y, largura, altura)
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
             pygame.draw.rect(self.image, (100, 100, 100), (0, 0, largura, altura))
-            vida_maxima = 60
             self.hp = vida_maxima; self.max_hp = vida_maxima; self.velocidade = velocidade
             self.contact_damage = dano_contato; self.xp_value = xp_value
             self.facing_right = True; self.last_hit_time = 0; self.hit_flash_duration = 150
@@ -30,12 +31,12 @@ except ImportError as e:
         def esta_vivo(self): return self.hp > 0
         def mover_em_direcao(self, alvo_x, alvo_y, dt_ms=None): pass
         def atualizar_animacao(self):
-                if self.sprites and len(self.sprites) > 0: self.image = self.sprites[0]
+            if self.sprites and len(self.sprites) > 0: self.image = self.sprites[0]
         def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
             self.atualizar_animacao()
         def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
-                    janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+                janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
         def kill(self): super().kill()
 
 class Vampiro(InimigoBase):
@@ -47,6 +48,7 @@ class Vampiro(InimigoBase):
     @staticmethod
     def _obter_pasta_raiz_jogo():
         diretorio_script_atual = os.path.dirname(os.path.abspath(__file__))
+        # Sobe dois níveis para chegar à raiz do projeto (Jogo/)
         return os.path.abspath(os.path.join(diretorio_script_atual, "..", ".."))
 
     @staticmethod
@@ -61,10 +63,13 @@ class Vampiro(InimigoBase):
                     sprite = pygame.transform.scale(sprite, tamanho)
                     lista_destino.append(sprite)
                 else:
+                    # Placeholder para sprite não encontrado
                     placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((100, 100, 120, 180)); lista_destino.append(placeholder)
             except pygame.error:
+                # Placeholder para erro de carregamento de sprite
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((100, 100, 120, 180)); lista_destino.append(placeholder)
         if not lista_destino:
+            # Placeholder final se nenhuma sprite foi carregada
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((80, 80, 100, 200)); lista_destino.append(placeholder)
         return lista_destino
 
@@ -82,10 +87,15 @@ class Vampiro(InimigoBase):
             ]
             Vampiro.sprites_atacar = Vampiro._carregar_lista_sprites_estatico(caminhos_atacar, [], Vampiro.tamanho_sprite_definido)
             if not Vampiro.sprites_atacar and Vampiro.sprites_andar:
-                Vampiro.sprites_atacar = [Vampiro.sprites_andar[0]]
+                Vampiro.sprites_atacar = [Vampiro.sprites_andar[0]] # Fallback se sprites de ataque não carregarem
         
         if not Vampiro.sons_carregados:
-            # Carregar sons aqui
+            # TODO: Carregar sons aqui (adicionar caminhos e lógica de carregamento)
+            # Exemplo:
+            # pasta_raiz = Vampiro._obter_pasta_raiz_jogo()
+            # Vampiro.som_ataque_vampiro = pygame.mixer.Sound(os.path.join(pasta_raiz, "Caminho/Para/SomAtaque.wav"))
+            # Vampiro.som_dano_vampiro = pygame.mixer.Sound(os.path.join(pasta_raiz, "Caminho/Para/SomDano.wav"))
+            # Vampiro.som_morte_vampiro = pygame.mixer.Sound(os.path.join(pasta_raiz, "Caminho/Para/SomMorte.wav"))
             Vampiro.sons_carregados = True
 
     def __init__(self, x, y, velocidade=80):
@@ -96,7 +106,7 @@ class Vampiro(InimigoBase):
         vampiro_contact_damage = 0
         vampiro_xp_value = 60
         self.moedas_drop = 25
-        sprite_path_ref = "Sprites/Inimigos/Vampiro/Imagem.png"
+        sprite_path_ref = "Sprites/Inimigos/Vampiro/Imagem.png" # Usado apenas para referência, não carregado diretamente
 
         super().__init__(x, y,
                          Vampiro.tamanho_sprite_definido[0], Vampiro.tamanho_sprite_definido[1],
@@ -132,9 +142,13 @@ class Vampiro(InimigoBase):
         vida_antes = self.hp
         super().receber_dano(dano, fonte_dano_rect)
         if not self.esta_vivo() and vida_antes > 0 and self.som_morte_vampiro:
-            self.som_morte_vampiro.play()
+            # Garante que o som exista antes de tentar tocar
+            if pygame.mixer.get_init() and self.som_morte_vampiro:
+                self.som_morte_vampiro.play()
         elif self.esta_vivo() and vida_antes > self.hp and self.som_dano_vampiro:
-            self.som_dano_vampiro.play()
+            # Garante que o som exista antes de tentar tocar
+            if pygame.mixer.get_init() and self.som_dano_vampiro:
+                self.som_dano_vampiro.play()
 
     def mover_em_direcao(self, alvo_x, alvo_y, dt_ms):
         if dt_ms is None or dt_ms <= 0:
@@ -180,7 +194,7 @@ class Vampiro(InimigoBase):
                 self.sprites = self.sprites_andar
                 self.intervalo_animacao = self.intervalo_animacao_andar
             else:
-                # Verifica a colisão durante o ataque
+                # Verifica a colisão durante o ataque (apenas uma vez por ataque)
                 if not self.hit_player_this_attack:
                     # Cria uma hitbox de ataque temporária à frente do vampiro
                     hitbox_offset_x = 30 if self.facing_right else -30
@@ -192,23 +206,3 @@ class Vampiro(InimigoBase):
                     if attack_hitbox.colliderect(player.rect):
                         player.receber_dano(self.attack_damage, self.rect)
                         self.hit_player_this_attack = True
-        
-        # Lógica de movimento e decisão de atacar
-        else: 
-            # Verifica se está no alcance para atacar
-            if distancia_ao_jogador <= self.attack_range and agora - self.last_attack_time >= self.attack_cooldown:
-                self.is_attacking = True
-                self.attack_timer = agora
-                self.last_attack_time = agora
-                self.hit_player_this_attack = False
-                self.sprites = self.sprites_atacar
-                self.intervalo_animacao = self.intervalo_animacao_atacar
-                self.sprite_index = 0
-            
-            # Se não estiver atacando, move-se em direção ao jogador
-            else:
-                self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-
-        self.atualizar_animacao()
-
-        # O dano de contato direto é gerido pelo GerenciadorDeInimigos para todos os inimigos

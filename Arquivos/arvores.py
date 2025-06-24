@@ -32,7 +32,7 @@ class Arvore(pygame.sprite.Sprite):
             0: ['Sprites/Arvore/Arvore.png', 'Sprites/Arvore/Carvalho_Primavera.png'],    # Primavera
             1: ['Sprites/Arvore/Arvore.png', 'Sprites/Arvore/Carvalho_Verao-.png'],         # Verão
             2: ['Sprites/Arvore/Arvore_Outono.png', 'Sprites/Arvore/Carvalho_Outono.png'],  # Outono
-            3: ['Sprites/Arvore/Arvore_Inverno.png', 'Sprites/Arvore/Carvalho_Inverno-.png'] # Inverno
+            3: ['Sprites/Arvore/Arvore_Inverno.png', 'Sprites\Arvore\Carvalho_Inverno-.png'] # Inverno
         }
 
         # Itera sobre o mapa para carregar, redimensionar e armazenar cada sprite.

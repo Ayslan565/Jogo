@@ -123,7 +123,7 @@ class Menu:
     def setup_ui_principal(self):
         """Configura os botões do menu principal."""
         self.titulo_parte1_render = self.font_titulo.render("THE LEGEND OF ", True, BRANCO)
-        self.titulo_parte2_render = self.font_titulo.render("AZRAEL", True, AMARELO_SELECAO)
+        self.titulo_parte2_render = self.font_titulo.render("ASRAHEL", True, AMARELO_SELECAO)
         self.rect_titulo_parte1 = self.titulo_parte1_render.get_rect()
         self.rect_titulo_parte2 = self.titulo_parte2_render.get_rect()
 
