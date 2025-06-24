@@ -569,3 +569,34 @@ if __name__ == "__main__":
             f.write(exc_text)
         # input("\nPressione Enter para sair após o erro fatal...")
         sys.exit(1)
+    # ... (outros métodos em Game.py) ...
+
+    def _atualizar_logica(self):
+        agora = pygame.time.get_ticks()
+        if agora - self.ultimo_clima_update > self.intervalo_clima:
+            self.evento_climatico_atual = self.gerador_clima.gerar_evento_aleatorio()
+            self.ultimo_clima_update = agora
+
+        if not self.paused:
+            dt = self.clock.get_time() / 1000.0  # Delta time em segundos
+
+            self.jogador.update(self.teclas_pressionadas, self.arvores_group, dt)
+            self.gerenciador_inimigos.update(self.jogador, self.camera_x, self.camera_y)
+            self.jogador.projectiles.update()
+
+            # --- ADICIONE ESTE BLOCO PARA FAZER A ARMA ATACAR ---
+            if self.jogador.equipped_weapon:
+                self.jogador.equipped_weapon.attack(self.gerenciador_inimigos.inimigos)
+            # ----------------------------------------------------
+
+            self.xp_manager.update(self.jogador)
+            self.gerenciador_moedas.update(self.jogador)
+            self.combate_manager.verificar_colisoes(self.jogador, self.gerenciador_inimigos.inimigos, self.gerenciador_moedas, self.xp_manager)
+
+            self.camera_x = self.jogador.rect.centerx - self.largura // 2
+            self.camera_y = self.jogador.rect.centery - self.altura // 2
+
+            if self.evento_climatico_atual:
+                self.evento_climatico_atual.update(self.tela)
+
+# ... (resto do código) ...

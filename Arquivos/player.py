@@ -493,3 +493,32 @@ class Player(pygame.sprite.Sprite):
         else:
             print(f"ALERTA(Player): xp_manager não configurado. Não foi possível adicionar {xp_amount} de XP do chefe.")
 
+    # ... (outros métodos em Game.py) ...
+
+    def _atualizar_logica(self):
+        agora = pygame.time.get_ticks()
+        if agora - self.ultimo_clima_update > self.intervalo_clima:
+            self.evento_climatico_atual = self.gerador_clima.gerar_evento_aleatorio()
+            self.ultimo_clima_update = agora
+
+        if not self.paused:
+            dt = self.clock.get_time() / 1000.0  # Delta time em segundos
+
+            self.jogador.update(self.teclas_pressionadas, self.arvores_group, dt)
+            self.gerenciador_inimigos.update(self.jogador, self.camera_x, self.camera_y)
+            
+            # --- ADICIONE ESTA LINHA ---
+            self.jogador.projectiles.update()
+            # ---------------------------
+
+            self.xp_manager.update(self.jogador)
+            self.gerenciador_moedas.update(self.jogador)
+            self.combate_manager.verificar_colisoes(self.jogador, self.gerenciador_inimigos.inimigos, self.gerenciador_moedas, self.xp_manager)
+
+            self.camera_x = self.jogador.rect.centerx - self.largura // 2
+            self.camera_y = self.jogador.rect.centery - self.altura // 2
+
+            if self.evento_climatico_atual:
+                self.evento_climatico_atual.update(self.tela)
+    
+# ... (resto do código) ...
