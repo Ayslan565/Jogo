@@ -81,7 +81,7 @@ class Arvore_Maldita(InimigoBase):
     def __init__(self, x, y, velocidade=1.0):
         Arvore_Maldita.carregar_recursos_arvore_maldita()
 
-        vida_arvore = 100
+        vida_arvore = 300
         dano_contato_arvore = 25
         xp_arvore = 1000
         self.moedas_drop = 1500
@@ -121,7 +121,7 @@ class Arvore_Maldita(InimigoBase):
         self.attack_principal_range = Arvore_Maldita.tamanho_sprite_definido[0] * 0.8
         self.attack_principal_cooldown = 4.0
         self.last_attack_principal_time = pygame.time.get_ticks() - int(self.attack_principal_cooldown * 1000 * 0.75)
-        self.attack_principal_hitbox_size = (Arvore_Maldita.tamanho_sprite_definido[0] * 0.7, Arvore_Maldita.tamanho_sprite_definido[1] * 0.6)
+        self.attack_principal_hitbox_size = (Arvore_Maldita.tamanho_sprite_definido[0] * 0.4, Arvore_Maldita.tamanho_sprite_definido[1] * 0.3)
         self.attack_principal_hitbox_offset_y = -Arvore_Maldita.tamanho_sprite_definido[1] * 0.1
         self.attack_principal_hitbox = pygame.Rect(0,0,0,0)
         self.hit_player_this_attack_swing = False

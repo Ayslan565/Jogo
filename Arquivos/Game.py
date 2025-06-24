@@ -20,9 +20,9 @@ if project_root_dir not in sys.path:
 try:
     from Creditos import exibir_creditos
 except ImportError:
-    print("AVISO (Game.py): Não foi possível importar 'exibir_creditos' do arquivo 'creditos.py'. A opção não funcionará.")
+    # print("AVISO (Game.py): Não foi possível importar 'exibir_creditos' do arquivo 'creditos.py'. A opção não funcionará.")
     def exibir_creditos(tela, clock): # Função placeholder para evitar erros
-        print("ERRO: A função de créditos não pôde ser carregada.")
+        # print("ERRO: A função de créditos não pôde ser carregada.")
         pass
 
 try:
@@ -38,8 +38,8 @@ try:
     from GeradorXP import GeradorXP 
     import shop_elements
 except ImportError as e:
-    print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
-    traceback.print_exc() # Imprime o rastreamento completo do erro
+    # print(f"ERRO CRÍTICO (Game.py): Falha ao importar módulos essenciais: {e}")
+    # traceback.print_exc() # Imprime o rastreamento completo do erro
     # Define fallbacks para evitar crashes imediatos
     Player, PauseMenuManager, XPManager, Menu, GerenciadorDeInimigos, Estacoes, Grama, Arvore, Timer, shop_elements, run_death_screen, Vida, ItemInventario, GerenciadorMoedas = (None,) * 14
     loja_core = None 
@@ -92,13 +92,13 @@ def inicializar_jogo(largura_tela, altura_tela):
     tempo_inicio_func = pygame.time.get_ticks()
 
     if Player is None:
-        print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
+        # print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
         return (None,) * 14
 
     jogador = Player(velocidade=5, vida_maxima=150)
     jogador.x = float(largura_tela // 2)
     jogador.y = float(altura_tela // 2)
-    jogador.gerenciador_moedas = gerenciador_de_moedas 
+
     if GerenciadorMoedas:
         # Passa a referência do jogador, que é necessária
         gerenciador_de_moedas = GerenciadorMoedas(jogador_ref=jogador)
@@ -159,13 +159,13 @@ def inicializar_jogo(largura_tela, altura_tela):
         gerador_cogumelos = GeradorCogumelos()
     else:
         gerador_cogumelos = None
-        print("ERRO (Game.py): Classe GeradorCogumelos não foi importada.")
+        # print("ERRO (Game.py): Classe GeradorCogumelos não foi importada.")
 
     if GeradorXP:
         gerador_xp = GeradorXP()
     else:
         gerador_xp = None
-        print("ERRO (Game.py): Classe GeradorXP não foi importada.")
+        # print("ERRO (Game.py): Classe GeradorXP não foi importada.")
 
     return jogador, estacoes, vida_jogador_ref, gramas, arvores, blocos_gerados, \
            gerenciador_inimigos, False, tempo_inicio_func, timer_obj, barra_inventario, \
@@ -218,7 +218,7 @@ def tocar_musica_jogo():
         musica_gameplay_atual_path = musica_path_escolhida
         musica_gameplay_atual_pos_ms = 0
     except Exception as e:
-        print(f"ERRO (Game.py): Ao tocar música '{musica_path_escolhida}': {e}")
+        # print(f"ERRO (Game.py): Ao tocar música '{musica_path_escolhida}': {e}")
         musica_gameplay_atual_path = None
 
 def verificar_colisoes_com_inimigos(gerenciador_obj, jogador_obj):
@@ -328,7 +328,8 @@ def main():
         pygame.mixer.set_num_channels(32)
         mixer_initialized = True
     except pygame.error as e:
-        print(f"AVISO (main): Falha ao inicializar pygame.mixer: {e}")
+        # print(f"AVISO (main): Falha ao inicializar pygame.mixer: {e}")
+        pass
 
     try:
         info = pygame.display.Info()
@@ -373,7 +374,7 @@ def main():
             
             if jogador is None: break
             if Luta_boss is None: 
-                print("ERRO CRÍTICO: Módulo Luta_boss não foi carregado.")
+                # print("ERRO CRÍTICO: Módulo Luta_boss não foi carregado.")
                 break
 
             if mixer_initialized: tocar_musica_jogo()
@@ -526,7 +527,7 @@ if __name__ == "__main__":
         main()
     except Exception:
         exc_text = traceback.format_exc()
-        print(exc_text)
+        # print(exc_text)
         if pygame.get_init():
             if 'gerenciador_inimigos' in locals() and gerenciador_inimigos:
                 gerenciador_inimigos.stop_threads()
@@ -535,5 +536,5 @@ if __name__ == "__main__":
         with open("crash_log.txt", "w") as f:
             f.write("Um erro fatal ocorreu:\n")
             f.write(exc_text)
-        input("\nPressione Enter para sair após o erro fatal...")
+        # input("\nPressione Enter para sair após o erro fatal...")
         sys.exit(1)

@@ -92,7 +92,7 @@ class Espirito_Das_Flores(InimigoBase):
         vida_espirito = 40
         dano_contato_espirito = 6
         xp_espirito = 35
-        self.moedas_drop = 10
+        self.moedas_drop = 1500
 
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Espirito_Flores/Espirito_Flores1.png"
 

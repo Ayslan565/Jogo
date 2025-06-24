@@ -98,7 +98,7 @@ class Goblin(InimigoBase):
         vida_goblin = 20
         dano_contato_goblin = 7
         xp_goblin = 18
-        self.moedas_drop = 10
+        self.moedas_drop = 1500
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Goblin/goblin1.png"
 
         super().__init__(

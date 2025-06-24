@@ -1,11 +1,15 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 509, in <module>
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 540, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 374, in main
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 367, in main
     barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 94, in inicializar_jogo
-    gerenciador_de_moedas = GerenciadorMoedas()
-                            ^^^^^^^^^^^^^^^^^^^
-TypeError: GerenciadorMoedas.__init__() missing 1 required positional argument: 'jogador_ref'
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 126, in inicializar_jogo
+    gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 190, in spawn_inimigos_iniciais
+    self._spawn_inimigo_especifico_da_estacao(jogador)
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 182, in _spawn_inimigo_especifico_da_estacao
+    x = jogador.rect.centerx + raio_spawn * math.cos(angulo)
+        ^^^^^^^^^^^^
+AttributeError: 'Player' object has no attribute 'rect'

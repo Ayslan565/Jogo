@@ -94,7 +94,7 @@ class BonecoDeNeve(InimigoBase):
         vida_boneco = 40
         dano_contato_boneco = 7
         xp_boneco = 30
-        self.moedas_drop = 10 
+        self.moedas_drop = 1500
 
         sprite_path_principal_relativo_ao_jogo = "Sprites/Inimigos/Boneco de Neve/Boneco De Neve 1.png"
 
