@@ -166,7 +166,7 @@ class Golem_Neve(InimigoBase):
     def __init__(self, x, y, velocidade=1):
         Golem_Neve.carregar_recursos_golem_neve()
 
-        vida_golem = 250
+        vida_golem = 350
         dano_contato_golem = 50
         xp_golem = 600
         moedas_dropadas = 25
