@@ -27,13 +27,13 @@ def exibir_creditos(tela, clock):
     MUSICA_CREDITOS_PATH = os.path.join(caminho_base_projeto, "Musica", "Creditos", "Creditos.mp3")
     
     dados_creditos = [
-        {"nome": "Ayslan Araújo", "funcao": "Diretor, Produtor", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Ayslan.jpg")},
+        {"nome": "Ayslan Araújo", "funcao": "Diretor, Produtor e desenvolvedor", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Ayslan.jpg")},
         {"nome": "Andre Costa", "funcao": "Design e Animação de Personagens", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Andre.jpg")},
-        {"nome": "Caio Macedo", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Caio.jpg")},
+        {"nome": "Caio Macedo", "funcao": "Desenvolvedor das Armas", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Caio.jpg")},
         {"nome": "Calebe de Oliveira", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Calebe.jpg")},
-        {"nome": "Felipe Hipolio", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Felipe.jpg")},
-        {"nome": "Raiane Oliveira", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Raiane.jpg")},
-        {"nome": "Caio Rangel", "funcao": "Agradecimento Especial", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Rangel.jpg")},
+        {"nome": "Felipe Hipolio", "funcao": "Desenvolvedor do Mapa", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Felipe.jpg")},
+        {"nome": "Raiane Oliveira", "funcao": "Sonoplasta", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Raiane.jpg")},
+        {"nome": "Caio Rangel", "funcao": "Desenvolvedor do player", "imagem": os.path.join(caminho_base_projeto, "Creditos", "Rangel.jpg")},
     ]
 
     # Para a música do menu e toca a música dos créditos
