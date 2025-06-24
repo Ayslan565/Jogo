@@ -93,7 +93,10 @@ def inicializar_jogo(largura_tela, altura_tela):
 
     if Player is None:
         # print("ERRO CRÍTICO (Game.py): Classe Player não carregada.")
-        return (None,) * 14
+        # Garante que as variáveis de retorno sejam inicializadas para evitar UnboundLocalError
+        return None, None, None, [], [], set(), \
+               None, False, tempo_inicio_func, None, None, \
+               None, None, None
 
     jogador = Player(velocidade=5, vida_maxima=150)
     jogador.x = float(largura_tela // 2)
@@ -121,6 +124,7 @@ def inicializar_jogo(largura_tela, altura_tela):
     else:
         gerenciador_eventos = None
 
+    # Inicialização garantida de gramas, arvores e blocos_gerados
     gramas, arvores, blocos_gerados = [], [], set()
 
     if GerenciadorDeInimigos and estacoes:
@@ -251,11 +255,11 @@ def atualizar_todas_as_arvores(lista_de_arvores, nova_estacao_idx):
     """
     if not lista_de_arvores:
         return
-    print(f"COMANDO: Atualizando {len(lista_de_arvores)} árvores para o índice de estação {nova_estacao_idx}.")
+    # print(f"COMANDO: Atualizando {len(lista_de_arvores)} árvores para o índice de estação {nova_estacao_idx}.")
     for arvore in lista_de_arvores:
         if hasattr(arvore, 'atualizar_sprite'):
             arvore.atualizar_sprite(nova_estacao_idx)
-    print("Atualização das árvores concluída.")
+    # print("Atualização das árvores concluída.")
 
 
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
@@ -572,4 +576,4 @@ if __name__ == "__main__":
         with open("crash_log.txt", "w") as f:
             f.write("Um erro fatal ocorreu:\n")
             f.write(exc_text)
-        sys.exit
+        sys.exit()

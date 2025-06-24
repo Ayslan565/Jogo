@@ -48,7 +48,7 @@ except ImportError as e:
 class Fenix(InimigoBase):
     sprites_voo_carregados = None
     sprites_atacar_carregados = None
-    tamanho_sprite_definido = (100, 100)
+    tamanho_sprite_definido = (300, 300)
     som_ataque_fenix, som_dano_fenix, som_morte_fenix, som_voo_fenix = None, None, None, None
     sons_carregados = False
 

@@ -1,8 +1,8 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 556, in <module>
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 601, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 335, in main
-    for arvore in arvores:
-                  ^^^^^^^
-UnboundLocalError: cannot access local variable 'arvores' where it is not associated with a value
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 424, in main
+    if Luta_boss is None: # Luta_boss will be a module now, not a class directly
+       ^^^^^^^^^
+NameError: name 'Luta_boss' is not defined

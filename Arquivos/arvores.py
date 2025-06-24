@@ -27,9 +27,7 @@ class Arvore(pygame.sprite.Sprite):
         except NameError:
             project_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
 
-        # MODIFICAÇÃO: O mapeamento de estações foi corrigido para corresponder
-        # à ordem do ficheiro Estacoes.py (0:Primavera, 1:Verão, 2:Outono, 3:Inverno).
-        # Os nomes dos ficheiros também foram ajustados.
+        # MODIFICAÇÃO: O mapeamento de estações e os nomes dos ficheiros foram corrigidos.
         mapa_sprites = {
             0: ['Sprites/Arvore/Arvore.png', 'Sprites/Arvore/Carvalho_Primavera.png'],    # Primavera
             1: ['Sprites/Arvore/Arvore.png', 'Sprites/Arvore/Carvalho_Verao-.png'],         # Verão

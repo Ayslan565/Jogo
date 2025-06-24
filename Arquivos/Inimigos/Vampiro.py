@@ -30,12 +30,12 @@ except ImportError as e:
         def esta_vivo(self): return self.hp > 0
         def mover_em_direcao(self, alvo_x, alvo_y, dt_ms=None): pass
         def atualizar_animacao(self):
-             if self.sprites and len(self.sprites) > 0: self.image = self.sprites[0]
+                if self.sprites and len(self.sprites) > 0: self.image = self.sprites[0]
         def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):
             self.atualizar_animacao()
         def desenhar(self, janela, camera_x, camera_y):
             if self.image and self.rect:
-                janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
+                    janela.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
         def kill(self): super().kill()
 
 class Vampiro(InimigoBase):
@@ -92,7 +92,8 @@ class Vampiro(InimigoBase):
         Vampiro.carregar_recursos_vampiro()
 
         vampiro_hp = 90
-        vampiro_contact_damage = 8
+        # MODIFICAÇÃO: O dano de contato foi alterado para 0
+        vampiro_contact_damage = 0
         vampiro_xp_value = 60
         self.moedas_drop = 25
         sprite_path_ref = "Sprites/Inimigos/Vampiro/Imagem.png"
