@@ -73,7 +73,7 @@ barra_inventario = None
 gerenciador_inimigos = None
 gerenciador_de_moedas = None
 game_is_running_flag = True
-jogo_pausado_para_inventario = False
+jogo_pausado = False # FLAG DE PAUSE UNIFICADA
 musica_gameplay_atual_path = None
 musica_gameplay_atual_pos_ms = 0
 gerador_cogumelos = None
@@ -248,7 +248,7 @@ def verificar_colisao_orbes_xp(jogador_obj, gerador_xp_obj):
 
 def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogador_obj,
                   gerenciador_inimigos_obj, vida_ui_obj, barra_inventario_ui,
-                  cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms, jogo_pausado_inv,
+                  cam_x, cam_y, tempo_decorrido_seg, timer_ui_obj, delta_time_ms, jogo_pausado_flag,
                   gerador_cogumelos_obj, gerenciador_eventos_obj, gerador_xp_obj):
     global xp_manager, gerenciador_de_moedas
 
@@ -310,12 +310,12 @@ def desenhar_cena(janela_surf, estacoes_obj, gramas_lista, arvores_lista, jogado
         largura_tela_atual = janela_surf.get_width()
         gerenciador_de_moedas.desenhar_hud_moedas(janela_surf, largura_tela_atual - 220, 20)
     
-    if not jogo_pausado_inv and barra_inventario_ui and jogador_obj:
+    if not jogo_pausado_flag and barra_inventario_ui and jogador_obj:
         barra_inventario_ui.desenhar(janela_surf, jogador_obj)
 
 def main():
     global jogador, game_music_volume, game_sfx_volume, pause_manager, game_is_running_flag, \
-           xp_manager, barra_inventario, jogo_pausado_para_inventario, gerenciador_inimigos, \
+           xp_manager, barra_inventario, jogo_pausado, gerenciador_inimigos, \
            musica_gameplay_atual_path, musica_gameplay_atual_pos_ms, gerenciador_de_moedas, \
            gerador_cogumelos, gerenciador_eventos, gerador_xp
 
@@ -342,179 +342,210 @@ def main():
     pygame.display.set_caption("Lenda de Asrahel")
     clock = pygame.time.Clock()
 
-    while True:
+    while True: # Loop do Menu Principal
         menu_obj = Menu(largura_tela, altura_tela) if Menu else None
         if not menu_obj: break
 
-        if hasattr(menu_obj, 'tocar_proxima_musica'):
-            menu_obj.tocar_proxima_musica()
-
-        acao_menu = None
-        while acao_menu not in ["jogar", "sair"]:
-            menu_obj.desenhar(janela, pygame.mouse.get_pos())
+        menu_em_execucao = True
+        while menu_em_execucao:
+            mouse_pos = pygame.mouse.get_pos()
+            menu_obj.desenhar(janela, mouse_pos)
+            
             for event in pygame.event.get():
-                if event.type == pygame.QUIT: acao_menu = "sair"; break
+                if event.type == pygame.QUIT:
+                    menu_em_execucao = False
+                    game_is_running_flag = False
+                
+                menu_obj.handle_event(event) # Para sliders de volume
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     acao_clicada = menu_obj.verificar_click(*event.pos)
-                    if acao_clicada == "creditos":
+                    if acao_clicada == "jogar":
+                        menu_em_execucao = False
+                        game_is_running_flag = True
+                    elif acao_clicada == "sair":
+                        menu_em_execucao = False
+                        game_is_running_flag = False
+                    elif acao_clicada == "creditos":
                         exibir_creditos(janela, clock)
                         menu_obj.tocar_proxima_musica()
-                    elif acao_clicada: acao_menu = acao_clicada; break
-            pygame.display.update()
-            clock.tick(30)
-        
-        if acao_menu == "sair": break
-
-        if acao_menu == "jogar":
-            if menu_obj: menu_obj.parar_musica()
-
-            jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, \
-            gerenciador_inimigos, jogador_morreu, tempo_inicio, timer_obj, \
-            barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
-            
-            if jogador is None: break
-            if Luta_boss is None: 
-                # print("ERRO CRÍTICO: Módulo Luta_boss não foi carregado.")
-                break
-
-            if mixer_initialized: tocar_musica_jogo()
-            
-            running_loop = True
-            while running_loop:
-                dt_ms = clock.tick(60)
                 
-                cam_x = jogador.rect.centerx - largura_tela // 2
-                cam_y = jogador.rect.centery - altura_tela // 2
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and menu_obj.estado == 'opcoes':
+                    menu_obj.estado = 'principal'
+            
+            if not game_is_running_flag:
+                break
+        
+        if not game_is_running_flag:
+            break
 
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT: running_loop = False; game_is_running_flag = False
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            if jogo_pausado_para_inventario and barra_inventario:
-                                barra_inventario.toggle_visao_inventario(jogador)
-                                jogo_pausado_para_inventario = False
-                                if mixer_initialized: pygame.mixer.music.unpause()
-                            elif pause_manager:
-                                if mixer_initialized: pygame.mixer.music.pause()
-                                action, music_vol, sfx_vol = pause_manager.show_menu()
-                                game_music_volume, game_sfx_volume = music_vol, sfx_vol
+        # Inicia o jogo
+        if menu_obj: menu_obj.parar_musica()
+
+        jogador, est, vida_jogador_ref, gramas, arvores, blocos_gerados, \
+        gerenciador_inimigos, jogador_morreu, tempo_inicio, timer_obj, \
+        barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
+        
+        if jogador is None: break
+        if Luta_boss is None: 
+            # print("ERRO CRÍTICO: Módulo Luta_boss não foi carregado.")
+            break
+
+        if mixer_initialized: tocar_musica_jogo()
+        
+        running_loop = True
+        while running_loop:
+            dt_ms = clock.tick(60)
+            
+            cam_x = jogador.rect.centerx - largura_tela // 2
+            cam_y = jogador.rect.centery - altura_tela // 2
+
+            # --- LÓGICA DE EVENTOS E PAUSA ---
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running_loop = False
+                    game_is_running_flag = False
+                
+                if event.type == pygame.KEYDOWN:
+                    # Lógica para PAUSAR/DESPAUSAR (ESC e TAB)
+                    if event.key == pygame.K_ESCAPE:
+                        if jogo_pausado and barra_inventario.visao_inventario_aberta:
+                            # Se o inventário estiver aberto, o ESC o fecha
+                            barra_inventario.toggle_visao_inventario(jogador)
+                            jogo_pausado = False
+                            if mixer_initialized: pygame.mixer.music.unpause()
+                        elif not jogo_pausado:
+                            # Se o jogo não estiver pausado, abre o menu de pausa
+                            if mixer_initialized: pygame.mixer.music.pause()
+                            action, music_vol, sfx_vol = pause_manager.show_menu()
+                            
+                            # Atualiza volumes globais
+                            game_music_volume, game_sfx_volume = music_vol, sfx_vol
+                            
+                            # Lida com a ação de retorno do menu de pausa
+                            if action == "main_menu":
+                                running_loop = False
+                                break 
+                            elif action == "quit":
+                                running_loop = False
+                                game_is_running_flag = False
+                                break
+                            else: # Inclui "resume_game" e qualquer outra ação que não seja sair
                                 if mixer_initialized:
                                     pygame.mixer.music.set_volume(game_music_volume)
-                                    if action == "resume_game": pygame.mixer.music.unpause()
-                                if action == "main_menu": running_loop = False; break
-                                elif action == "quit": running_loop = False; game_is_running_flag = False; break
-                        
-                        elif event.key == pygame.K_TAB and barra_inventario:
-                            barra_inventario.toggle_visao_inventario(jogador)
-                            jogo_pausado_para_inventario = barra_inventario.visao_inventario_aberta
-                            if jogo_pausado_para_inventario and mixer_initialized: pygame.mixer.music.pause()
-                            elif not jogo_pausado_para_inventario and mixer_initialized: pygame.mixer.music.unpause()
-
-                    if barra_inventario and jogador:
-                        barra_inventario.handle_input(event, jogador)
+                                    pygame.mixer.music.unpause()
+                    
+                    elif event.key == pygame.K_TAB and barra_inventario:
+                        barra_inventario.toggle_visao_inventario(jogador)
+                        jogo_pausado = barra_inventario.visao_inventario_aberta
+                        if jogo_pausado and mixer_initialized:
+                            pygame.mixer.music.pause()
+                        elif not jogo_pausado and mixer_initialized:
+                            pygame.mixer.music.unpause()
                 
-                if not running_loop: break
+                # Passa eventos para a barra de inventário (drag and drop, etc.)
+                if barra_inventario and jogador:
+                    barra_inventario.handle_input(event, jogador)
+            
+            if not running_loop: break
+
+            # --- LÓGICA DE ATUALIZAÇÃO DO JOGO (SÓ RODA SE NÃO ESTIVER PAUSADO) ---
+            if not jogo_pausado:
+                teclas = pygame.key.get_pressed()
+                jogador.update(dt_ms, teclas)
                 
-                if not jogo_pausado_para_inventario:
-                    teclas = pygame.key.get_pressed()
-                    jogador.update(dt_ms, teclas)
-                    
-                    if hasattr(jogador, 'update_projectiles'):
-                        jogador.update_projectiles()
-                    
-                    # --- Lógica de colisão de projéteis do jogador ---
-                    if gerenciador_inimigos and jogador and hasattr(jogador, 'projeteis_ativos'):
-                        for projetil in list(jogador.projeteis_ativos):
-                            # Verifica colisão do projétil com o grupo de inimigos
-                            inimigos_atingidos = pygame.sprite.spritecollide(projetil, gerenciador_inimigos.inimigos, False)
-                            
-                            if inimigos_atingidos:
-                                inimigo = inimigos_atingidos[0] # Pega o primeiro inimigo atingido
-                                
-                                # Aplica dano ao inimigo
-                                if hasattr(inimigo, 'receber_dano'):
-                                    dano_do_projetil = getattr(projetil, 'dano', 0)
-                                    inimigo.receber_dano(dano_do_projetil)
-                                
-                                # O projétil é removido após atingir um inimigo.
-                                # A verificação de morte e recompensa agora é feita exclusivamente no GerenciadorDeInimigos.
-                                projetil.kill()
+                if hasattr(jogador, 'update_projectiles'):
+                    jogador.update_projectiles()
+                
+                # Colisão de projéteis do jogador
+                if gerenciador_inimigos and jogador and hasattr(jogador, 'projeteis_ativos'):
+                    for projetil in list(jogador.projeteis_ativos):
+                        inimigos_atingidos = pygame.sprite.spritecollide(projetil, gerenciador_inimigos.inimigos, False)
+                        if inimigos_atingidos:
+                            inimigo = inimigos_atingidos[0]
+                            if hasattr(inimigo, 'receber_dano'):
+                                dano_do_projetil = getattr(projetil, 'dano', 0)
+                                inimigo.receber_dano(dano_do_projetil)
+                            projetil.kill()
 
+                sinal_estacoes = est.atualizar_ciclo_estacoes() if est else None
+                
+                if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not esta_luta_ativa():
+                    if gerenciador_eventos: gerenciador_eventos.interromper_evento_climatico()
+                    if shop_elements: shop_elements.despawn_loja_imediatamente()
+                    iniciar_luta_chefe(
+                        jogador=jogador, indice_estacao=est.indice_estacao_atual,
+                        gerenciador_inimigos=gerenciador_inimigos, estacoes_obj=est,
+                        largura_tela=largura_tela, altura_tela=altura_tela,
+                        musica_atual_path=musica_gameplay_atual_path,
+                        musica_atual_pos_ms=pygame.mixer.music.get_pos() if mixer_initialized else 0
+                    )
+                
+                if gerenciador_inimigos:
+                    gerenciador_inimigos.update_inimigos(jogador, dt_ms)
+                    gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
 
-                    sinal_estacoes = est.atualizar_ciclo_estacoes() if est else None
-                    
-                    if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not esta_luta_ativa():
-                        if gerenciador_eventos: gerenciador_eventos.interromper_evento_climatico()
-                        if shop_elements: shop_elements.despawn_loja_imediatamente()
-                        
-                        iniciar_luta_chefe(
-                            jogador=jogador, indice_estacao=est.indice_estacao_atual,
-                            gerenciador_inimigos=gerenciador_inimigos, estacoes_obj=est,
-                            largura_tela=largura_tela, altura_tela=altura_tela,
-                            musica_atual_path=musica_gameplay_atual_path,
-                            musica_atual_pos_ms=pygame.mixer.music.get_pos() if mixer_initialized else 0
-                        )
-                    
+                if esta_luta_ativa():
+                    sinal_luta = atualizar_luta(jogador, est, gerenciador_inimigos)
+                    if sinal_luta == "FIM_DA_LUTA":
+                        if gerenciador_eventos: gerenciador_eventos.reativar_eventos_climatico()
+                    jogador.mover(teclas, [])
+                    jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
+                    verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
+                else:
+                    jogador.mover(teclas, arvores)
+                    if gerenciador_eventos:
+                        gerenciador_eventos.atualizar_clima()
+                        gerenciador_eventos.atualizar_ciclo_dia_noite()
+                        gerenciador_eventos.atualizar_particulas()
                     if gerenciador_inimigos:
-                        gerenciador_inimigos.update_inimigos(jogador, dt_ms)
-                        gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
+                        gerenciador_inimigos.process_spawn_requests(jogador, dt_ms)
 
-                    if esta_luta_ativa():
-                        sinal_luta = atualizar_luta(jogador, est, gerenciador_inimigos)
-                        if sinal_luta == "FIM_DA_LUTA":
-                            if gerenciador_eventos: gerenciador_eventos.reativar_eventos_climaticos()
+                    if gerador_cogumelos:
+                        gerador_cogumelos.tentar_gerar_cogumelo(jogador.rect, blocos_gerados)
+                        gerador_cogumelos.update(jogador, cam_x, cam_y, dt_ms)
                     
-                        jogador.mover(teclas, [])
+                    if gerador_xp:
+                        gerador_xp.tentar_gerar_orbe(jogador.rect)
+                        gerador_xp.update(dt_ms)
+                        verificar_colisao_orbes_xp(jogador, gerador_xp)
+                    
+                    gerar_elementos_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados, gerador_cogumelos)
+                    if gerenciador_inimigos:
                         jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
-                        verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
-                    else:
-                        jogador.mover(teclas, arvores)
-                        if gerenciador_eventos:
-                            gerenciador_eventos.atualizar_clima()
-                            gerenciador_eventos.atualizar_ciclo_dia_noite()
-                            gerenciador_eventos.atualizar_particulas()
-                        if gerenciador_inimigos:
-                            gerenciador_inimigos.process_spawn_requests(jogador, dt_ms)
+                    verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
+                    
+                    # Lógica para entrar na loja
+                    if shop_elements and loja_core and teclas[pygame.K_e]:
+                        shop_rect = shop_elements.get_current_shop_rect()
+                        if shop_rect and jogador.rect_colisao.colliderect(shop_rect):
+                            jogo_pausado = True # PAUSA O JOGO
+                            if mixer_initialized: pygame.mixer.music.pause()
+                            loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
+                            if mixer_initialized: pygame.mixer.music.unpause()
+                            shop_elements.reset_shop_spawn()
+                            jogo_pausado = False # DESPAUSA AO SAIR DA LOJA
 
-                        if gerador_cogumelos:
-                            gerador_cogumelos.tentar_gerar_cogumelo(jogador.rect, blocos_gerados)
-                            gerador_cogumelos.update(jogador, cam_x, cam_y, dt_ms)
-                        
-                        if gerador_xp:
-                            gerador_xp.tentar_gerar_orbe(jogador.rect)
-                            gerador_xp.update(dt_ms)
-                            verificar_colisao_orbes_xp(jogador, gerador_xp)
-                        
-                        gerar_elementos_ao_redor_do_jogador(jogador, gramas, arvores, est, blocos_gerados, gerador_cogumelos)
-                        if gerenciador_inimigos:
-                            jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
-                        verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
-                        if shop_elements and loja_core and teclas[pygame.K_e]:
-                            shop_rect = shop_elements.get_current_shop_rect()
-                            if shop_rect and jogador.rect_colisao.colliderect(shop_rect):
-                                if mixer_initialized: pygame.mixer.music.pause()
-                                loja_core.run_shop_scene(janela, jogador, largura_tela, altura_tela)
-                                if mixer_initialized: pygame.mixer.music.unpause()
-                                shop_elements.reset_shop_spawn()
+            # --- VERIFICAÇÕES FINAIS E DESENHO (RODAM MESMO SE PAUSADO) ---
+            if not jogador.esta_vivo():
+                jogador_morreu = True
+                running_loop = False
+            
+            tempo_seg = (pygame.time.get_ticks() - tempo_inicio) // 1000
+            desenhar_cena(janela, est, gramas, arvores, jogador, gerenciador_inimigos,
+                          vida_jogador_ref, barra_inventario,
+                          cam_x, cam_y, tempo_seg, timer_obj, dt_ms, jogo_pausado,
+                          gerador_cogumelos, gerenciador_eventos, gerador_xp)
 
-                if not jogador.esta_vivo():
-                    jogador_morreu = True
-                    running_loop = False
-                
-                tempo_seg = (pygame.time.get_ticks() - tempo_inicio) // 1000
-                desenhar_cena(janela, est, gramas, arvores, jogador, gerenciador_inimigos,
-                              vida_jogador_ref, barra_inventario,
-                              cam_x, cam_y, tempo_seg, timer_obj, dt_ms, jogo_pausado_para_inventario,
-                              gerador_cogumelos, gerenciador_eventos, gerador_xp)
+            if jogo_pausado and barra_inventario and barra_inventario.visao_inventario_aberta:
+                barra_inventario.desenhar(janela, jogador)
 
-                if jogo_pausado_para_inventario and barra_inventario:
-                    barra_inventario.desenhar(janela, jogador)
+            pygame.display.flip()
 
-                pygame.display.flip()
+        if jogador_morreu and run_death_screen:
+            run_death_screen(janela, main, main, DEATH_SCREEN_BACKGROUND_IMAGE)
 
-            if jogador_morreu and run_death_screen:
-                run_death_screen(janela, main, main, DEATH_SCREEN_BACKGROUND_IMAGE)
-
+    # --- FINALIZAÇÃO ---
     if 'gerenciador_inimigos' in locals() and gerenciador_inimigos:
         gerenciador_inimigos.stop_threads()
     if mixer_initialized:
