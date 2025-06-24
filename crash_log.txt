@@ -1,15 +1,15 @@
 Um erro fatal ocorreu:
 Traceback (most recent call last):
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 540, in <module>
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 527, in <module>
     main()
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 367, in main
-    barra_inventario, gerador_cogumelos, gerenciador_eventos, gerador_xp = inicializar_jogo(largura_tela, altura_tela)
-                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 126, in inicializar_jogo
-    gerenciador_inimigos.spawn_inimigos_iniciais(jogador)
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 190, in spawn_inimigos_iniciais
-    self._spawn_inimigo_especifico_da_estacao(jogador)
-  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\GerenciadorDeInimigos.py", line 182, in _spawn_inimigo_especifico_da_estacao
-    x = jogador.rect.centerx + raio_spawn * math.cos(angulo)
-        ^^^^^^^^^^^^
-AttributeError: 'Player' object has no attribute 'rect'
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Game.py", line 346, in main
+    menu_obj = Menu(largura_tela, altura_tela) if Menu else None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 118, in __init__
+    self.tocar_proxima_musica()
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 292, in tocar_proxima_musica
+    self.atualizar_volumes()
+  File "c:\Users\aysla\Documents\Jogo_Asrahel\Jogo\Arquivos\Menu.py", line 299, in atualizar_volumes
+    pygame.mixer.music.set_volume(self.music_volume)
+                                  ^^^^^^^^^^^^^^^^^
+AttributeError: 'Menu' object has no attribute 'music_volume'
