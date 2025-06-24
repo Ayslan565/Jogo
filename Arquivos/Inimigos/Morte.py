@@ -15,7 +15,7 @@ except ImportError as e:
             self.image = pygame.Surface((largura, altura), pygame.SRCALPHA)
             self.image.fill((150, 0, 150, 100))
             pygame.draw.rect(self.image, (200, 0, 200), self.image.get_rect(), 1)
-            vida_maxima = 250
+            vida_maxima = 450
             self.hp = vida_maxima
             self.max_hp = vida_maxima
             self.velocidade = velocidade

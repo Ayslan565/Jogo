@@ -81,7 +81,7 @@ class Arvore_Maldita(InimigoBase):
     def __init__(self, x, y, velocidade=1.0):
         Arvore_Maldita.carregar_recursos_arvore_maldita()
 
-        vida_arvore = 300
+        vida_arvore = 100
         dano_contato_arvore = 25
         xp_arvore = 1000
         self.moedas_drop = 1500
