@@ -89,7 +89,7 @@ class Fenix(InimigoBase):
     def __init__(self, x, y, velocidade=1.8):
         Fenix.carregar_recursos_fenix()
 
-        vida_fenix = 250
+        vida_fenix = 350
         dano_contato_fenix = 6
         xp_fenix = 70
         self.moedas_drop = 20
