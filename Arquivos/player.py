@@ -78,7 +78,10 @@ class Player(pygame.sprite.Sprite):
         self.total_pontos_experiencia_acumulados = 0
         
         self.xp_manager = None 
-        self.dinheiro = 1000 # Dinheiro inicial do jogador
+        self.dinheiro = 0 # Dinheiro inicial do jogador
+        
+        # --- ADICIONADO PARA GERAR OURO PASSIVAMENTE ---
+        self.tempo_ultimo_ouro = pygame.time.get_ticks()
         
         self.SHOP_ITEM_TO_WEAPON_CLASS = SHOP_ITEM_TO_WEAPON_CLASS_MAP
 
@@ -272,6 +275,12 @@ class Player(pygame.sprite.Sprite):
     def update(self, dt_ms=None, teclas_pressionadas=None):
         agora_ticks = pygame.time.get_ticks()
         agora_time = time.time()
+        
+        # --- LÓGICA DE GERAÇÃO DE OURO ---
+        if agora_ticks - self.tempo_ultimo_ouro > 1000: # 1000 ms = 1 segundo
+            self.dinheiro += 12
+            self.tempo_ultimo_ouro = agora_ticks
+        # --- FIM DA LÓGICA DE GERAÇÃO DE OURO ---
 
         if self.tempo_fim_efeito_lentidao > 0 and agora_time >= self.tempo_fim_efeito_lentidao:
             self.velocidade = self.velocidade_original
@@ -435,7 +444,7 @@ class Player(pygame.sprite.Sprite):
                 attack_sprite_rect = sprite_to_draw.get_rect(center=self.attack_hitbox.center)
                 
                 janela.blit(sprite_to_draw, (round(attack_sprite_rect.x - camera_x), 
-                                              round(attack_sprite_rect.y - camera_y)))
+                                             round(attack_sprite_rect.y - camera_y)))
 
     def esta_vivo(self):
         if self.vida is not None and hasattr(self.vida, 'esta_vivo'):

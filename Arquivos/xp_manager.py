@@ -35,7 +35,7 @@ class XPManager:
             self.fonte = pygame.font.Font(FONTE_RETRO_PATH, 22)
             self.fonte_score = pygame.font.Font(FONTE_RETRO_PATH, 28)
         except pygame.error as e:
-            print(f"AVISO (XPManager): {e}. Usando fonte padrão do sistema.")
+           # print(f"AVISO (XPManager): {e}. Usando fonte padrão do sistema.")
             # Fallback para a fonte padrão se o arquivo não for encontrado
             self.fonte = pygame.font.Font(None, 24)
             self.fonte_score = pygame.font.Font(None, 28)
@@ -55,7 +55,7 @@ class XPManager:
             self.fundo_score_img = pygame.transform.scale(self.fundo_score_img, (250, 70))
             self.fundo_score_rect = self.fundo_score_img.get_rect()
         except pygame.error as e:
-            print(f"AVISO (XPManager): Erro ao carregar a imagem de fundo do score: {e}")
+           # print(f"AVISO (XPManager): Erro ao carregar a imagem de fundo do score: {e}")
             self.fundo_score_img = None
             self.fundo_score_rect = None
 
@@ -79,7 +79,7 @@ class XPManager:
             # Aumenta a quantidade de XP necessária para o próximo nível (ex: 50% a mais)
             self.player.experiencia_para_proximo_nivel = int(self.player.experiencia_para_proximo_nivel * 1.5)
             
-            print(f"DEBUG(XPManager): Jogador subiu para o Nível {self.player.nivel}!")
+           # print(f"DEBUG(XPManager): Jogador subiu para o Nível {self.player.nivel}!")
 
     def draw(self, screen):
         """Desenha todos os elementos da UI de XP na tela."""

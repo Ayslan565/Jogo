@@ -36,7 +36,7 @@ except ImportError as e:
 class Arvore_Maldita(InimigoBase):
     sprites_idle_arvore_carregados = None
     sprites_ataque_principal_arvore_carregados = None
-    tamanho_sprite_definido = (250, 300)
+    tamanho_sprite_definido = (500, 400)
 
     som_ataque_arvore, som_dano_arvore, som_morte_arvore = None, None, None
     sons_carregados = False

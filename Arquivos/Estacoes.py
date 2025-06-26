@@ -43,7 +43,7 @@ class Estacoes:
         self.chefe_pendente = False
         
         self._carregar_recursos_estacao(self.indice_estacao_atual)
-        print(f"DEBUG(Estacoes): Iniciando na estação: {self.nome_estacao_atual()}")
+        #print(f"DEBUG(Estacoes): Iniciando na estação: {self.nome_estacao_atual()}")
 
     def nome_estacao_atual(self):
         return self.nomes_estacoes_ordem[self.indice_estacao_atual]
@@ -95,7 +95,7 @@ class Estacoes:
         if tempo_atual - self.ultimo_tempo_troca_timestamp > self.tempo_troca_estacao_seg:
             if not self.chefe_pendente:
                 self.chefe_pendente = True
-                print(f"DEBUG(Estacoes): Fim da estação '{self.nome_estacao_atual()}'. Sinalizando para iniciar luta contra chefe.")
+                #print(f"DEBUG(Estacoes): Fim da estação '{self.nome_estacao_atual()}'. Sinalizando para iniciar luta contra chefe.")
                 return "INICIAR_LUTA_CHEFE"
         return False
 
@@ -104,7 +104,7 @@ class Estacoes:
         Avança para a próxima estação após a derrota de um chefe.
         """
         if self.chefe_pendente:
-            print(f"DEBUG(Estacoes): Chefe da estação '{self.nome_estacao_atual()}' derrotado. Avançando para a próxima estação.")
+           # print(f"DEBUG(Estacoes): Chefe da estação '{self.nome_estacao_atual()}' derrotado. Avançando para a próxima estação.")
             self.chefe_pendente = False
             
             self.indice_estacao_atual = (self.indice_estacao_atual + 1) % len(self.nomes_estacoes_ordem)

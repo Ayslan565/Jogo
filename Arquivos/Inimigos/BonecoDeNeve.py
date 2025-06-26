@@ -167,13 +167,11 @@ class BonecoDeNeve(InimigoBase):
         if self.is_preparing_attack:
             if agora - self.attack_prepare_start_time >= self.attack_prepare_duration:
                 if jogador_valido and ProjetilNeve is not None:
-                    # --- CORREÇÃO APLICADA AQUI ---
-                    # Passa as coordenadas do jogador como alvo, e não o objeto.
                     novo_projetil = ProjetilNeve(
                         x_origem=self.rect.centerx, 
                         y_origem=self.rect.centery,
-                        x_alvo=player.rect.centerx, # Coordenada X do alvo
-                        y_alvo=player.rect.centery, # Coordenada Y do alvo
+                        x_alvo=player.rect.centerx,
+                        y_alvo=player.rect.centery,
                         dano=self.attack_damage, 
                         velocidade=self.velocidade_projetil
                     )
@@ -188,11 +186,16 @@ class BonecoDeNeve(InimigoBase):
             self.is_preparing_attack = True
             self.attack_prepare_start_time = agora
 
+        # --- LÓGICA DE MOVIMENTO CORRIGIDA ---
         if not self.is_preparing_attack and jogador_valido:
-            if distancia_ao_jogador < 150: 
-                 self.velocidade *= -1 
-                 self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
-                 self.velocidade *= -1
+            # Se estiver muito perto, foge do jogador
+            if distancia_ao_jogador < 150:
+                # Calcula o vetor de fuga (direção oposta ao jogador)
+                fuga_x = self.rect.centerx - player.rect.centerx
+                fuga_y = self.rect.centery - player.rect.centery
+                # Move na direção de fuga
+                self.mover_em_direcao(self.rect.centerx + fuga_x, self.rect.centery + fuga_y, dt_ms)
+            # Se estiver longe, se aproxima
             elif distancia_ao_jogador > self.attack_range:
                  self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
 

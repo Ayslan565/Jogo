@@ -82,11 +82,11 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
     # Aumenta a velocidade do jogador para a luta
     if hasattr(jogador, 'velocidade'):
         _velocidade_original_jogador = jogador.velocidade
-        jogador.velocidade *= 5.25 
-        print(f"DEBUG(Luta_boss): Velocidade do jogador aumentada para {jogador.velocidade}")
+        jogador.velocidade *= 4.25 
+        #print(f"DEBUG(Luta_boss): Velocidade do jogador aumentada para {jogador.velocidade}")
 
     # Define a arena circular
-    _arena_raio = min(largura_tela, altura_tela) * 0.95
+    _arena_raio = min(largura_tela, altura_tela) * 0.90
     _arena_centro = (jogador.x, jogador.y)
     
     # Carrega a textura da arena baseada na estação
@@ -144,13 +144,14 @@ def iniciar_luta_chefe(jogador, indice_estacao, gerenciador_inimigos, estacoes_o
 def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
     """
     Finaliza a luta, restaura o estado do jogador e do jogo.
+    O avanço da estação é tratado pelo loop principal do jogo (Game.py).
     """
     global _luta_ativa, _arena_centro, _arena_raio, _chefe_atual, _musica_normal_anterior_pos, _musica_normal_anterior_path, _arena_chao_textura, _jogador_em_luta, _velocidade_original_jogador
 
     # Restaura a velocidade original do jogador
     if hasattr(jogador, 'velocidade') and _velocidade_original_jogador is not None:
         jogador.velocidade = _velocidade_original_jogador
-        print(f"DEBUG(Luta_boss): Velocidade do jogador restaurada para {jogador.velocidade}")
+        #print(f"DEBUG(Luta_boss): Velocidade do jogador restaurada para {jogador.velocidade}")
         _velocidade_original_jogador = None
 
     # Reseta as variáveis de estado da luta
@@ -184,11 +185,11 @@ def finalizar_luta_chefe(jogador, estacoes_obj, gerenciador_inimigos):
     _musica_normal_anterior_path = None
     _musica_normal_anterior_pos = None
 
-    # Avança para a próxima estação
-    if hasattr(estacoes_obj, 'avancar_estacao_apos_chefe'): 
-        estacoes_obj.avancar_estacao_apos_chefe()
-    else:
-        print("AVISO (Luta_boss.py): Objeto de estações não possui 'avancar_estacao_apos_chefe'.")
+    # MODIFICAÇÃO: A linha abaixo foi removida.
+    # O avanço da estação agora é de responsabilidade exclusiva do Game.py
+    # para garantir que a atualização das árvores ocorra na sequência correta.
+    # if hasattr(estacoes_obj, 'avancar_estacao_apos_chefe'): 
+    #     estacoes_obj.avancar_estacao_apos_chefe()
 
     # Reativa o spawn de inimigos normais
     gerenciador_inimigos.pausar_spawn_normal(False)
@@ -242,12 +243,12 @@ def desenhar_efeitos_arena(surface, camera_x, camera_y):
     surface.fill((0, 0, 0)) # Fundo preto fora da arena
 
     # Desenha o chão da arena (textura ou cor sólida)
-    arena_surf = pygame.Surface((_arena_raio * 2, _arena_raio * 2), pygame.SRCALPHA)
+    arena_surf = pygame.Surface((int(_arena_raio * 2), int(_arena_raio * 2)), pygame.SRCALPHA)
     if _arena_chao_textura:
-        pygame.draw.circle(arena_surf, (255, 255, 255), (_arena_raio, _arena_raio), _arena_raio)
+        pygame.draw.circle(arena_surf, (255, 255, 255), (int(_arena_raio), int(_arena_raio)), int(_arena_raio))
         arena_surf.blit(_arena_chao_textura, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
     else:
-        pygame.draw.circle(arena_surf, _cor_fallback_chao, (_arena_raio, _arena_raio), _arena_raio)
+        pygame.draw.circle(arena_surf, _cor_fallback_chao, (int(_arena_raio), int(_arena_raio)), int(_arena_raio))
 
     pos_chao_x = _arena_centro[0] - _arena_raio - camera_x
     pos_chao_y = _arena_centro[1] - _arena_raio - camera_y
@@ -288,7 +289,7 @@ def resetar_estado_luta_boss():
     """Reseta todas as variáveis de estado do módulo para um novo jogo."""
     global _luta_ativa, _arena_centro, _arena_raio, _chefe_atual, _musica_normal_anterior_pos, _musica_normal_anterior_path, _arena_chao_textura, _jogador_em_luta, _velocidade_original_jogador
     
-    print("DEBUG(Luta_boss.py): Resetando estado da luta de chefe.")
+    #print("DEBUG(Luta_boss.py): Resetando estado da luta de chefe.")
     _luta_ativa = False
     _arena_centro = (0, 0)
     _arena_raio = 0

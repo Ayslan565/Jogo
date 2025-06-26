@@ -163,7 +163,7 @@ class Golem_Neve(InimigoBase):
             Golem_Neve.sons_carregados = True
 
 
-    def __init__(self, x, y, velocidade=1):
+    def __init__(self, x, y, velocidade=5):
         Golem_Neve.carregar_recursos_golem_neve()
 
         vida_golem = 350
