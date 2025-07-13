@@ -1,11 +1,10 @@
 # Arquivo: Game.py (Finalizado com a Lógica da Boss Fight e Reset)
 
-import pygame
-import random
-import sys
 import os
-import traceback # Importa o módulo traceback
-import math # Importado para o ciclo de dia/noite
+import sys
+import traceback  # Importa o módulo traceback
+
+import pygame
 
 # --- Configuração do sys.path ---
 # Garante que os módulos do projeto possam ser encontrados
@@ -578,8 +577,8 @@ if __name__ == "__main__":
             f.write(exc_text)
         sys.exit()
     # ... (outros métodos em Game.py) ...
-
     def _atualizar_logica(self):
+        
         agora = pygame.time.get_ticks()
         if agora - self.ultimo_clima_update > self.intervalo_clima:
             self.evento_climatico_atual = self.gerador_clima.gerar_evento_aleatorio()

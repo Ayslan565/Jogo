@@ -33,7 +33,7 @@ class Estacoes:
         
         # MODIFICAÇÃO: Inicia sempre na Primavera (índice 0)
         self.indice_estacao_atual = 0 # random.randint(0, 3)
-        self.tempo_troca_estacao_seg = 60 # Tempo de duração de cada estação em segundos
+        self.tempo_troca_estacao_seg = 10# Tempo de duração de cada estação em segundos
         self.ultimo_tempo_troca_timestamp = time.time()
         
         self.mensagem_estacao_atual = ""
