@@ -224,7 +224,10 @@ class Morte(InimigoBase):
                 self.sprites = self.sprites_atacar_anim 
                 self.intervalo_animacao = self.intervalo_animacao_atacar
                 self.sprite_index = 0
-                self.attack_hitbox = pygame.Rect(0, 0, *self.attack_hitbox_size) 
+                # Hitbox igual ao tamanho do sprite, reduzido para evitar espaços vazios
+                largura = int(self.rect.width * 0.85)
+                altura = int(self.rect.height * 0.85)
+                self.attack_hitbox = pygame.Rect(0, 0, largura, altura)
                 self.attack_hitbox.center = self.rect.center
 
     def update(self, player, projeteis_inimigos_ref=None, tela_largura=None, altura_tela=None, dt_ms=None):

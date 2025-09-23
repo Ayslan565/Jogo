@@ -49,7 +49,7 @@ class Player(pygame.sprite.Sprite):
     Classe que representa o jogador no jogo.
     Gerencia movimento, animações, vida, a arma equipada, e invencibilidade temporária.
     """
-    def __init__(self, velocidade=15, vida_maxima=150):
+    def __init__(self, velocidade=15, vida_maxima=950):
         super().__init__()
 
         # Posição inicial aleatória (ajuste para posição definida se necessário)
@@ -70,7 +70,6 @@ class Player(pygame.sprite.Sprite):
             self.vida = Vida(vida_maxima)
         else:
             self.vida = None # Objeto Vida não disponível
-            print("DEBUG(Player): ERRO CRÍTICO: Classe Vida não disponível. Funcionalidades de vida estarão ausentes.")
 
         self.nivel = 1
         self.experiencia = 0
@@ -124,7 +123,6 @@ class Player(pygame.sprite.Sprite):
         if 'AdagaFogo' in globals() and AdagaFogo is not None:
             try:
                 self.current_weapon = AdagaFogo()
-                print(f"DEBUG(Player Init): Arma inicial '{self.current_weapon.name}' instanciada.")
             except Exception as e_init_weapon:
                 self.current_weapon = None
                 print(f"ERRO(Player Init): Falha ao instanciar AdagaFogo inicial: {e_init_weapon}")
@@ -176,7 +174,6 @@ class Player(pygame.sprite.Sprite):
         if isinstance(weapon_object, Weapon):
             self.current_weapon = weapon_object
             self.tempo_ultimo_ataque = time.time()
-            print(f"DEBUG(Player.equip_weapon): Arma '{self.current_weapon.name}' equipada.")
         else:
             print(f"ALERTA(Player.equip_weapon): Tentativa de equipar objeto inválido: {type(weapon_object)}. Esperava-se um objeto Weapon.")
 
@@ -190,20 +187,17 @@ class Player(pygame.sprite.Sprite):
 
         if hasattr(weapon_object, '_base_name'):
             if any(hasattr(w, '_base_name') and w._base_name == weapon_object._base_name for w in self.owned_weapons if w is not None):
-                print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' (ou uma versão dela) já está no inventário.")
                 return False
         
         try:
             index_vazio = self.owned_weapons.index(None)
             self.owned_weapons[index_vazio] = weapon_object
-            print(f"DEBUG(Player.add_owned_weapon): Arma '{weapon_object.name}' adicionada ao inventário no espaço {index_vazio}.")
             
             if self.current_weapon is None:
                 self.equip_weapon(weapon_object)
             
             return True
         except ValueError:
-            print(f"DEBUG(Player.add_owned_weapon): Inventário de armas cheio (4/4). Não foi possível adicionar '{weapon_object.name}'.")
             return False
 
     def _carregar_sprites(self, caminhos, tamanho, nome_conjunto):
@@ -224,12 +218,10 @@ class Player(pygame.sprite.Sprite):
                 sprite = pygame.transform.scale(sprite, tamanho)
                 sprites.append(sprite)
             except pygame.error as e:
-                print(f"DEBUG(Player._carregar_sprites): Erro ao carregar sprite '{full_path}' para '{nome_conjunto}': {e}")
                 placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((255,0,255, 100))
                 sprites.append(placeholder)
         
         if not sprites:
-            print(f"ALERTA GRAVE(Player._carregar_sprites): Nenhum sprite carregado para '{nome_conjunto}'.")
             placeholder = pygame.Surface(tamanho, pygame.SRCALPHA); placeholder.fill((255,0,0, 150))
             sprites.append(placeholder)
         return sprites
@@ -245,14 +237,11 @@ class Player(pygame.sprite.Sprite):
             self.tempo_para_proximo_pisca_dano = self.tempo_ultimo_dano_levado + self.intervalo_pisca_dano_ms
             
             if not self.esta_vivo():
-                print("DEBUG(Player): Jogador morreu.")
+                print(" Jogador morreu.")
     
     def receber_cura(self, valor_cura):
         if self.vida is not None and hasattr(self.vida, 'curar'):
             self.vida.curar(valor_cura)
-            print(f"DEBUG(Player): Jogador curado em {valor_cura} pontos. Vida atual: {self.vida.vida_atual}")
-        else:
-            print("ALERTA(Player.receber_cura): Objeto Vida ou método 'curar' não disponível.")
     
     def aplicar_efeito_cogumelo(self, tipo_efeito, duracao, magnitude):
         agora = time.time()
@@ -264,13 +253,11 @@ class Player(pygame.sprite.Sprite):
             self.velocidade = self.velocidade_original * (1 - magnitude)
             self.tempo_fim_efeito_lentidao = agora + duracao
             self.tempo_fim_efeito_rapidez = 0
-            print(f"DEBUG(Player): Efeito de lentidão aplicado. Nova velocidade: {self.velocidade:.2f}")
 
         elif tipo_efeito == 'rapidez':
             self.velocidade = self.velocidade_original * (1 + magnitude)
             self.tempo_fim_efeito_rapidez = agora + duracao
             self.tempo_fim_efeito_lentidao = 0
-            print(f"DEBUG(Player): Efeito de rapidez aplicado. Nova velocidade: {self.velocidade:.2f}")
 
     def update(self, dt_ms=None, teclas_pressionadas=None):
         agora_ticks = pygame.time.get_ticks()
@@ -285,12 +272,10 @@ class Player(pygame.sprite.Sprite):
         if self.tempo_fim_efeito_lentidao > 0 and agora_time >= self.tempo_fim_efeito_lentidao:
             self.velocidade = self.velocidade_original
             self.tempo_fim_efeito_lentidao = 0
-            print("DEBUG(Player): Efeito de lentidão terminou.")
             
         if self.tempo_fim_efeito_rapidez > 0 and agora_time >= self.tempo_fim_efeito_rapidez:
             self.velocidade = self.velocidade_original
             self.tempo_fim_efeito_rapidez = 0
-            print("DEBUG(Player): Efeito de rapidez terminou.")
 
         if self.is_invencivel_piscando:
             if agora_ticks >= self.tempo_para_proximo_pisca_dano:
@@ -489,7 +474,6 @@ class Player(pygame.sprite.Sprite):
                     if not self.add_owned_weapon(nova_arma_evoluida_inst):
                         print(f"ALERTA(Player.evoluir_arma_atual): Não foi possível adicionar '{nova_arma_evoluida_inst.name}' a owned_weapons.")
                 
-                print(f"DEBUG(Player.evoluir_arma_atual): Arma '{getattr(arma_antiga_instancia, 'name', 'N/A')}' evoluiu para '{nova_arma_evoluida_inst.name}'.")
                 return nova_arma_evoluida_inst.name
             except Exception as e: 
                 print(f"ERRO(Player.evoluir_arma_atual): Erro ao instanciar evolução '{NovaClasseArmaEvoluida.__name__}': {e}")
@@ -497,7 +481,6 @@ class Player(pygame.sprite.Sprite):
 
     def ganhar_xp_chefe(self, xp_amount):
         if self.xp_manager and hasattr(self.xp_manager, 'gain_xp'):
-            print(f"DEBUG(Player): Ganhando {xp_amount} de XP do chefe.")
             self.xp_manager.gain_xp(xp_amount)
         else:
             print(f"ALERTA(Player): xp_manager não configurado. Não foi possível adicionar {xp_amount} de XP do chefe.")

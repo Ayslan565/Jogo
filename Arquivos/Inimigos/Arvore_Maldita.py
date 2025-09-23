@@ -36,7 +36,8 @@ except ImportError as e:
 class Arvore_Maldita(InimigoBase):
     sprites_idle_arvore_carregados = None
     sprites_ataque_principal_arvore_carregados = None
-    tamanho_sprite_definido = (500, 400)
+    # Corrija o tamanho do sprite para um valor menor e mais adequado
+    tamanho_sprite_definido = (420, 420)
 
     som_ataque_arvore, som_dano_arvore, som_morte_arvore = None, None, None
     sons_carregados = False
@@ -87,7 +88,6 @@ class Arvore_Maldita(InimigoBase):
         self.moedas_drop = 1500
         self.xp_value_boss = xp_arvore # Usado pela lógica de chefe em luta_boss.py
         sprite_path_principal_relativo_jogo = "Sprites/Inimigos/Arvore Maldita/Arvore Maldita1.png"
-
         super().__init__(
             x, y,
             Arvore_Maldita.tamanho_sprite_definido[0], Arvore_Maldita.tamanho_sprite_definido[1],
@@ -118,7 +118,8 @@ class Arvore_Maldita(InimigoBase):
         self.attack_principal_duration = 1.8
         self.attack_principal_timer = 0.0
         self.attack_principal_damage = 50
-        self.attack_principal_range = Arvore_Maldita.tamanho_sprite_definido[0] * 0.8
+        # Ajuste o cálculo do range e hitbox para o novo tamanho
+        self.attack_principal_range = Arvore_Maldita.tamanho_sprite_definido[0] * 0.4
         self.attack_principal_cooldown = 4.0
         self.last_attack_principal_time = pygame.time.get_ticks() - int(self.attack_principal_cooldown * 1000 * 0.75)
         self.attack_principal_hitbox_size = (Arvore_Maldita.tamanho_sprite_definido[0] * 0.4, Arvore_Maldita.tamanho_sprite_definido[1] * 0.3)

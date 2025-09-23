@@ -196,13 +196,16 @@ class Vampiro(InimigoBase):
             else:
                 # Verifica a colisão durante o ataque (apenas uma vez por ataque)
                 if not self.hit_player_this_attack:
-                    # Cria uma hitbox de ataque temporária à frente do vampiro
-                    hitbox_offset_x = 30 if self.facing_right else -30
-                    attack_hitbox = pygame.Rect(
-                        self.rect.centerx + hitbox_offset_x - 20,
-                        self.rect.centery - 25,
-                        40, 50
-                    )
+                    # Hitbox igual ao tamanho do sprite, reduzido para evitar espaços vazios
+                    largura = int(self.rect.width * 0.9)
+                    altura = int(self.rect.height * 0.9)
+                    attack_hitbox = pygame.Rect(0, 0, largura, altura)
+                    attack_hitbox.center = self.rect.center
                     if attack_hitbox.colliderect(player.rect):
                         player.receber_dano(self.attack_damage, self.rect)
                         self.hit_player_this_attack = True
+        else:
+            # Permite que o vampiro ande em direção ao jogador
+            self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)
+
+        self.atualizar_animacao()

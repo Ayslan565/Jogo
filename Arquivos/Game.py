@@ -3,7 +3,7 @@
 import os
 import sys
 import traceback  # Importa o módulo traceback
-
+from Transicoes import *
 import pygame
 
 # --- Configuração do sys.path ---
@@ -403,9 +403,10 @@ def main():
         if mixer_initialized: tocar_musica_jogo()
         
         running_loop = True
+        popup = PopupMensagem("A batalha está mudando", duracao=3.0)
+        contagem = ContagemRegressiva(segundos=5)
         while running_loop:
             dt_ms = clock.tick(60)
-            
             cam_x = jogador.rect.centerx - largura_tela // 2
             cam_y = jogador.rect.centery - altura_tela // 2
 
@@ -471,8 +472,30 @@ def main():
                             projetil.kill()
 
                 sinal_estacoes = est.atualizar_ciclo_estacoes() if est else None
-                
+
+                # MODIFICAÇÃO: NÃO pausar durante popup/contagem, só durante loading
                 if sinal_estacoes == "INICIAR_LUTA_CHEFE" and not esta_luta_ativa():
+                    popup.iniciar()
+                    # Durante popup, permite movimento do player e atualiza normalmente
+                    while popup.ativo:
+                        teclas = pygame.key.get_pressed()
+                        jogador.update(dt_ms, teclas)
+                        # Atualize outros elementos do jogo normalmente aqui, se necessário
+                        popup.desenhar(janela)
+                        pygame.display.flip()
+                        clock.tick(60)
+                    contagem.iniciar()
+                    while contagem.ativo:
+                        teclas = pygame.key.get_pressed()
+                        jogador.update(dt_ms, teclas)
+                        # Atualize outros elementos do jogo normalmente aqui, se necessário
+                        contagem.desenhar(janela)
+                        pygame.display.flip()
+                        clock.tick(60)
+                    # Só pausa elementos durante loading!
+                    pausar_elementos_jogo(locals())
+                    exibir_tela_loading(janela, clock, texto="Preparando Boss...", duracao=2.0)
+                    despausar_elementos_jogo(locals())
                     if gerenciador_eventos: gerenciador_eventos.interromper_evento_climatico()
                     if shop_elements: shop_elements.despawn_loja_imediatamente()
                     iniciar_luta_chefe(
@@ -482,28 +505,34 @@ def main():
                         musica_atual_path=musica_gameplay_atual_path,
                         musica_atual_pos_ms=pygame.mixer.music.get_pos() if mixer_initialized else 0
                     )
-                
+
                 if gerenciador_inimigos:
                     gerenciador_inimigos.update_inimigos(jogador, dt_ms)
                     gerenciador_inimigos.update_projeteis_inimigos(jogador, dt_ms)
 
+                # MODIFICAÇÃO: Pós boss fight, só pausa durante loading
                 if esta_luta_ativa():
                     sinal_luta = atualizar_luta(jogador, est, gerenciador_inimigos)
-                    
-                    # MODIFICAÇÃO: Lógica refatorada para atualizar as árvores
                     if sinal_luta == "FIM_DA_LUTA":
+                        contagem.iniciar()
+                        while contagem.ativo:
+                            teclas = pygame.key.get_pressed()
+                            jogador.update(dt_ms, teclas)
+                            contagem.desenhar(janela)
+                            pygame.display.flip()
+                            clock.tick(60)
+                        pausar_elementos_jogo(locals())
+                        exibir_tela_loading(janela, clock, texto="Retornando ao mapa...", duracao=2.0)
+                        despausar_elementos_jogo(locals())
                         mudou_de_estacao = est.avancar_estacao_apos_chefe()
                         if mudou_de_estacao:
-                            # Chama a função auxiliar para atualizar todas as árvores
                             atualizar_todas_as_arvores(arvores, est.indice_estacao_atual)
-                        
                         if gerenciador_eventos: 
                             gerenciador_eventos.reativar_eventos_climaticos()
 
-                    jogador.mover(teclas, [])
-                    jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
-                    verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
-                else:
+                # --- Player pode andar durante boss fight normalmente ---
+                # (Nada a mudar aqui, pois já é padrão. Se quiser reforçar, pode garantir que o update/mover do player não é bloqueado)
+                if not esta_luta_ativa():
                     jogador.mover(teclas, arvores)
                     if gerenciador_eventos:
                         gerenciador_eventos.atualizar_clima()
@@ -535,6 +564,11 @@ def main():
                             if mixer_initialized: pygame.mixer.music.unpause()
                             shop_elements.reset_shop_spawn()
                             jogo_pausado = False
+                else:
+                    # Durante boss fight, permite movimento do player
+                    jogador.mover(teclas, [])
+                    jogador.atacar(list(gerenciador_inimigos.inimigos), dt_ms)
+                    verificar_colisoes_com_inimigos(gerenciador_inimigos, jogador)
 
             # --- VERIFICAÇÕES FINAIS E DESENHO (RODAM MESMO SE PAUSADO) ---
             if not jogador.esta_vivo():
@@ -547,11 +581,14 @@ def main():
                           cam_x, cam_y, tempo_seg, timer_obj, dt_ms, jogo_pausado,
                           gerador_cogumelos, gerenciador_eventos, gerador_xp)
 
+            # --- NOVO: Desenhar popup e contagem se ativos ---
+            popup.desenhar(janela)
+            contagem.desenhar(janela)
+
             if jogo_pausado and barra_inventario and barra_inventario.visao_inventario_aberta:
                 barra_inventario.desenhar(janela, jogador)
 
             pygame.display.flip()
-
         if jogador_morreu and run_death_screen:
             run_death_screen(janela, main, main, DEATH_SCREEN_BACKGROUND_IMAGE)
 
@@ -606,4 +643,3 @@ if __name__ == "__main__":
             if self.evento_climatico_atual:
                 self.evento_climatico_atual.update(self.tela)
 
-# ... (resto do código) ...

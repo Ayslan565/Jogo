@@ -130,6 +130,9 @@ class BonecoDeNeve(InimigoBase):
         self.is_preparing_attack = False
         self.attack_prepare_start_time = 0
 
+        self.fuga_cooldown_ms = 400  # Tempo mínimo entre trocas de direção de fuga
+        self.ultimo_fuga_tick = pygame.time.get_ticks()
+
     def mover_em_direcao(self, ax, ay, dt_ms):
         if dt_ms is None or dt_ms <= 0:
             return
@@ -190,11 +193,13 @@ class BonecoDeNeve(InimigoBase):
         if not self.is_preparing_attack and jogador_valido:
             # Se estiver muito perto, foge do jogador
             if distancia_ao_jogador < 150:
-                # Calcula o vetor de fuga (direção oposta ao jogador)
-                fuga_x = self.rect.centerx - player.rect.centerx
-                fuga_y = self.rect.centery - player.rect.centery
-                # Move na direção de fuga
-                self.mover_em_direcao(self.rect.centerx + fuga_x, self.rect.centery + fuga_y, dt_ms)
+                agora_tick = pygame.time.get_ticks()
+                if agora_tick - self.ultimo_fuga_tick > self.fuga_cooldown_ms:
+                    fuga_x = self.rect.centerx - player.rect.centerx
+                    fuga_y = self.rect.centery - player.rect.centery
+                    self.mover_em_direcao(self.rect.centerx + fuga_x, self.rect.centery + fuga_y, dt_ms)
+                    self.ultimo_fuga_tick = agora_tick
+                # Se estiver dentro do cooldown, apenas mantém posição (não move)
             # Se estiver longe, se aproxima
             elif distancia_ao_jogador > self.attack_range:
                  self.mover_em_direcao(player.rect.centerx, player.rect.centery, dt_ms)

@@ -265,6 +265,14 @@ class GerenciadorDeInimigos:
             self.ultima_posicao_jogador = pygame.math.Vector2(jogador.rect.center)
         ### LÓGICA DA HORDA: FIM ###
         
+        # --- FILTRO DE INIMIGOS DURANTE BOSS FIGHT ---
+        from Luta_boss import esta_luta_ativa
+        if esta_luta_ativa():
+            # Só atualiza o chefe ativo, ignora outros inimigos
+            if self.grupo_chefe_ativo.sprite:
+                self.grupo_chefe_ativo.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
+            return
+        
         self.inimigos.update(jogador, self.projeteis_inimigos, self.tela_largura, self.altura_tela, dt_ms)
         self._resolver_colisoes_entre_inimigos()
         

@@ -17,13 +17,10 @@ def run_death_screen(janela, restart_game_callback, main_menu_callback, backgrou
     try:
         if os.path.exists(FONTE_RETRO_PATH):
             fonte = pygame.font.Font(FONTE_RETRO_PATH, 45)
-            print(f"DEBUG(death_screen): Fonte personalizada carregada: {FONTE_RETRO_PATH}")
         else:
             fonte = pygame.font.Font(None, 45)
-            print(f"DEBUG(death_screen): Aviso: Fonte personalizada não encontrada em '{FONTE_RETRO_PATH}'. Usando fonte padrão.")
     except Exception as e:
         fonte = pygame.font.Font(None, 45)
-        print(f"DEBUG(death_screen): Erro ao carregar fonte personalizada: {e}. Usando fonte padrão.")
     
     # Cores
     ORANGE = (255, 165, 0) # Cor laranja
@@ -43,15 +40,11 @@ def run_death_screen(janela, restart_game_callback, main_menu_callback, backgrou
             original_background_image = pygame.image.load(background_image_path).convert_alpha() # Usar convert_alpha para transparência
             # Escala a imagem para preencher a tela
             original_background_image = pygame.transform.scale(original_background_image, (janela.get_width(), janela.get_height()))
-            print(f"DEBUG(death_screen): Imagem de fundo da tela de morte carregada: {background_image_path}")
         except pygame.error as e:
-            print(f"DEBUG(death_screen): Erro ao carregar imagem de fundo da tela de morte '{background_image_path}': {e}")
             original_background_image = None
-        #print(f"DEBUG(death_screen): Aviso: Caminho da imagem de fundo da tela de morte não encontrado ou não fornecido: {background_image_path}")
 
     # Para a música do jogo atual (se estiver tocando)
     pygame.mixer.music.stop()
-    print("DEBUG(death_screen): Música do jogo parada.")
 
     # Variáveis para o efeito de fade-in
     alpha = 0 # Começa totalmente transparente
@@ -135,7 +128,6 @@ def run_death_screen(janela, restart_game_callback, main_menu_callback, backgrou
                     pygame.mixer.music.load(DEATH_SCREEN_MUSIC_PATH)
                     pygame.mixer.music.play(-1) # Toca a música em loop infinito
                     music_started = True
-                    print(f"DEBUG(death_screen): Música da tela de morte carregada e tocando após atraso: {DEATH_SCREEN_MUSIC_PATH}")
                 except pygame.error as e:
                     print(f"DEBUG(death_screen): Erro ao carregar ou tocar a música da tela de morte '{DEATH_SCREEN_MUSIC_PATH}': {e}")
             else:
