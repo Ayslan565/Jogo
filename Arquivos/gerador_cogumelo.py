@@ -139,6 +139,3 @@ class GeradorCogumelos:
                 if hasattr(jogador_ref, 'velocidade_original') and hasattr(jogador_ref, 'velocidade'):
                     jogador_ref.velocidade = jogador_ref.velocidade_original
                     jogador_ref.tempo_fim_efeito_rapidez = 0
-
-    # --- REMOVIDO: O método 'desenhar_cogumelos' foi removido por ser redundante.
-    # A lógica de desenho já é tratada no loop principal de 'Game.py'.
